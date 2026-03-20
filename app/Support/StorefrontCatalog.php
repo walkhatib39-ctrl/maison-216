@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Room;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 
 class StorefrontCatalog
@@ -219,8 +220,31 @@ class StorefrontCatalog
     protected function resolveRoomImage(Room $room): ?string
     {
         $categoryImage = $room->categories->first()?->featured_image;
-        if (!empty($categoryImage)) {
+        if ($this->isUsableImagePath($categoryImage)) {
             return $categoryImage;
+        }
+
+        $typeIds = $room->productTypes->pluck('id')->filter()->values();
+
+        if ($typeIds->isNotEmpty()) {
+            $prioritySql = $typeIds
+                ->map(fn (int $id, int $index) => "WHEN product_type_id = {$id} THEN {$index}")
+                ->implode(' ');
+
+            $typedImage = Product::query()
+                ->where('room_id', $room->id)
+                ->whereIn('product_type_id', $typeIds)
+                ->where('is_active', true)
+                ->whereNotNull('main_image')
+                ->where('main_image', '!=', '')
+                ->orderByRaw("CASE {$prioritySql} ELSE 999 END")
+                ->latest('updated_at')
+                ->pluck('main_image')
+                ->first(fn (?string $path) => $this->isUsableImagePath($path));
+
+            if ($this->isUsableImagePath($typedImage)) {
+                return $typedImage;
+            }
         }
 
         return Product::query()
@@ -228,12 +252,13 @@ class StorefrontCatalog
             ->where('is_active', true)
             ->whereNotNull('main_image')
             ->where('main_image', '!=', '')
-            ->value('main_image');
+            ->pluck('main_image')
+            ->first(fn (?string $path) => $this->isUsableImagePath($path));
     }
 
     protected function resolveCategoryImage(Category $category): ?string
     {
-        if (!empty($category->featured_image)) {
+        if ($this->isUsableImagePath($category->featured_image)) {
             return $category->featured_image;
         }
 
@@ -242,9 +267,10 @@ class StorefrontCatalog
             ->where('is_active', true)
             ->whereNotNull('main_image')
             ->where('main_image', '!=', '')
-            ->value('main_image');
+            ->pluck('main_image')
+            ->first(fn (?string $path) => $this->isUsableImagePath($path));
 
-        if ($directImage) {
+        if ($this->isUsableImagePath($directImage)) {
             return $directImage;
         }
 
@@ -259,6 +285,22 @@ class StorefrontCatalog
             ->where('is_active', true)
             ->whereNotNull('main_image')
             ->where('main_image', '!=', '')
-            ->value('main_image');
+            ->pluck('main_image')
+            ->first(fn (?string $path) => $this->isUsableImagePath($path));
+    }
+
+    protected function isUsableImagePath(?string $path): bool
+    {
+        if (blank($path)) {
+            return false;
+        }
+
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return true;
+        }
+
+        $relativePath = ltrim(parse_url($path, PHP_URL_PATH) ?: $path, '/');
+
+        return is_file(public_path($relativePath));
     }
 }

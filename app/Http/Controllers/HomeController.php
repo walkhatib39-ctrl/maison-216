@@ -31,25 +31,24 @@ class HomeController extends Controller
             'atelierCapabilities' => collect([
                 [
                     'title' => 'Menuiserie bois',
-                    'copy' => 'Dressing, chambre, meuble TV, cuisine, rangements et compositions complètes.',
+                    'copy' => 'Chambres, dressings, meubles TV, rangements, bureaux et compositions pensées pour le quotidien.',
                 ],
                 [
                     'title' => 'Menuiserie aluminium',
-                    'copy' => 'Portes, fenêtres, vitrines, verrières et solutions techniques pour habitat ou commerce.',
+                    'copy' => 'Portes, fenêtres, vitrines et verrières pour la maison comme pour le commerce.',
                 ],
                 [
                     'title' => 'Travail de fer',
-                    'copy' => 'Structures, garde-corps, pergolas, portails et finitions métalliques sur mesure.',
+                    'copy' => 'Portails, pergolas, garde-corps et finitions métal sur mesure.',
                 ],
             ]),
             'trustHighlights' => collect([
-                'Atelier réel en Tunisie',
-                'Livraison sur tout le territoire',
-                'Paiement à la livraison selon le produit',
-                'Accompagnement WhatsApp et devis rapide',
+                'Livraison à domicile',
+                'Paiement à la livraison',
+                'Made in Tunisia',
             ]),
             'title' => 'Accueil',
-            'metaDescription' => 'Maison 216 conçoit et vend des meubles en Tunisie. Achetez par élément, composez votre pièce ou lancez un projet sur mesure en bois, aluminium ou fer.',
+            'metaDescription' => 'Maison 216 vous aide à trouver les bons meubles pour chaque pièce et vous accompagne aussi sur les projets sur mesure en Tunisie.',
             'ogType' => 'website',
             'ogImage' => \App\Models\Setting::get('seo.og_image') ?? \App\Models\Setting::get('ui.logo'),
         ]);
