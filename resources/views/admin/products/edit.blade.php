@@ -1,4 +1,8 @@
 <x-app-layout>
+    @php
+        $selectedCollectionIds = collect(old('collection_ids', $product->collections->pluck('id')->all()));
+    @endphp
+
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -56,6 +60,56 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700">Univers</label>
+                        <select name="room_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">— Aucun —</option>
+                            @foreach($rooms as $room)
+                                <option value="{{ $room->id }}" @selected(old('room_id', $product->room_id) == $room->id)>{{ $room->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Type de produit</label>
+                        <select name="product_type_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">— Aucun —</option>
+                            @foreach($productTypes as $type)
+                                <option value="{{ $type->id }}" @selected(old('product_type_id', $product->product_type_id) == $type->id)>
+                                    {{ $type->name }}@if($type->room) · {{ $type->room->name }} @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Collection principale</label>
+                        <select name="primary_collection_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">— Aucune —</option>
+                            @foreach($collections as $collection)
+                                <option value="{{ $collection->id }}" @selected(old('primary_collection_id', $product->primary_collection_id) == $collection->id)>
+                                    {{ $collection->name }}@if($collection->room) · {{ $collection->room->name }} @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Collections associées</label>
+                        <select name="collection_ids[]" multiple size="6"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @foreach($collections as $collection)
+                                <option value="{{ $collection->id }}" @selected($selectedCollectionIds->contains($collection->id))>
+                                    {{ $collection->name }}@if($collection->room) · {{ $collection->room->name }} @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="mt-1 text-xs text-gray-500">Ctrl/Cmd pour sélectionner plusieurs collections.</div>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700">Prix (DT)</label>
                         <input required name="price" type="text" value="{{ old('price', (int) floor(($product->price_millimes ?? 0)/1000)) }}"
                                placeholder="Ex: 259 ou 259 DT"
@@ -88,9 +142,42 @@
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
 
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Mode de vente</label>
+                        <select name="sale_mode"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="catalog" @selected(old('sale_mode', $product->sale_mode ?? 'catalog') === 'catalog')>Catalogue simple</option>
+                            <option value="bundle" @selected(old('sale_mode', $product->sale_mode) === 'bundle')>Composition / bundle</option>
+                            <option value="configurable" @selected(old('sale_mode', $product->sale_mode) === 'configurable')>Configurable</option>
+                            <option value="sur_mesure" @selected(old('sale_mode', $product->sale_mode) === 'sur_mesure')>Sur mesure</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Résumé matières</label>
+                        <input name="material_summary" type="text" value="{{ old('material_summary', $product->material_summary) }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Résumé dimensions</label>
+                        <input name="dimension_summary" type="text" value="{{ old('dimension_summary', $product->dimension_summary) }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
                     <div class="flex items-center gap-3">
                         <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', $product->is_active)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <label for="is_active" class="text-sm text-gray-700">Actif</label>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input id="quote_only" name="quote_only" type="checkbox" value="1" @checked(old('quote_only', $product->quote_only)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="quote_only" class="text-sm text-gray-700">Devis uniquement</label>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input id="is_customizable" name="is_customizable" type="checkbox" value="1" @checked(old('is_customizable', $product->is_customizable)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="is_customizable" class="text-sm text-gray-700">Personnalisable</label>
                     </div>
                 </div>
 

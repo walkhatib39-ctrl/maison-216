@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\CatalogCollection;
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\Category;
+use App\Models\ProductType;
+use App\Models\Room;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -19,6 +22,9 @@ class DashboardController extends Controller
 
         $productsCount = Product::count();
         $categoriesCount = Category::count();
+        $roomsCount = Room::count();
+        $productTypesCount = ProductType::count();
+        $collectionsCount = CatalogCollection::count();
         
         // Recent orders for dashboard
         $recentOrders = Order::with(['items.product'])
@@ -36,6 +42,9 @@ class DashboardController extends Controller
             'revenueTotalDT' => $revenueTotalDT,
             'productsCount' => $productsCount,
             'categoriesCount' => $categoriesCount,
+            'roomsCount' => $roomsCount,
+            'productTypesCount' => $productTypesCount,
+            'collectionsCount' => $collectionsCount,
             'recentOrders' => $recentOrders,
         ]);
     }

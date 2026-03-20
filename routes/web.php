@@ -57,6 +57,11 @@ Route::middleware(['auth', 'admin'])
         // Categories Management
         Route::delete('categories/bulk-destroy', [\App\Http\Controllers\Admin\CategoryController::class, 'bulkDestroy'])->name('categories.bulk-destroy');
         Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('product-types', \App\Http\Controllers\Admin\ProductTypeController::class)
+            ->parameters(['product-types' => 'productType'])
+            ->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('collections', \App\Http\Controllers\Admin\CollectionController::class)->only(['index', 'store', 'update', 'destroy']);
 
         // Orders - extra actions
         Route::get('orders/export', [\App\Http\Controllers\Admin\OrderController::class, 'export'])->name('orders.export');

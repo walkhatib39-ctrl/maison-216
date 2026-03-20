@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CatalogCollection;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductType;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -18,11 +21,15 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::query()->with('category');
+        $query = Product::query()
+            ->with(['category', 'room', 'productType', 'primaryCollection'])
+            ->withCount('images');
 
         $filters = [
             'q' => trim((string) $request->get('q', '')),
             'category_id' => $request->get('category_id'),
+            'room_id' => $request->get('room_id'),
+            'product_type_id' => $request->get('product_type_id'),
             'active' => $request->get('active'),
             'brand' => trim((string) $request->get('brand', '')),
         ];
@@ -39,6 +46,14 @@ class ProductController extends Controller
             $query->where('category_id', (int) $filters['category_id']);
         }
 
+        if (!empty($filters['room_id'])) {
+            $query->where('room_id', (int) $filters['room_id']);
+        }
+
+        if (!empty($filters['product_type_id'])) {
+            $query->where('product_type_id', (int) $filters['product_type_id']);
+        }
+
         if ($filters['active'] !== null && $filters['active'] !== '') {
             $query->where('is_active', (int) $filters['active'] === 1);
         }
@@ -49,8 +64,10 @@ class ProductController extends Controller
 
         $products = $query->latest()->paginate(15)->withQueryString();
         $categories = Category::orderBy('name')->get();
+        $rooms = Room::orderBy('position')->orderBy('name')->get();
+        $productTypes = ProductType::with('room')->orderBy('position')->orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'filters', 'categories'));
+        return view('admin.products.index', compact('products', 'filters', 'categories', 'rooms', 'productTypes'));
     }
 
     /**
@@ -59,9 +76,15 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
+        $rooms = Room::where('is_active', true)->orderBy('position')->orderBy('name')->get();
+        $productTypes = ProductType::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
+        $collections = CatalogCollection::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
 
         return view('admin.products.create', [
             'categories' => $categories,
+            'rooms' => $rooms,
+            'productTypes' => $productTypes,
+            'collections' => $collections,
             'product' => new Product(),
         ]);
     }
@@ -74,11 +97,21 @@ class ProductController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'room_id' => ['nullable', 'integer', 'exists:rooms,id'],
+            'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
+            'primary_collection_id' => ['nullable', 'integer', 'exists:collections,id'],
+            'collection_ids' => ['nullable', 'array'],
+            'collection_ids.*' => ['integer', 'exists:collections,id'],
+            'sale_mode' => ['required', 'string', 'in:catalog,bundle,configurable,sur_mesure'],
+            'quote_only' => ['nullable', 'boolean'],
+            'is_customizable' => ['nullable', 'boolean'],
             'price' => ['required', 'string', 'max:50'], // e.g. "259" or "259 DT"
             'compare_at' => ['nullable', 'string', 'max:50'],
             'stock' => ['required', 'integer', 'min:0'],
             'sku' => ['nullable', 'string', 'max:100'],
             'brand' => ['nullable', 'string', 'max:150'],
+            'material_summary' => ['nullable', 'string', 'max:255'],
+            'dimension_summary' => ['nullable', 'string', 'max:255'],
             'main_image_url' => ['nullable', 'url'],
             'main_image_file' => ['nullable', 'image', 'max:4096'],
             'short_description' => ['nullable', 'string'],
@@ -95,11 +128,19 @@ class ProductController extends Controller
         $product = new Product();
         $product->title = $data['title'];
         $product->category_id = $data['category_id'] ?? null;
+        $product->room_id = $data['room_id'] ?? null;
+        $product->product_type_id = $data['product_type_id'] ?? null;
+        $product->primary_collection_id = $data['primary_collection_id'] ?? null;
+        $product->sale_mode = $data['sale_mode'];
+        $product->quote_only = (bool) ($data['quote_only'] ?? false);
+        $product->is_customizable = (bool) ($data['is_customizable'] ?? false);
         $product->price_millimes = $this->parsePriceToMillimes((string) $data['price']);
         $product->compare_at_millimes = isset($data['compare_at']) && $data['compare_at'] !== '' ? $this->parsePriceToMillimes((string) $data['compare_at']) : null;
         $product->stock = (int) $data['stock'];
         $product->sku = $data['sku'] ?? null;
         $product->brand = $data['brand'] ?? null;
+        $product->material_summary = $data['material_summary'] ?? null;
+        $product->dimension_summary = $data['dimension_summary'] ?? null;
         $product->short_description = $data['short_description'] ?? null;
         $product->long_description = $data['long_description'] ?? null;
         $product->is_active = (bool) ($data['is_active'] ?? false);
@@ -118,6 +159,7 @@ class ProductController extends Controller
         }
 
         $product->save();
+        $this->syncCollections($product, $data['collection_ids'] ?? [], $product->primary_collection_id);
 
         // Build gallery list: main first then others
         $gallery = [];
@@ -162,13 +204,19 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
+        $rooms = Room::where('is_active', true)->orderBy('position')->orderBy('name')->get();
+        $productTypes = ProductType::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
+        $collections = CatalogCollection::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
 
         $existingGallery = $product->images()->pluck('url')->toArray();
         $existingGalleryText = implode("\n", array_filter($existingGallery, fn ($u) => $u !== $product->main_image));
 
         return view('admin.products.edit', [
             'categories' => $categories,
-            'product' => $product->load('images'),
+            'rooms' => $rooms,
+            'productTypes' => $productTypes,
+            'collections' => $collections,
+            'product' => $product->load(['images', 'collections']),
             'existingGalleryText' => $existingGalleryText,
         ]);
     }
@@ -181,11 +229,21 @@ class ProductController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'room_id' => ['nullable', 'integer', 'exists:rooms,id'],
+            'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
+            'primary_collection_id' => ['nullable', 'integer', 'exists:collections,id'],
+            'collection_ids' => ['nullable', 'array'],
+            'collection_ids.*' => ['integer', 'exists:collections,id'],
+            'sale_mode' => ['required', 'string', 'in:catalog,bundle,configurable,sur_mesure'],
+            'quote_only' => ['nullable', 'boolean'],
+            'is_customizable' => ['nullable', 'boolean'],
             'price' => ['required', 'string', 'max:50'],
             'compare_at' => ['nullable', 'string', 'max:50'],
             'stock' => ['required', 'integer', 'min:0'],
             'sku' => ['nullable', 'string', 'max:100'],
             'brand' => ['nullable', 'string', 'max:150'],
+            'material_summary' => ['nullable', 'string', 'max:255'],
+            'dimension_summary' => ['nullable', 'string', 'max:255'],
             'main_image_url' => ['nullable', 'url'],
             'main_image_file' => ['nullable', 'image', 'max:4096'],
             'short_description' => ['nullable', 'string'],
@@ -200,11 +258,19 @@ class ProductController extends Controller
 
         $product->title = $data['title'];
         $product->category_id = $data['category_id'] ?? null;
+        $product->room_id = $data['room_id'] ?? null;
+        $product->product_type_id = $data['product_type_id'] ?? null;
+        $product->primary_collection_id = $data['primary_collection_id'] ?? null;
+        $product->sale_mode = $data['sale_mode'];
+        $product->quote_only = (bool) ($data['quote_only'] ?? false);
+        $product->is_customizable = (bool) ($data['is_customizable'] ?? false);
         $product->price_millimes = $this->parsePriceToMillimes((string) $data['price']);
         $product->compare_at_millimes = isset($data['compare_at']) && $data['compare_at'] !== '' ? $this->parsePriceToMillimes((string) $data['compare_at']) : null;
         $product->stock = (int) $data['stock'];
         $product->sku = $data['sku'] ?? null;
         $product->brand = $data['brand'] ?? null;
+        $product->material_summary = $data['material_summary'] ?? null;
+        $product->dimension_summary = $data['dimension_summary'] ?? null;
         $product->short_description = $data['short_description'] ?? null;
         $product->long_description = $data['long_description'] ?? null;
         $product->is_active = (bool) ($data['is_active'] ?? false);
@@ -224,6 +290,7 @@ class ProductController extends Controller
         }
 
         $product->save();
+        $this->syncCollections($product, $data['collection_ids'] ?? [], $product->primary_collection_id);
 
         // Gallery management
         $newGallery = [];
@@ -509,5 +576,29 @@ class ProductController extends Controller
         $product->save();
 
         return back()->with('status', 'Statut produit mis à jour.');
+    }
+
+    protected function syncCollections(Product $product, array $collectionIds, ?int $primaryCollectionId): void
+    {
+        $ids = collect($collectionIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($primaryCollectionId) {
+            $ids = $ids->prepend($primaryCollectionId)->unique()->values();
+        }
+
+        $payload = $ids->mapWithKeys(function (int $id, int $index) use ($primaryCollectionId) {
+            return [
+                $id => [
+                    'position' => $index,
+                    'is_featured' => $primaryCollectionId ? $id === $primaryCollectionId : $index === 0,
+                ],
+            ];
+        })->all();
+
+        $product->collections()->sync($payload);
     }
 }

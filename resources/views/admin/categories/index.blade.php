@@ -1,15 +1,60 @@
 @extends('layouts.admin')
 
+@php
+    $kindOptions = [
+        'catalog' => 'Catalogue',
+        'room' => 'Landing univers',
+        'product_family' => 'Famille produit',
+        'bundle' => 'Composition / bundle',
+        'collection_landing' => 'Landing collection',
+        'service' => 'Service',
+    ];
+
+    $emptyCategory = [
+        'id' => null,
+        'name' => '',
+        'parent_id' => '',
+        'icon' => '',
+        'featured_image' => '',
+        'room_id' => '',
+        'product_type_id' => '',
+        'category_kind' => 'catalog',
+        'landing_intro' => '',
+        'landing_outro' => '',
+        'is_indexable' => true,
+    ];
+
+    $serializeCategory = function ($category) {
+        return [
+            'id' => $category->id,
+            'name' => $category->name,
+            'parent_id' => $category->parent_id ? (string) $category->parent_id : '',
+            'icon' => $category->icon ?? '',
+            'featured_image' => $category->featured_image ? asset($category->featured_image) : '',
+            'room_id' => $category->room_id ? (string) $category->room_id : '',
+            'product_type_id' => $category->product_type_id ? (string) $category->product_type_id : '',
+            'category_kind' => $category->category_kind ?? 'catalog',
+            'landing_intro' => $category->landing_intro ?? '',
+            'landing_outro' => $category->landing_outro ?? '',
+            'is_indexable' => (bool) ($category->is_indexable ?? true),
+        ];
+    };
+@endphp
+
 @section('content')
 <div x-data="{ 
     isModalOpen: false, 
     mode: 'create', 
-    category: { id: null, name: '', parent_id: '', icon: '', featured_image: '' },
+    category: @js($emptyCategory),
     deleteUrl: '',
     isDeleteModalOpen: false, 
     selectedItems: [],
     isBulk: false,
     removeFeaturedImage: false,
+
+    resetCategory() {
+        this.category = { ...@js($emptyCategory) };
+    },
     
     toggleSelection(id) {
         if (this.selectedItems.includes(id)) {
@@ -30,19 +75,13 @@
     },
     openCreate() {
         this.mode = 'create';
-        this.category = { id: null, name: '', parent_id: '', icon: '', featured_image: '' };
+        this.resetCategory();
         this.removeFeaturedImage = false;
         this.isModalOpen = true;
     },
     openEdit(cat) {
         this.mode = 'edit';
-        this.category = { 
-            id: cat.id, 
-            name: cat.name, 
-            parent_id: cat.parent_id, 
-            icon: cat.icon,
-            featured_image: cat.featured_image
-        };
+        this.category = { ...@js($emptyCategory), ...cat };
         this.removeFeaturedImage = false;
         this.isModalOpen = true;
     },
@@ -57,10 +96,6 @@
         this.isDeleteModalOpen = true;
     }
 }">
-
-    <!-- ... (Header and Messages remain same, handled by diff context if possible, otherwise I need to be careful with range) ... -->
-    <!-- Ideally I should split this into chunks if I can't match the huge block. Use MultiReplace? -->
-    <!-- Let's use MultiReplace to be safe and surgical -->
 
     <!-- Header -->
     <div class="mb-8 flex justify-between items-center">
@@ -88,6 +123,12 @@
         </div>
     @endif
 
+    @if(!$architectureEnabled)
+        <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            Les tables de la nouvelle architecture catalogue ne sont pas encore migrées. Lancez `php artisan migrate` puis `php artisan maison216:sync-catalog-architecture`.
+        </div>
+    @endif
+
     <!-- Bulk Actions -->
     <div x-show="selectedItems.length > 0" x-transition class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex justify-between items-center">
         <span class="text-blue-700 font-medium">
@@ -108,6 +149,7 @@
                     </th>
                     <th class="py-4 px-6">Nom de la catégorie</th>
                     <th class="py-4 px-6">Image</th>
+                    <th class="py-4 px-6">Architecture</th>
                     <th class="py-4 px-6">Slug</th>
                     <th class="py-4 px-6 text-center">Produits</th>
                     <th class="py-4 px-6 text-right">Actions</th>
@@ -125,7 +167,21 @@
                                 <span class="p-1 bg-dark-100 rounded text-dark-500">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 </span>
-                                <span class="font-bold text-dark-900">{{ $root->name }}</span>
+                                <div>
+                                    <div class="font-bold text-dark-900">{{ $root->name }}</div>
+                                    <div class="mt-1 flex flex-wrap gap-2 text-xs">
+                                        <span class="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">{{ $kindOptions[$root->category_kind ?? 'catalog'] ?? ($root->category_kind ?? 'catalog') }}</span>
+                                        @if($root->room)
+                                            <span class="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-800">{{ $root->room->name }}</span>
+                                        @endif
+                                        @if($root->productType)
+                                            <span class="rounded-full bg-violet-100 px-2 py-1 font-medium text-violet-800">{{ $root->productType->name }}</span>
+                                        @endif
+                                        @unless($root->is_indexable)
+                                            <span class="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800">Noindex</span>
+                                        @endunless
+                                    </div>
+                                </div>
                             </div>
                         </td>
                         <td class="py-3 px-6">
@@ -134,6 +190,10 @@
                             @else
                                 <div class="h-10 w-10 rounded-xl bg-dark-50 border border-dark-100 flex items-center justify-center text-xs text-dark-400">—</div>
                             @endif
+                        </td>
+                        <td class="py-3 px-6 text-sm text-dark-500">
+                            <div>{{ $root->room?->slug ?? '—' }}</div>
+                            <div class="text-xs text-dark-400">{{ $root->productType?->slug ?? '—' }}</div>
                         </td>
                         <td class="py-3 px-6 text-sm text-dark-500 font-mono">{{ $root->slug }}</td>
                         <td class="py-3 px-6 text-center">
@@ -146,7 +206,7 @@
                                 <a href="{{ route('category.show', $root->slug) }}" target="_blank" class="text-dark-400 hover:text-primary-600" title="Voir sur le site">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                 </a>
-                                <button @click="openEdit({ id: {{ $root->id }}, name: '{{ addslashes($root->name) }}', parent_id: '{{ $root->parent_id }}', icon: '{{ addslashes($root->icon ?? '') }}', featured_image: '{{ addslashes($root->featured_image ? asset($root->featured_image) : '') }}' })" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Modifier</button>
+                                <button @click='openEdit(@json($serializeCategory($root)))' class="text-blue-600 hover:text-blue-800 font-medium text-sm">Modifier</button>
                                 <button @click="openDelete('{{ route('admin.categories.destroy', $root) }}')" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
                             </div>
                         </td>
@@ -162,7 +222,21 @@
                                 <div class="flex items-center gap-2 relative">
                                     <!-- Connector line visual (optional, simplified here) -->
                                     <span class="text-dark-300">↳</span>
-                                    <span class="font-medium text-dark-800">{{ $child->name }}</span>
+                                    <div>
+                                        <div class="font-medium text-dark-800">{{ $child->name }}</div>
+                                        <div class="mt-1 flex flex-wrap gap-2 text-xs">
+                                            <span class="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">{{ $kindOptions[$child->category_kind ?? 'catalog'] ?? ($child->category_kind ?? 'catalog') }}</span>
+                                            @if($child->room)
+                                                <span class="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-800">{{ $child->room->name }}</span>
+                                            @endif
+                                            @if($child->productType)
+                                                <span class="rounded-full bg-violet-100 px-2 py-1 font-medium text-violet-800">{{ $child->productType->name }}</span>
+                                            @endif
+                                            @unless($child->is_indexable)
+                                                <span class="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800">Noindex</span>
+                                            @endunless
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                             <td class="py-3 px-6">
@@ -171,6 +245,10 @@
                                 @else
                                     <div class="h-9 w-9 rounded-lg bg-dark-50 border border-dark-100 flex items-center justify-center text-xs text-dark-400">—</div>
                                 @endif
+                            </td>
+                            <td class="py-3 px-6 text-sm text-dark-500">
+                                <div>{{ $child->room?->slug ?? '—' }}</div>
+                                <div class="text-xs text-dark-400">{{ $child->productType?->slug ?? '—' }}</div>
                             </td>
                             <td class="py-3 px-6 text-sm text-dark-500 font-mono">{{ $child->slug }}</td>
                             <td class="py-3 px-6 text-center">
@@ -183,7 +261,7 @@
                                     <a href="{{ route('category.show', $child->slug) }}" target="_blank" class="text-dark-400 hover:text-primary-600">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </a>
-                                    <button @click="openEdit({ id: {{ $child->id }}, name: '{{ addslashes($child->name) }}', parent_id: '{{ $child->parent_id }}', icon: '{{ addslashes($child->icon ?? '') }}', featured_image: '{{ addslashes($child->featured_image ? asset($child->featured_image) : '') }}' })" class="text-blue-600 hover:text-blue-800 text-sm">Modifier</button>
+                                    <button @click='openEdit(@json($serializeCategory($child)))' class="text-blue-600 hover:text-blue-800 text-sm">Modifier</button>
                                     <button @click="openDelete('{{ route('admin.categories.destroy', $child) }}')" class="text-red-500 hover:text-red-700 text-sm">Supprimer</button>
                                 </div>
                             </td>
@@ -198,7 +276,18 @@
                                 <td class="py-2 px-6 pl-0">
                                     <div class="flex items-center gap-2">
                                         <span class="text-dark-300">•</span>
-                                        <span class="text-dark-600">{{ $subChild->name }}</span>
+                                        <div>
+                                            <div class="text-dark-600">{{ $subChild->name }}</div>
+                                            <div class="mt-1 flex flex-wrap gap-2 text-[11px]">
+                                                <span class="rounded-full bg-slate-100 px-2 py-1 font-medium text-slate-700">{{ $kindOptions[$subChild->category_kind ?? 'catalog'] ?? ($subChild->category_kind ?? 'catalog') }}</span>
+                                                @if($subChild->room)
+                                                    <span class="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-800">{{ $subChild->room->name }}</span>
+                                                @endif
+                                                @if($subChild->productType)
+                                                    <span class="rounded-full bg-violet-100 px-2 py-1 font-medium text-violet-800">{{ $subChild->productType->name }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="py-2 px-6">
@@ -207,6 +296,10 @@
                                     @else
                                         <div class="h-8 w-8 rounded-lg bg-dark-50 border border-dark-100 flex items-center justify-center text-[10px] text-dark-400">—</div>
                                     @endif
+                                </td>
+                                <td class="py-2 px-6 text-xs text-dark-400">
+                                    <div>{{ $subChild->room?->slug ?? '—' }}</div>
+                                    <div>{{ $subChild->productType?->slug ?? '—' }}</div>
                                 </td>
                                 <td class="py-2 px-6 text-xs text-dark-400 font-mono">{{ $subChild->slug }}</td>
                                 <td class="py-2 px-6 text-center">
@@ -217,7 +310,7 @@
                                         <a href="{{ route('category.show', $subChild->slug) }}" target="_blank" class="text-dark-400 hover:text-primary-600">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </a>
-                                        <button @click="openEdit({ id: {{ $subChild->id }}, name: '{{ addslashes($subChild->name) }}', parent_id: '{{ $subChild->parent_id }}', icon: '{{ addslashes($subChild->icon ?? '') }}', featured_image: '{{ addslashes($subChild->featured_image ? asset($subChild->featured_image) : '') }}' })" class="text-blue-600 hover:text-blue-800 text-xs">Modif.</button>
+                                        <button @click='openEdit(@json($serializeCategory($subChild)))' class="text-blue-600 hover:text-blue-800 text-xs">Modif.</button>
                                         <button @click="openDelete('{{ route('admin.categories.destroy', $subChild) }}')" class="text-red-500 hover:text-red-700 text-xs">Suppr.</button>
                                     </div>
                                 </td>
@@ -240,7 +333,7 @@
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <!-- Modal Content -->
-            <div x-show="isModalOpen" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+            <div x-show="isModalOpen" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl w-full">
                 <form :action="mode === 'create' ? '{{ route('admin.categories.store') }}' : '/admin/categories/' + category.id" method="POST" enctype="multipart/form-data">
                     @csrf
                     <template x-if="mode === 'edit'">
@@ -248,62 +341,118 @@
                     </template>
 
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" x-text="mode === 'create' ? 'Nouvelle Catégorie' : 'Modifier Catégorie'"></h3>
-                        
-                        <div class="space-y-4">
-                            <!-- Name -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Nom</label>
-                                <input type="text" name="name" x-model="category.name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50" required>
-                            </div>
+                        <div class="mb-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" x-text="mode === 'create' ? 'Nouvelle catégorie' : 'Modifier catégorie'"></h3>
+                            <p class="mt-1 text-sm text-gray-500">Arborescence, SEO et rattachement à la nouvelle architecture catalogue.</p>
+                        </div>
 
-                            <!-- Parent -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Catégorie Parente</label>
-                                <select name="parent_id" x-model="category.parent_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
-                                    <option value="">-- Aucune (Racine) --</option>
-                                    @foreach($allCategories as $cat)
-                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nom</label>
+                                    <input type="text" name="name" x-model="category.name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50" required>
+                                </div>
 
-                            <!-- Icon (Optional) -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Icône (SVG ou Classe)</label>
-                                <input type="text" name="icon" x-model="category.icon" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50" placeholder="ex: fas fa-home">
-                            </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Catégorie Parente</label>
+                                    <select name="parent_id" x-model="category.parent_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                        <option value="">-- Aucune (Racine) --</option>
+                                        @foreach($allCategories as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                            <!-- Featured Image (Optional) -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Image à la une</label>
-                                <div class="mt-1 space-y-2">
-                                    <div class="flex items-center gap-3">
-                                        <template x-if="category.featured_image && !removeFeaturedImage">
-                                            <img :src="category.featured_image" alt="" class="h-12 w-12 rounded-xl object-cover border border-gray-200">
-                                        </template>
-                                        <template x-if="category.featured_image && removeFeaturedImage">
-                                            <div class="text-sm text-red-600 font-medium">Image sera supprimée</div>
-                                        </template>
-                                        <input type="file"
-                                               name="featured_image"
-                                               accept="image/*"
-                                               @change="removeFeaturedImage = false"
-                                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Icône (SVG ou Classe)</label>
+                                    <input type="text" name="icon" x-model="category.icon" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50" placeholder="ex: fas fa-home">
+                                </div>
+
+                                @if($architectureEnabled)
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Univers</label>
+                                            <select name="room_id" x-model="category.room_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                                <option value="">-- Aucun --</option>
+                                                @foreach($rooms as $room)
+                                                    <option value="{{ $room->id }}">{{ $room->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700">Type de meuble</label>
+                                            <select name="product_type_id" x-model="category.product_type_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                                <option value="">-- Aucun --</option>
+                                                @foreach($productTypes as $productType)
+                                                    <option value="{{ $productType->id }}">{{ $productType->name }}{{ $productType->room ? ' • ' . $productType->room->name : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                     </div>
 
-                                    <template x-if="category.featured_image">
-                                        <label class="inline-flex items-center gap-2 text-sm text-red-600">
-                                            <input type="checkbox"
-                                                   name="remove_featured_image"
-                                                   value="1"
-                                                   x-model="removeFeaturedImage"
-                                                   class="rounded border-gray-300 text-red-600 focus:ring-red-500">
-                                            Supprimer l'image actuelle
-                                        </label>
-                                    </template>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nature de page</label>
+                                        <select name="category_kind" x-model="category.category_kind" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                            @foreach($kindOptions as $value => $label)
+                                                <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Image à la une</label>
+                                    <div class="mt-1 space-y-2">
+                                        <div class="flex items-center gap-3">
+                                            <template x-if="category.featured_image && !removeFeaturedImage">
+                                                <img :src="category.featured_image" alt="" class="h-12 w-12 rounded-xl object-cover border border-gray-200">
+                                            </template>
+                                            <template x-if="category.featured_image && removeFeaturedImage">
+                                                <div class="text-sm text-red-600 font-medium">Image sera supprimée</div>
+                                            </template>
+                                            <input type="file"
+                                                   name="featured_image"
+                                                   accept="image/*"
+                                                   @change="removeFeaturedImage = false"
+                                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                        </div>
+
+                                        <template x-if="category.featured_image">
+                                            <label class="inline-flex items-center gap-2 text-sm text-red-600">
+                                                <input type="checkbox"
+                                                       name="remove_featured_image"
+                                                       value="1"
+                                                       x-model="removeFeaturedImage"
+                                                       class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                                                Supprimer l'image actuelle
+                                            </label>
+                                        </template>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">PNG/JPG, max 4Mo.</p>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">PNG/JPG, max 4Mo.</p>
+
+                                @if($architectureEnabled)
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Intro SEO / landing</label>
+                                        <textarea name="landing_intro" x-model="category.landing_intro" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50" placeholder="Texte d'introduction pour la future landing catégorie."></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Outro SEO / conseils</label>
+                                        <textarea name="landing_outro" x-model="category.landing_outro" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50" placeholder="Bloc éditorial bas de page, FAQ, conseils, maillage interne."></textarea>
+                                    </div>
+
+                                    <div class="rounded-xl border border-dark-100 bg-dark-50 p-4">
+                                        <input type="hidden" name="is_indexable" :value="category.is_indexable ? 1 : 0">
+                                        <label class="inline-flex items-center gap-3 text-sm font-medium text-dark-800">
+                                            <input type="checkbox" x-model="category.is_indexable" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                            Indexable par les moteurs
+                                        </label>
+                                        <p class="mt-2 text-xs text-dark-500">Désactive l’indexation pour les catégories parasites ou les imports trop faibles pour le SEO.</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

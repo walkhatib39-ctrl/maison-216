@@ -99,6 +99,9 @@
                 + Ajouter
             </a>
         </div>
+        <div class="mt-2 text-xs text-purple-100/90">
+            {{ $roomsCount }} univers • {{ $productTypesCount }} types • {{ $collectionsCount }} collections
+        </div>
     </div>
 </div>
 
@@ -248,6 +251,17 @@
                 </div>
                 <h4 class="font-semibold text-dark-900 text-center">Paramètres</h4>
                 <p class="text-sm text-dark-600 text-center mt-1">Configuration</p>
+            </a>
+
+            <a href="{{ route('admin.rooms.index') }}" 
+               class="interactive group flex flex-col items-center p-6 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl hover:from-amber-100 hover:to-amber-200 transition-all duration-200">
+                <div class="w-12 h-12 bg-amber-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l7-4 7 4v14"/>
+                    </svg>
+                </div>
+                <h4 class="font-semibold text-dark-900 text-center">Architecture catalogue</h4>
+                <p class="text-sm text-dark-600 text-center mt-1">Univers, types, collections</p>
             </a>
 
             <a href="{{ route('home') }}" target="_blank" 

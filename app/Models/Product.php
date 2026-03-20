@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -14,6 +15,9 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'room_id',
+        'product_type_id',
+        'primary_collection_id',
         'title',
         'slug',
         'price_millimes',
@@ -21,7 +25,12 @@ class Product extends Model
         'stock',
         'sku',
         'brand',
+        'sale_mode',
+        'quote_only',
+        'is_customizable',
         'main_image',
+        'material_summary',
+        'dimension_summary',
         'short_description',
         'long_description',
         'attributes',
@@ -30,6 +39,8 @@ class Product extends Model
 
     protected $casts = [
         'attributes' => 'array',
+        'quote_only' => 'boolean',
+        'is_customizable' => 'boolean',
         'is_active' => 'boolean',
     ];
 
@@ -51,6 +62,29 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    public function productType(): BelongsTo
+    {
+        return $this->belongsTo(ProductType::class);
+    }
+
+    public function primaryCollection(): BelongsTo
+    {
+        return $this->belongsTo(CatalogCollection::class, 'primary_collection_id');
+    }
+
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(CatalogCollection::class, 'collection_product', 'product_id', 'collection_id')
+            ->withPivot(['is_featured', 'position'])
+            ->withTimestamps()
+            ->orderBy('collection_product.position');
     }
 
     public function images(): HasMany

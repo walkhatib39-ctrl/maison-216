@@ -51,7 +51,7 @@
         </h3>
     </div>
     <form method="GET" class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
             <div>
                 <label class="block text-sm font-semibold text-dark-700 mb-2">Recherche</label>
                 <div class="relative">
@@ -71,6 +71,30 @@
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" @selected(($filters['category_id'] ?? '') == $cat->id)>
                             {{ $cat->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark-700 mb-2">Univers</label>
+                <select name="room_id"
+                        class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                    <option value="">Tous les univers</option>
+                    @foreach($rooms as $room)
+                        <option value="{{ $room->id }}" @selected(($filters['room_id'] ?? '') == $room->id)>
+                            {{ $room->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-dark-700 mb-2">Type</label>
+                <select name="product_type_id"
+                        class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                    <option value="">Tous les types</option>
+                    @foreach($productTypes as $type)
+                        <option value="{{ $type->id }}" @selected(($filters['product_type_id'] ?? '') == $type->id)>
+                            {{ $type->name }}
                         </option>
                     @endforeach
                 </select>
@@ -107,7 +131,7 @@
                 Réinitialiser
             </a>
             
-            @if($filters['q'] || $filters['category_id'] || $filters['active'] !== '' || $filters['brand'])
+            @if($filters['q'] || $filters['category_id'] || $filters['room_id'] || $filters['product_type_id'] || $filters['active'] !== '' || $filters['brand'])
                 <div class="ml-auto flex items-center gap-2 text-sm text-dark-600">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
@@ -176,13 +200,28 @@
                                         @endif
                                     </div>
                                     @if($p->brand)
-                                        <div class="inline-flex items-center gap-1 bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
+                                <div class="inline-flex items-center gap-1 bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-xs font-medium">
                                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                             </svg>
                                             {{ $p->brand }}
                                         </div>
                                     @endif
+                                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                        @if($p->room)
+                                            <span class="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-700">{{ $p->room->name }}</span>
+                                        @endif
+                                        @if($p->productType)
+                                            <span class="rounded-full bg-purple-100 px-2 py-1 font-medium text-purple-700">{{ $p->productType->name }}</span>
+                                        @endif
+                                        @if($p->primaryCollection)
+                                            <span class="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">{{ $p->primaryCollection->name }}</span>
+                                        @endif
+                                        <span class="rounded-full bg-dark-100 px-2 py-1 font-medium text-dark-700">{{ $p->sale_mode ?? 'catalog' }}</span>
+                                        @if($p->quote_only)
+                                            <span class="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700">devis</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -294,14 +333,14 @@
                                 </div>
                                 <h3 class="text-xl font-bold text-dark-700 mb-2">Aucun produit trouvé</h3>
                                 <p class="text-dark-500 mb-6">
-                                    @if($filters['q'] || $filters['category_id'] || $filters['active'] !== '' || $filters['brand'])
+                                    @if($filters['q'] || $filters['category_id'] || $filters['room_id'] || $filters['product_type_id'] || $filters['active'] !== '' || $filters['brand'])
                                         Aucun produit ne correspond à vos critères de recherche.
                                     @else
                                         Commencez par ajouter votre premier produit.
                                     @endif
                                 </p>
                                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                                    @if($filters['q'] || $filters['category_id'] || $filters['active'] !== '' || $filters['brand'])
+                                    @if($filters['q'] || $filters['category_id'] || $filters['room_id'] || $filters['product_type_id'] || $filters['active'] !== '' || $filters['brand'])
                                         <a href="{{ route('admin.products.index') }}" 
                                            class="inline-flex items-center gap-2 px-6 py-3 bg-dark-100 hover:bg-dark-200 text-dark-700 font-semibold rounded-xl transition-colors duration-200">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,11 +418,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 002 2h2a2 2 0 012-2V7a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 00-2 2h-2a2 2 0 00-2 2v6"/>
                 </svg>
             </div>
-            <h4 class="font-semibold text-dark-900 mb-1">Catégories</h4>
-            <p class="text-sm text-dark-600 mb-3">Gérer les catégories</p>
-            <span class="inline-flex items-center text-green-600 font-medium text-sm">
-                Bientôt disponible
-            </span>
+            <h4 class="font-semibold text-dark-900 mb-1">Architecture</h4>
+            <p class="text-sm text-dark-600 mb-3">Univers, types et collections</p>
+            <a href="{{ route('admin.rooms.index') }}" 
+               class="inline-flex items-center text-green-600 hover:text-green-700 font-medium text-sm">
+                Structurer →
+            </a>
         </div>
     </div>
 </div>

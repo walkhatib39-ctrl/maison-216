@@ -95,6 +95,33 @@
                 Catégories
             </a>
 
+            <div class="pt-4">
+                <h3 class="px-4 text-xs font-semibold uppercase tracking-wider text-white/50">Architecture catalogue</h3>
+                <div class="mt-2 space-y-1">
+                    <a href="{{ route('admin.rooms.index') }}"
+                       class="relative flex items-center gap-3 px-4 py-2 ml-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.rooms.*') ? 'admin-sidebar-active' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l7-4 7 4v14M9 9h6m-6 4h6m-6 4h6"/>
+                        </svg>
+                        Univers
+                    </a>
+                    <a href="{{ route('admin.product-types.index') }}"
+                       class="relative flex items-center gap-3 px-4 py-2 ml-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.product-types.*') ? 'admin-sidebar-active' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+                        </svg>
+                        Types
+                    </a>
+                    <a href="{{ route('admin.collections.index') }}"
+                       class="relative flex items-center gap-3 px-4 py-2 ml-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.collections.*') ? 'admin-sidebar-active' : 'text-white/70 hover:text-white hover:bg-white/5' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h10M4 17h7"/>
+                        </svg>
+                        Collections
+                    </a>
+                </div>
+            </div>
+
             <!-- Orders -->
             <a href="{{ route('admin.orders.index') }}"
                class="relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'admin-sidebar-active' : 'text-white/80 hover:text-white hover:bg-white/10' }}">

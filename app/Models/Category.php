@@ -12,11 +12,21 @@ class Category extends Model
 
     protected $fillable = [
         'parent_id',
+        'room_id',
+        'product_type_id',
         'name',
         'slug',
         'icon',
         'featured_image',
+        'category_kind',
+        'landing_intro',
+        'landing_outro',
+        'is_indexable',
         'position',
+    ];
+
+    protected $casts = [
+        'is_indexable' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -43,6 +53,16 @@ class Category extends Model
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    public function productType()
+    {
+        return $this->belongsTo(ProductType::class);
     }
 
     public function children()

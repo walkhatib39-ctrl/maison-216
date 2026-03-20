@@ -1,17 +1,13 @@
 {{-- Premium Footer Component --}}
 @php
+    $catalog = app(\App\Support\StorefrontCatalog::class);
     $wa = \App\Models\Setting::get('contact.whatsapp');
     $ms = \App\Models\Setting::get('contact.messenger');
     $logo = \App\Models\Setting::get('ui.logo');
     $siteName = \App\Models\Setting::get('site.name', 'Maison 216');
     $tagline = \App\Models\Setting::get('site.tagline', 'Meubles & Décoration en Tunisie');
     
-    $footerCategories = \App\Models\Category::whereNull('parent_id')
-        ->withCount('products')
-        ->orderBy('position')
-        ->take(6)
-        ->get()
-        ->filter(fn($cat) => $cat->total_products_count > 0);
+    $footerCategories = $catalog->footerCategories(6);
 @endphp
 
 <footer class="bg-dark-900 text-white mt-0 relative overflow-hidden">
@@ -80,16 +76,16 @@
                 </div>
             </div>
 
-            {{-- Categories --}}
+            {{-- Univers --}}
             <div class="lg:col-span-2">
-                <h3 class="text-lg font-bold mb-6 text-primary-400">Catégories</h3>
+                <h3 class="text-lg font-bold mb-6 text-primary-400">Univers</h3>
                 <ul class="space-y-3">
                     @foreach($footerCategories as $cat)
                         <li>
                             <a class="text-dark-200 hover:text-white transition-colors duration-200 flex items-center gap-2 group" 
-                               href="{{ route('category.show', $cat->slug) }}">
+                               href="{{ $cat['href'] }}">
                                 <span class="w-1.5 h-1.5 bg-primary-500 rounded-full group-hover:scale-125 transition-transform"></span>
-                                {{ $cat->name }}
+                                {{ $cat['name'] }}
                             </a>
                         </li>
                     @endforeach
@@ -104,6 +100,24 @@
                         <a class="text-dark-200 hover:text-white transition-colors duration-200 flex items-center gap-2 group" href="{{ route('home') }}">
                             <span class="w-1.5 h-1.5 bg-primary-500 rounded-full group-hover:scale-125 transition-transform"></span>
                             Accueil
+                        </a>
+                    </li>
+                    <li>
+                        <a class="text-dark-200 hover:text-white transition-colors duration-200 flex items-center gap-2 group" href="{{ url('/#univers') }}">
+                            <span class="w-1.5 h-1.5 bg-primary-500 rounded-full group-hover:scale-125 transition-transform"></span>
+                            Découvrir les univers
+                        </a>
+                    </li>
+                    <li>
+                        <a class="text-dark-200 hover:text-white transition-colors duration-200 flex items-center gap-2 group" href="{{ url('/#composer') }}">
+                            <span class="w-1.5 h-1.5 bg-primary-500 rounded-full group-hover:scale-125 transition-transform"></span>
+                            Composer une pièce
+                        </a>
+                    </li>
+                    <li>
+                        <a class="text-dark-200 hover:text-white transition-colors duration-200 flex items-center gap-2 group" href="{{ url('/#sur-mesure') }}">
+                            <span class="w-1.5 h-1.5 bg-primary-500 rounded-full group-hover:scale-125 transition-transform"></span>
+                            Projet sur mesure
                         </a>
                     </li>
                     <li>

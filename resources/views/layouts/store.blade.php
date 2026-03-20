@@ -44,8 +44,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    {{-- Google Fonts - Inter for modern typography --}}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {{-- Google Fonts --}}
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     {{-- Favicon --}}
     @php $favicon = \App\Models\Setting::get('ui.favicon'); @endphp
@@ -56,7 +56,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
-        body { font-family: 'Inter', 'Figtree', sans-serif; }
+        body { font-family: 'Manrope', 'Inter', 'Figtree', sans-serif; }
+        .font-editorial { font-family: 'Fraunces', Georgia, serif; }
         .bg-hero-pattern { background-image: radial-gradient(circle at 1px 1px, rgba(182, 147, 82, 0.15) 1px, transparent 0); background-size: 20px 20px; }
         
         /* Smooth scrolling for anchor links */

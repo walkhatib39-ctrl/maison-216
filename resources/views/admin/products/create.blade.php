@@ -82,6 +82,59 @@
                         </div>
 
                         <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Univers</label>
+                            <select name="room_id"
+                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                                <option value="">— Aucun univers —</option>
+                                @foreach($rooms as $room)
+                                    <option value="{{ $room->id }}" @selected(old('room_id') == $room->id)>{{ $room->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-dark-500 mt-1">Couche stratégique principale</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Type de produit</label>
+                            <select name="product_type_id"
+                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                                <option value="">— Aucun type —</option>
+                                @foreach($productTypes as $type)
+                                    <option value="{{ $type->id }}" @selected(old('product_type_id') == $type->id)>
+                                        {{ $type->name }}@if($type->room) · {{ $type->room->name }} @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-dark-500 mt-1">Ex: lit, commode, dressing</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Collection principale</label>
+                            <select name="primary_collection_id"
+                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                                <option value="">— Aucune collection —</option>
+                                @foreach($collections as $collection)
+                                    <option value="{{ $collection->id }}" @selected(old('primary_collection_id') == $collection->id)>
+                                        {{ $collection->name }}@if($collection->room) · {{ $collection->room->name }} @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-dark-500 mt-1">Collection d’appartenance principale</p>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Collections associées</label>
+                            <select name="collection_ids[]" multiple size="6"
+                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                                @foreach($collections as $collection)
+                                    <option value="{{ $collection->id }}" @selected(collect(old('collection_ids', []))->contains($collection->id))>
+                                        {{ $collection->name }}@if($collection->room) · {{ $collection->room->name }} @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-dark-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs collections.</p>
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-semibold text-dark-700 mb-2">SKU</label>
                             <input name="sku" type="text" value="{{ old('sku') }}"
                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
@@ -98,12 +151,58 @@
                         </div>
 
                         <div>
-                            <div class="flex items-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Mode de vente</label>
+                            <select name="sale_mode"
+                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                                <option value="catalog" @selected(old('sale_mode', 'catalog') === 'catalog')>Catalogue simple</option>
+                                <option value="bundle" @selected(old('sale_mode') === 'bundle')>Composition / bundle</option>
+                                <option value="configurable" @selected(old('sale_mode') === 'configurable')>Configurable</option>
+                                <option value="sur_mesure" @selected(old('sale_mode') === 'sur_mesure')>Sur mesure</option>
+                            </select>
+                            <p class="text-xs text-dark-500 mt-1">Prépare le futur tunnel produit</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Résumé matières</label>
+                            <input name="material_summary" type="text" value="{{ old('material_summary') }}"
+                                   class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
+                                   placeholder="Ex: MDF, chêne clair, métal noir">
+                            <p class="text-xs text-dark-500 mt-1">Résumé court pour cartes et filtres</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Résumé dimensions</label>
+                            <input name="dimension_summary" type="text" value="{{ old('dimension_summary') }}"
+                                   class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
+                                   placeholder="Ex: 160x200 cm">
+                            <p class="text-xs text-dark-500 mt-1">Résumé rapide affichable partout</p>
+                        </div>
+
+                        <div class="md:col-span-2 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                            <div class="flex items-center gap-4 rounded-xl border border-green-200 bg-green-50 p-4">
                                 <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', true))
                                        class="w-5 h-5 rounded border-green-300 text-green-600 focus:ring-green-500 transition-colors duration-200">
                                 <div class="flex-1">
                                     <label for="is_active" class="font-semibold text-green-800">Produit actif</label>
                                     <p class="text-sm text-green-600">Visible sur le site</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                <input id="quote_only" name="quote_only" type="checkbox" value="1" @checked(old('quote_only'))
+                                       class="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 transition-colors duration-200">
+                                <div class="flex-1">
+                                    <label for="quote_only" class="font-semibold text-amber-800">Devis uniquement</label>
+                                    <p class="text-sm text-amber-600">Pas d’achat direct</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                <input id="is_customizable" name="is_customizable" type="checkbox" value="1" @checked(old('is_customizable'))
+                                       class="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-blue-500 transition-colors duration-200">
+                                <div class="flex-1">
+                                    <label for="is_customizable" class="font-semibold text-blue-800">Personnalisable</label>
+                                    <p class="text-sm text-blue-600">Entrée future pour builder</p>
                                 </div>
                             </div>
                         </div>
