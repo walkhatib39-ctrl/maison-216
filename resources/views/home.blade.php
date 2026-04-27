@@ -164,7 +164,7 @@
                         default => 'lg:col-span-5',
                     };
                 @endphp
-                <a href="{{ $room['href'] }}" class="group relative overflow-hidden rounded-[32px] border border-[#eadfce] {{ $cardClass }}">
+                <a href="{{ $room['href'] }}" class="group relative isolate overflow-hidden rounded-[32px] border border-[#eadfce] bg-[#171411] {{ $cardClass }}">
                     @if(!empty($room['image']))
                         <img src="{{ $imageUrl($room['image']) }}" alt="{{ $room['name'] }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
                     @else
@@ -172,19 +172,20 @@
                             {{ strtoupper(mb_substr($room['name'], 0, 1)) }}
                         </div>
                     @endif
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#171411]/86 via-[#171411]/30 to-transparent"></div>
-                    <div class="absolute inset-x-0 bottom-0 p-5 text-white">
+                    <div class="absolute inset-0 z-0 bg-[#171411]/48 transition duration-500 group-hover:bg-[#171411]/38"></div>
+                    <div class="absolute inset-0 z-0 bg-gradient-to-t from-[#171411]/95 via-[#171411]/58 to-[#171411]/18"></div>
+                    <div class="absolute inset-x-0 bottom-0 z-10 p-5 text-white">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <div class="font-display text-2xl font-bold">{{ $room['name'] }}</div>
-                                <p class="mt-2 max-w-md text-sm leading-6 text-white/78">{{ $room['tagline'] }}</p>
+                                <div class="font-display text-2xl font-bold drop-shadow-[0_2px_12px_rgba(0,0,0,0.55)]">{{ $room['name'] }}</div>
+                                <p class="mt-2 max-w-md text-sm font-medium leading-6 text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">{{ $room['tagline'] }}</p>
                             </div>
-                            <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold">{{ $room['count'] }}</span>
+                            <span class="rounded-full border border-white/20 bg-[#171411]/55 px-3 py-1 text-xs font-bold text-white shadow-[0_10px_28px_rgba(0,0,0,0.28)] backdrop-blur">{{ $room['count'] }}</span>
                         </div>
                         @if(collect($room['subitems'])->isNotEmpty())
                             <div class="mt-4 flex flex-wrap gap-2">
                                 @foreach(collect($room['subitems'])->take(4) as $item)
-                                    <span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/78">{{ $item }}</span>
+                                    <span class="rounded-full border border-white/18 bg-[#171411]/46 px-3 py-1 text-[11px] font-semibold text-white/90 shadow-[0_8px_20px_rgba(0,0,0,0.20)] backdrop-blur">{{ $item }}</span>
                                 @endforeach
                             </div>
                         @endif
