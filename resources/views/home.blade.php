@@ -22,13 +22,6 @@
     $contactUrl = route('contact');
     $categoriesUrl = route('categories.index');
     $searchUrl = route('search');
-    $heroRoom = $homeRooms->first() ?? [
-        'href' => $categoriesUrl,
-        'image' => null,
-        'name' => 'Maison 216',
-        'count' => 0,
-        'tagline' => 'Découvrez le catalogue, les compositions et les projets sur mesure.',
-    ];
     $imageUrl = fn (?string $path) => $path
         ? (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path))
         : null;
@@ -78,74 +71,41 @@
 @endphp
 
 <section class="border-b border-[#eadfce] bg-[#f6f1e8]">
-    <div class="container mx-auto px-4 py-8 lg:py-14">
-        <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] xl:items-center xl:gap-12">
-            <div class="max-w-3xl">
-                <h1 class="font-display max-w-4xl text-3xl font-bold leading-[1.04] text-[#171411] sm:text-4xl lg:text-6xl">
-                    Achetez le bon meuble.
-                    <span class="text-[#a47834]">Composez la bonne pièce.</span>
-                    Lancez le bon projet.
-                </h1>
+    <div class="container mx-auto px-4 py-10 sm:py-12 lg:py-16">
+        <div class="max-w-4xl">
+            <h1 class="font-display max-w-4xl text-3xl font-bold leading-[1.04] text-[#171411] sm:text-4xl lg:text-6xl">
+                Achetez le bon meuble.
+                <span class="text-[#a47834]">Composez la bonne pièce.</span>
+                Lancez le bon projet.
+            </h1>
 
-                <p class="mt-4 max-w-2xl text-base leading-7 text-[#5f5146] sm:mt-5 sm:text-[17px] sm:leading-8 lg:text-lg">
-                    Trouvez facilement le meuble qu’il vous faut, composez une pièce harmonieuse ou confiez-nous un projet entièrement adapté à votre espace. Tout est pensé pour vous aider à décider plus vite et plus sereinement.
-                </p>
+            <p class="mt-4 max-w-2xl text-base leading-7 text-[#5f5146] sm:mt-5 sm:text-[17px] sm:leading-8 lg:text-lg">
+                Trouvez facilement le meuble qu’il vous faut, composez une pièce harmonieuse ou confiez-nous un projet entièrement adapté à votre espace. Tout est pensé pour vous aider à décider plus vite et plus sereinement.
+            </p>
 
-                <div class="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                    <a href="#univers" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#b88a3b] sm:px-6 sm:py-4">
-                        <i class="fa-solid fa-compass text-sm"></i>
-                        Voir les univers
-                    </a>
-                    <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-5 py-3.5 text-sm font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2] sm:px-6 sm:py-4">
-                        <i class="fa-regular fa-pen-to-square text-sm"></i>
-                        Demander un devis
-                    </a>
-                </div>
-
-                <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[#5b4d42] sm:mt-8 sm:gap-x-8 sm:gap-y-3 sm:text-sm">
-                    @foreach($trustRibbon as $item)
-                        <div class="inline-flex items-center gap-3">
-                            <span class="text-[#a47834]">
-                                <i class="{{ $item['icon'] }}"></i>
-                            </span>
-                            {{ $item['label'] }}
-                        </div>
-                        @if(!$loop->last)
-                            <span class="hidden h-4 w-px bg-[#d8c7af] lg:block"></span>
-                        @endif
-                    @endforeach
-                </div>
+            <div class="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+                <a href="#univers" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#b88a3b] sm:px-6 sm:py-4">
+                    <i class="fa-solid fa-compass text-sm"></i>
+                    Voir les univers
+                </a>
+                <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-5 py-3.5 text-sm font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2] sm:px-6 sm:py-4">
+                    <i class="fa-regular fa-pen-to-square text-sm"></i>
+                    Demander un devis
+                </a>
             </div>
 
-            <div>
-                <a href="{{ $heroRoom['href'] ?? $categoriesUrl }}" class="group relative overflow-hidden rounded-[34px] border border-[#eadfce] bg-[#e6dbcc] shadow-[0_24px_60px_rgba(23,20,17,0.10)]">
-                    <div class="absolute left-5 top-5 z-10 rounded-full bg-white/92 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#7f643c]">
-                        {{ $heroRoom['name'] ?? 'Maison 216' }}
+            <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[#5b4d42] sm:mt-8 sm:gap-x-8 sm:gap-y-3 sm:text-sm">
+                @foreach($trustRibbon as $item)
+                    <div class="inline-flex items-center gap-3">
+                        <span class="text-[#a47834]">
+                            <i class="{{ $item['icon'] }}"></i>
+                        </span>
+                        {{ $item['label'] }}
                     </div>
-                    <div class="aspect-[4/4.7] overflow-hidden sm:aspect-[4/4.9] xl:aspect-[4/5.1]">
-                        @if(!empty($heroRoom['image']))
-                            <img src="{{ $imageUrl($heroRoom['image']) }}" alt="{{ $heroRoom['name'] }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                        @else
-                            <div class="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(184,138,59,0.28),transparent_45%),linear-gradient(135deg,#efe2cb,#dcc6a4)] font-display text-5xl font-bold text-[#8b724d]">
-                                M216
-                            </div>
-                        @endif
-                    </div>
-                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#171411]/85 via-[#171411]/45 to-transparent p-6 text-white">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#d8b77d]">À découvrir</div>
-                                <div class="font-display mt-2 text-2xl font-bold">{{ $heroRoom['name'] ?? 'Découvrez nos univers' }}</div>
-                            </div>
-                            @if(!empty($heroRoom['count']))
-                                <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold">{{ $heroRoom['count'] }} produits</span>
-                            @endif
-                        </div>
-                        @if(!empty($heroRoom['tagline']))
-                            <p class="mt-3 max-w-md text-sm leading-6 text-white/78">{{ $heroRoom['tagline'] }}</p>
-                        @endif
-                    </div>
-                </a>
+                    @if(!$loop->last)
+                        <span class="hidden h-4 w-px bg-[#d8c7af] lg:block"></span>
+                    @endif
+                @endforeach
             </div>
         </div>
     </div>
