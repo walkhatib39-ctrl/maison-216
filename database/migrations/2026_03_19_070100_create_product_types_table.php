@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_types', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
             $table->id();
             $table->foreignId('room_id')->nullable()->constrained('rooms')->nullOnDelete();
             $table->string('name');

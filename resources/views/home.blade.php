@@ -29,7 +29,6 @@
         'count' => 0,
         'tagline' => 'Découvrez le catalogue, les compositions et les projets sur mesure.',
     ];
-    $secondaryRooms = $homeRooms->skip(1)->take(2)->values();
     $imageUrl = fn (?string $path) => $path
         ? (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path))
         : null;
@@ -76,39 +75,34 @@
         ['icon' => 'fa-solid fa-medal', 'label' => 'Made in Tunisia'],
     ]);
 
-    $servicePillars = collect([
-        'Trouvez plus vite ce qui convient à votre espace',
-        'Commandez immédiatement les meubles déjà prêts',
-        'Passez au sur mesure quand votre maison l’exige',
-    ]);
 @endphp
 
 <section class="border-b border-[#eadfce] bg-[#f6f1e8]">
-    <div class="container mx-auto px-4 py-10 lg:py-14">
-        <div class="grid gap-8 xl:grid-cols-[1fr_0.95fr] xl:items-center">
+    <div class="container mx-auto px-4 py-8 lg:py-14">
+        <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] xl:items-center xl:gap-12">
             <div class="max-w-3xl">
-                <h1 class="font-display max-w-4xl text-4xl font-bold leading-[1.02] text-[#171411] sm:text-5xl lg:text-6xl">
+                <h1 class="font-display max-w-4xl text-3xl font-bold leading-[1.04] text-[#171411] sm:text-4xl lg:text-6xl">
                     Achetez le bon meuble.
                     <span class="text-[#a47834]">Composez la bonne pièce.</span>
                     Lancez le bon projet.
                 </h1>
 
-                <p class="mt-6 max-w-2xl text-lg leading-8 text-[#5f5146]">
+                <p class="mt-4 max-w-2xl text-base leading-7 text-[#5f5146] sm:mt-5 sm:text-[17px] sm:leading-8 lg:text-lg">
                     Trouvez facilement le meuble qu’il vous faut, composez une pièce harmonieuse ou confiez-nous un projet entièrement adapté à votre espace. Tout est pensé pour vous aider à décider plus vite et plus sereinement.
                 </p>
 
-                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <a href="#univers" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#b88a3b]">
+                <div class="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+                    <a href="#univers" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#b88a3b] sm:px-6 sm:py-4">
                         <i class="fa-solid fa-compass text-sm"></i>
                         Voir les univers
                     </a>
-                    <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-6 py-4 text-sm font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2]">
+                    <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-5 py-3.5 text-sm font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2] sm:px-6 sm:py-4">
                         <i class="fa-regular fa-pen-to-square text-sm"></i>
                         Demander un devis
                     </a>
                 </div>
 
-                <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm font-semibold text-[#5b4d42]">
+                <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[#5b4d42] sm:mt-8 sm:gap-x-8 sm:gap-y-3 sm:text-sm">
                     @foreach($trustRibbon as $item)
                         <div class="inline-flex items-center gap-3">
                             <span class="text-[#a47834]">
@@ -123,12 +117,12 @@
                 </div>
             </div>
 
-            <div class="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
                 <a href="{{ $heroRoom['href'] ?? $categoriesUrl }}" class="group relative overflow-hidden rounded-[34px] border border-[#eadfce] bg-[#e6dbcc] shadow-[0_24px_60px_rgba(23,20,17,0.10)]">
                     <div class="absolute left-5 top-5 z-10 rounded-full bg-white/92 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#7f643c]">
                         {{ $heroRoom['name'] ?? 'Maison 216' }}
                     </div>
-                    <div class="aspect-[4/5] overflow-hidden">
+                    <div class="aspect-[4/4.7] overflow-hidden sm:aspect-[4/4.9] xl:aspect-[4/5.1]">
                         @if(!empty($heroRoom['image']))
                             <img src="{{ $imageUrl($heroRoom['image']) }}" alt="{{ $heroRoom['name'] }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
                         @else
@@ -152,43 +146,6 @@
                         @endif
                     </div>
                 </a>
-
-                <div class="grid gap-4">
-                    @foreach($secondaryRooms as $room)
-                        <a href="{{ $room['href'] }}" class="group rounded-[30px] border border-[#eadfce] bg-white p-5 shadow-[0_16px_40px_rgba(23,20,17,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(23,20,17,0.08)]">
-                            <div class="flex items-start gap-4">
-                                <div class="h-20 w-20 overflow-hidden rounded-2xl bg-[#eee2d2]">
-                                    @if(!empty($room['image']))
-                                        <img src="{{ $imageUrl($room['image']) }}" alt="{{ $room['name'] }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
-                                    @else
-                                        <div class="flex h-full w-full items-center justify-center bg-[#efe3d4] font-display text-2xl font-bold text-[#8b724d]">{{ strtoupper(mb_substr($room['name'], 0, 1)) }}</div>
-                                    @endif
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-display text-xl font-semibold text-[#171411]">{{ $room['name'] }}</div>
-                                    <p class="mt-2 text-sm leading-6 text-[#5f5146]">{{ $room['tagline'] }}</p>
-                                    <div class="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#a47834]">
-                                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                        Voir l’univers
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-
-                    <div class="rounded-[30px] border border-[#eadfce] bg-[#171411] p-6 text-white shadow-[0_24px_60px_rgba(23,20,17,0.16)]">
-                        <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d8b77d]">Maison 216</div>
-                        <h2 class="font-display mt-3 text-2xl font-bold">Trois façons simples d’arriver exactement au bon résultat.</h2>
-                        <div class="mt-5 space-y-3">
-                            @foreach($servicePillars as $pillar)
-                                <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm leading-6 text-white/80">
-                                    <i class="fa-solid fa-check mt-1 text-[#d8b77d]"></i>
-                                    {{ $pillar }}
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

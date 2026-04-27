@@ -2,12 +2,19 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        $this->ensureTableEngineSupportsForeignKeys('categories');
+        $this->ensureTableEngineSupportsForeignKeys('products');
+        $this->ensureTableEngineSupportsForeignKeys('rooms');
+        $this->ensureTableEngineSupportsForeignKeys('product_types');
+        $this->ensureTableEngineSupportsForeignKeys('collections');
+
         Schema::table('categories', function (Blueprint $table) {
             $table->foreignId('room_id')->nullable()->after('parent_id')->constrained('rooms')->nullOnDelete();
             $table->foreignId('product_type_id')->nullable()->after('room_id')->constrained('product_types')->nullOnDelete();
@@ -54,5 +61,21 @@ return new class extends Migration
                 'is_indexable',
             ]);
         });
+    }
+
+    private function ensureTableEngineSupportsForeignKeys(string $table): void
+    {
+        if (DB::getDriverName() !== 'mysql' || !Schema::hasTable($table)) {
+            return;
+        }
+
+        $row = DB::selectOne(
+            'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?',
+            [$table]
+        );
+
+        if (($row->ENGINE ?? null) && strtoupper((string) $row->ENGINE) !== 'INNODB') {
+            DB::statement("ALTER TABLE `{$table}` ENGINE=InnoDB");
+        }
     }
 };
