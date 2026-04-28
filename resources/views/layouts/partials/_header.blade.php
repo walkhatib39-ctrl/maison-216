@@ -231,60 +231,61 @@
         </div>
     </div>
 
-    <div id="mobile-menu" class="fixed inset-0 z-[60] hidden bg-[#171411]/45 backdrop-blur-sm xl:hidden">
-        <div class="absolute right-0 top-0 h-full w-full max-w-sm overflow-y-auto bg-[#fbf7f0] shadow-2xl">
-            <div class="flex items-center justify-between border-b border-[#eadfce] px-5 py-4">
-                <div>
-                    <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#b88a3b]">Maison 216</div>
-                    <div class="font-display text-lg font-bold text-[#171411]">Meubles, ateliers et devis</div>
-                </div>
-                <button id="mobile-menu-close" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#eadfce] bg-white text-[#171411]">
+</header>
+
+<div id="mobile-menu" class="fixed inset-0 z-[100] hidden bg-[#171411]/45 backdrop-blur-sm xl:hidden" role="dialog" aria-modal="true" aria-label="Menu mobile">
+    <div class="absolute right-0 top-0 flex h-screen w-full max-w-sm flex-col overflow-hidden bg-[#fbf7f0] shadow-2xl">
+        <div class="flex shrink-0 items-center justify-between border-b border-[#eadfce] px-5 py-4">
+            <div>
+                <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#b88a3b]">Maison 216</div>
+                <div class="font-display text-lg font-bold text-[#171411]">Meubles, ateliers et devis</div>
+            </div>
+            <button id="mobile-menu-close" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#eadfce] bg-white text-[#171411]" aria-label="Fermer le menu">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="shrink-0 border-b border-[#eadfce] px-5 py-4">
+            <form action="{{ $searchUrl }}" method="get" class="flex gap-2">
+                <input name="q" type="search" value="{{ request('q') }}" placeholder="Rechercher un meuble..."
+                       class="min-w-0 flex-1 rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm focus:border-[#c7a36a] focus:ring-0">
+                <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-[#171411] px-4 text-white" aria-label="Rechercher">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </button>
-            </div>
+            </form>
+        </div>
 
-            <div class="border-b border-[#eadfce] px-5 py-4">
-                <form action="{{ $searchUrl }}" method="get" class="flex gap-2">
-                    <input name="q" type="search" value="{{ request('q') }}" placeholder="Rechercher un meuble..."
-                           class="min-w-0 flex-1 rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm focus:border-[#c7a36a] focus:ring-0">
-                    <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-[#171411] px-4 text-white">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-                </form>
-            </div>
-
-            <div class="space-y-3 px-5 py-5">
-                @foreach($mobileNavigation as $navItem)
-                    @if(collect($navItem['children'] ?? [])->isNotEmpty())
-                        <details class="rounded-2xl border border-[#eadfce] bg-white">
-                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4">
-                                <div>
-                                    <div class="font-semibold text-[#171411]">{{ $navItem['title'] }}</div>
-                                    <div class="mt-1 text-sm text-[#6d6156]">{{ $navItem['description'] }}</div>
-                                </div>
-                                <svg class="h-5 w-5 text-[#6d6156]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </summary>
-                            <div class="space-y-3 px-4 pb-4">
-                                <a href="{{ $navItem['href'] }}" class="block rounded-xl bg-[#f8f1e4] px-3 py-3 text-sm font-semibold text-[#8e6322]">Voir la rubrique</a>
-                                @foreach($navItem['children'] as $child)
-                                    <a href="{{ $child['href'] }}" class="block text-sm font-semibold text-[#5f5146]">{{ $child['title'] }}</a>
-                                @endforeach
+        <div class="flex-1 space-y-3 overflow-y-auto px-5 py-5">
+            @foreach($mobileNavigation as $navItem)
+                @if(collect($navItem['children'] ?? [])->isNotEmpty())
+                    <details class="rounded-2xl border border-[#eadfce] bg-white">
+                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4">
+                            <div>
+                                <div class="font-semibold text-[#171411]">{{ $navItem['title'] }}</div>
+                                <div class="mt-1 text-sm text-[#6d6156]">{{ $navItem['description'] }}</div>
                             </div>
-                        </details>
-                    @else
-                        <a href="{{ $navItem['href'] }}" class="block rounded-2xl border border-[#eadfce] bg-white px-4 py-3 font-semibold text-[#171411]">{{ $navItem['title'] }}</a>
-                    @endif
-                @endforeach
-            </div>
+                            <svg class="h-5 w-5 shrink-0 text-[#6d6156]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+                        <div class="space-y-3 px-4 pb-4">
+                            <a href="{{ $navItem['href'] }}" class="block rounded-xl bg-[#f8f1e4] px-3 py-3 text-sm font-semibold text-[#8e6322]">Voir la rubrique</a>
+                            @foreach($navItem['children'] as $child)
+                                <a href="{{ $child['href'] }}" class="block text-sm font-semibold text-[#5f5146]">{{ $child['title'] }}</a>
+                            @endforeach
+                        </div>
+                    </details>
+                @else
+                    <a href="{{ $navItem['href'] }}" class="block rounded-2xl border border-[#eadfce] bg-white px-4 py-3 font-semibold text-[#171411]">{{ $navItem['title'] }}</a>
+                @endif
+            @endforeach
         </div>
     </div>
-</header>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
