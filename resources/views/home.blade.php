@@ -361,9 +361,8 @@
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             @foreach($realizations as $realization)
-                <article class="group relative min-h-[330px] overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
-                    <img src="{{ asset($realization['image']) }}" alt="{{ $realization['alt'] }}" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.08),rgba(23,20,17,0.82))]"></div>
+                <article class="group relative overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]"
+                         style="min-height: 330px; background: linear-gradient(180deg, rgba(23, 20, 17, 0.02), rgba(23, 20, 17, 0.68)), url('{{ asset($realization['image']) }}') center / cover no-repeat;">
                     <div class="relative z-10 flex h-full flex-col justify-between">
                         <div class="inline-flex w-max rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-bold text-[#e7c98d]">{{ $realization['place'] }}</div>
                         <div>
