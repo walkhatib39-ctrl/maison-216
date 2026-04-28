@@ -325,8 +325,8 @@ Il faut unifier la marque, pas fusionner les parcours.
 
 Navigation desktop cible finale:
 
-- Header principal: logo, recherche, Menuiserie bois, Menuiserie Alu, Fabrication metallique, Sur Mesure, bouton Devis
-- Sous-header meubles: Salon & sejour, Chambres a coucher, Salle a manger, Bureau, Meubles TV, Cuisine, Meubles professionnels
+- Header principal: logo, recherche, Menuiserie bois, Menuiserie alu, Fabrication metallique, Sur mesure, bouton Devis
+- Sous-header projets: Projets, Agencement immobilier neuf, Agencement cafe & restaurant, Agencement bureau entreprise, Agencement magasin, Amenagement villa & maison, Amenagement exterieur
 
 Cette decision remplace l'ancien modele `Decouvrir / Composer / Sur mesure` en navigation principale et evite la compression des items dans le header.
 Le mode `composer` reste une experience commerciale importante, mais il ne doit pas etre un item top-nav tant que les templates, bundles et compatibilites ne sont pas industrialises.
@@ -338,99 +338,34 @@ Accueil /
 
 Menuiserie bois /menuiserie-bois/
 
-Sur Mesure /cuisine-dressing/
-- Cuisine sur mesure /cuisine-dressing/cuisine-sur-mesure/
-- Dressing sur mesure /cuisine-dressing/dressing-sur-mesure/
-- Placard sur mesure /cuisine-dressing/placard-sur-mesure/
-- Meuble TV sur mesure /cuisine-dressing/meuble-tv-sur-mesure/
-- Bureau sur mesure /cuisine-dressing/bureau-sur-mesure/
-
-Menuiserie Alu /aluminium/
+Menuiserie alu /aluminium/
 - Fenetre aluminium /aluminium/fenetre-aluminium/
 - Porte aluminium /aluminium/porte-aluminium/
-- Vitrine magasin /aluminium/vitrine-magasin/
-- Verriere /aluminium/verriere/
-- Cloison aluminium /aluminium/cloison-aluminium/
-- Cabine de douche /aluminium/cabine-de-douche/
+- Garde-corps /aluminium/garde-corps/
+- Moustiquaire aluminium /aluminium/moustiquaire/
+- Volet roulant /aluminium/volet-roulant/
+- Brise-soleil /aluminium/brise-soleil/
 
 Fabrication metallique /fer-metal/
 - Portail fer forge /fer-metal/portail-fer-forge/
 - Pergola metallique /fer-metal/pergola-metallique/
-- Garde-corps /fer-metal/garde-corps/
-- Grille de protection /fer-metal/grille-de-protection/
+- Garde-corps metallique /fer-metal/garde-corps/
 - Escalier metallique /fer-metal/escalier-metallique/
 
-Meubles /meubles/
+Sur mesure /sur-mesure/
+- Cuisine sur mesure /sur-mesure/cuisine-sur-mesure/
+- Dressing sur mesure /sur-mesure/dressing-sur-mesure/
+- Placard sur mesure /sur-mesure/placard-sur-mesure/
+- Meuble TV sur mesure /sur-mesure/meuble-tv-sur-mesure/
+- Bureau sur mesure /sur-mesure/bureau-sur-mesure/
 
-1. Salon & sejour /meubles/salon-sejour/
-- Canapes /meubles/salon-sejour/canapes/
-- Fauteuils /meubles/salon-sejour/fauteuils/
-- Tables basses /meubles/salon-sejour/tables-basses/
-- Meubles TV /meubles/salon-sejour/meubles-tv/
-- Buffets /meubles/salon-sejour/buffets/
-- Bibliotheques /meubles/salon-sejour/bibliotheques/
-- Etageres /meubles/salon-sejour/etageres/
-- Bancs /meubles/salon-sejour/bancs/
-
-2. Chambres a coucher /meubles/chambres-a-coucher/
-- Chambres adultes /meubles/chambres-a-coucher/chambres-adultes/
-- Chambres enfants /meubles/chambres-a-coucher/chambres-enfants/
-- Lits /meubles/chambres-a-coucher/lits/
-  - Lits doubles /meubles/chambres-a-coucher/lits/lits-doubles/
-  - Lits simples /meubles/chambres-a-coucher/lits/lits-simples/
-  - Lits superposes /meubles/chambres-a-coucher/lits/lits-superposes/
-  - Tetes de lit /meubles/chambres-a-coucher/lits/tetes-de-lit/
-- Armoires /meubles/chambres-a-coucher/armoires/
-- Dressings /meubles/chambres-a-coucher/dressings/
-- Commodes /meubles/chambres-a-coucher/commodes/
-- Coiffeuses /meubles/chambres-a-coucher/coiffeuses/
-- Bancs de lit /meubles/chambres-a-coucher/bancs-de-lit/
-
-3. Chambre adulte /meubles/chambre-adulte/
-
-4. Chambre enfant /meubles/chambre-enfant/
-- Lits enfants /meubles/chambre-enfant/lits-enfants/
-- Bureaux enfants /meubles/chambre-enfant/bureaux-enfants/
-- Coffres a jouets /meubles/chambre-enfant/coffres-a-jouets/
-- Bibliotheques enfants /meubles/chambre-enfant/bibliotheques-enfants/
-
-5. Salle a manger /meubles/salle-a-manger/
-- Tables a manger /meubles/salle-a-manger/tables-a-manger/
-- Chaises /meubles/salle-a-manger/chaises/
-- Buffets /meubles/salle-a-manger/buffets/
-- Vaisseliers /meubles/salle-a-manger/vaisseliers/
-
-6. Bureau /meubles/bureau/
-- Caissons de rangement /meubles/bureau/caissons-de-rangement/
-- Meubles imprimante /meubles/bureau/meubles-imprimante/
-- Tables de travail /meubles/bureau/tables-de-travail/
-- Meubles bureau professionnels /meubles/bureau/meubles-bureau-professionnels/
-
-7. Cuisine & rangement /meubles/cuisine-rangement/
-- Elements de rangement cuisine /meubles/cuisine-rangement/elements-de-rangement-cuisine/
-- Tables de cuisine /meubles/cuisine-rangement/tables-de-cuisine/
-- Placards cuisine /meubles/cuisine-rangement/placards-cuisine/
-
-8. Entree & couloir /meubles/entree-couloir/
-- Meubles d'entree /meubles/entree-couloir/meubles-entree/
-- Porte-chaussures /meubles/entree-couloir/porte-chaussures/
-- Bancs d'entree /meubles/entree-couloir/bancs-entree/
-- Porte-manteaux /meubles/entree-couloir/porte-manteaux/
-- Miroirs /meubles/entree-couloir/miroirs/
-
-9. Meubles TV /meubles/meubles-tv/
-
-10. Meubles professionnels /meubles/meubles-professionnels/
-- Meubles pour bureaux /meubles/meubles-professionnels/meubles-pour-bureaux/
-- Meubles pour boutiques /meubles/meubles-professionnels/meubles-pour-boutiques/
-- Comptoirs d'accueil /meubles/meubles-professionnels/comptoirs-accueil/
-- Presentoirs /meubles/meubles-professionnels/presentoirs/
-- Rangements professionnels /meubles/meubles-professionnels/rangements-professionnels/
-- Mobilier cafe / restaurant /meubles/meubles-professionnels/mobilier-cafe-restaurant/
-
-Guides /guides/
-- Guide de Prix /guides/guide-de-prix/
-- Conseils /guides/conseils/
+Projets /projets/
+- Agencement immobilier neuf /projets/agencement-immobilier-neuf/
+- Agencement cafe & restaurant /projets/agencement-cafe-restaurant/
+- Agencement bureau entreprise /projets/agencement-bureau-entreprise/
+- Agencement magasin /projets/agencement-magasin/
+- Amenagement villa & maison /projets/amenagement-villa-maison/
+- Amenagement exterieur /projets/amenagement-exterieur/
 
 Devis /devis/
 
@@ -439,11 +374,10 @@ Contact /contact/
 
 ## 8.3 Regles de structure et SEO
 
-- Les offres de fabrication complexe sortent du tunnel meuble standard: `Menuiserie bois`, `Menuiserie Alu`, `Fabrication metallique`, `Sur Mesure`.
-- Les produits commandables restent sous `/meubles/`.
-- `/meubles/chambres-a-coucher/` est le hub catalogue/SEO pour les produits et sous-categories de chambre.
-- `/meubles/chambre-adulte/` et `/meubles/chambre-enfant/` sont des pages d'intention, plus editoriales, pour guider l'achat ou la composition.
-- Les pages `Menuiserie bois`, `Menuiserie Alu`, `Fabrication metallique` et `Sur Mesure` doivent etre orientees devis, realisations, preuves atelier et formulaire de qualification.
+- Les offres de fabrication complexe sortent du tunnel meuble standard: `Menuiserie bois`, `Menuiserie alu`, `Fabrication metallique`, `Sur mesure`.
+- Le silo `/projets/` sert les demandes globales et les intentions B2B/B2C a plus forte valeur.
+- Les anciennes routes `/cuisine-dressing/`, `/meubles/` et `/guides/` deviennent des routes legacy redirigees.
+- Les pages `Menuiserie bois`, `Menuiserie alu`, `Fabrication metallique`, `Sur mesure` et `Projets` doivent etre orientees devis, realisations, preuves atelier et formulaire de qualification.
 - Les pages `/devis/` et `/contact/` ne jouent pas le meme role: `/devis/` qualifie un projet, `/contact/` sert au contact general.
 
 ## 9. Pages cibles a produire

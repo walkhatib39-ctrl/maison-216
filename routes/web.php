@@ -23,33 +23,43 @@ Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('searc
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
-Route::get('/cuisine-dressing/{path?}', [SitePageController::class, 'show'])
-    ->where('path', '.*')
-    ->defaults('section', 'cuisine-dressing')
-    ->name('site.cuisine-dressing');
 Route::get('/menuiserie-bois/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
     ->defaults('section', 'menuiserie-bois')
     ->name('site.menuiserie-bois');
+Route::get('/sur-mesure/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'sur-mesure')
+    ->name('site.sur-mesure');
+Route::get('/projets/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'projets')
+    ->name('site.projets');
+Route::get('/cuisine-dressing/{path?}', function (?string $path = null) {
+    return redirect('/sur-mesure' . ($path ? '/' . trim($path, '/') : ''), 301);
+})->where('path', '.*');
 Route::redirect('/aluminium/fenetre-alu', '/aluminium/fenetre-aluminium', 301);
 Route::redirect('/aluminium/porte-alu', '/aluminium/porte-aluminium', 301);
-Route::redirect('/aluminium/cloison-alu', '/aluminium/cloison-aluminium', 301);
+Route::redirect('/aluminium/cloison-alu', '/aluminium', 301);
+Route::redirect('/aluminium/cloison-aluminium', '/aluminium', 301);
+Route::redirect('/aluminium/vitrine-magasin', '/aluminium', 301);
+Route::redirect('/aluminium/verriere', '/aluminium', 301);
+Route::redirect('/aluminium/cabine-de-douche', '/aluminium', 301);
 Route::get('/aluminium/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
     ->defaults('section', 'aluminium')
     ->name('site.aluminium');
+Route::redirect('/fer-metal/grille-de-protection', '/fer-metal', 301);
 Route::get('/fer-metal/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
     ->defaults('section', 'fer-metal')
     ->name('site.fer-metal');
-Route::get('/meubles/{path?}', [SitePageController::class, 'show'])
-    ->where('path', '.*')
-    ->defaults('section', 'meubles')
-    ->name('site.meubles');
-Route::get('/guides/{path?}', [SitePageController::class, 'show'])
-    ->where('path', '.*')
-    ->defaults('section', 'guides')
-    ->name('site.guides');
+Route::get('/meubles/{path?}', function () {
+    return redirect('/menuiserie-bois', 301);
+})->where('path', '.*');
+Route::get('/guides/{path?}', function () {
+    return redirect('/projets', 301);
+})->where('path', '.*');
 Route::get('/devis', [SitePageController::class, 'show'])
     ->defaults('section', 'devis')
     ->name('devis');

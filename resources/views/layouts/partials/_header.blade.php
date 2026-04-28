@@ -24,9 +24,9 @@
             'children' => [],
         ],
         [
-            'title' => 'Menuiserie Alu',
+            'title' => 'Menuiserie alu',
             'href' => url('/aluminium'),
-            'description' => $node('aluminium')['description'] ?? 'Fenêtres, portes, vitrines et cloisons aluminium.',
+            'description' => $node('aluminium')['description'] ?? 'Fenêtres, portes, garde-corps et protections aluminium.',
             'children' => $children('aluminium'),
         ],
         [
@@ -36,32 +36,15 @@
             'children' => $children('fer-metal'),
         ],
         [
-            'title' => 'Sur Mesure',
-            'href' => url('/cuisine-dressing'),
-            'description' => $node('cuisine-dressing')['description'] ?? 'Cuisine, dressing, placard, meuble TV et bureau sur mesure.',
-            'children' => $children('cuisine-dressing'),
+            'title' => 'Sur mesure',
+            'href' => url('/sur-mesure'),
+            'description' => $node('sur-mesure')['description'] ?? 'Cuisine, dressing, placard, meuble TV et bureau sur mesure.',
+            'children' => $children('sur-mesure'),
         ],
     ]);
 
-    $meubleNavigation = collect([
-        'meubles/salon-sejour',
-        'meubles/chambres-a-coucher',
-        'meubles/salle-a-manger',
-        'meubles/bureau',
-        'meubles/meubles-tv',
-        'meubles/cuisine-rangement',
-        'meubles/meubles-professionnels',
-    ])->map(fn (string $path) => $siteStructure->find($path))->filter()->values();
-
-    $mobileNavigation = $serviceNavigation
-        ->merge($meubleNavigation)
-        ->merge(collect([
-            $node('guides'),
-            ['title' => 'Contact', 'href' => route('contact'), 'description' => 'Une question, une commande ou un accompagnement.', 'children' => []],
-            $node('devis'),
-        ]))
-        ->filter(fn ($item) => !empty($item['title']) && !empty($item['href']))
-        ->values();
+    $projectRoot = $node('projets');
+    $projectNavigation = collect($projectRoot['children'] ?? []);
 @endphp
 
 <div class="border-b border-[#e8dcc7] bg-[#efe2cb] text-[#4f4236]">
@@ -221,10 +204,13 @@
 
     <div class="hidden border-t border-[#eadfce] bg-white/45 xl:block">
         <div class="container mx-auto px-4">
-            <nav class="flex items-center justify-center gap-1 py-2.5" aria-label="Navigation meubles">
-                @foreach($meubleNavigation as $item)
+            <nav class="flex items-center justify-center gap-1 py-2.5" aria-label="Navigation projets">
+                <a href="{{ $projectRoot['href'] ?? url('/projets') }}" class="rounded-full bg-white px-4 py-2 text-sm font-bold text-[#171411] shadow-sm ring-1 ring-[#eadfce]">
+                    Projets
+                </a>
+                @foreach($projectNavigation as $item)
                     <a href="{{ $item['href'] }}" class="rounded-full px-4 py-2 text-sm font-semibold text-[#5f5146] transition hover:bg-white hover:text-[#171411]">
-                        {{ $item['title'] === 'Cuisine & rangement' ? 'Cuisine' : $item['title'] }}
+                        {{ $item['title'] }}
                     </a>
                 @endforeach
             </nav>
@@ -277,7 +263,7 @@
             <div class="space-y-7">
                 <section>
                     <div class="mb-3 flex items-center justify-between">
-                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Ateliers</span>
+                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Métiers</span>
                         <span class="h-px flex-1 bg-[#eadfce] ml-4"></span>
                     </div>
 
@@ -308,14 +294,18 @@
 
                 <section>
                     <div class="mb-3 flex items-center justify-between">
-                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Meubles</span>
+                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Projets</span>
                         <span class="h-px flex-1 bg-[#eadfce] ml-4"></span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        @foreach($meubleNavigation as $item)
-                            <a href="{{ $item['href'] }}" class="rounded-2xl border border-[#eadfce] bg-white px-3 py-3 text-sm font-semibold leading-tight text-[#171411] transition hover:border-[#d5b170]">
-                                {{ $item['title'] === 'Cuisine & rangement' ? 'Cuisine' : $item['title'] }}
+                    <div class="grid gap-2">
+                        <a href="{{ $projectRoot['href'] ?? url('/projets') }}" class="flex items-center justify-between rounded-2xl bg-[#171411] px-4 py-3 text-sm font-bold text-white">
+                            <span>Tous les projets</span>
+                            <i class="fa-solid fa-arrow-right text-xs text-[#d5b170]"></i>
+                        </a>
+                        @foreach($projectNavigation as $item)
+                            <a href="{{ $item['href'] }}" class="rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold leading-tight text-[#171411] transition hover:border-[#d5b170]">
+                                {{ $item['title'] }}
                             </a>
                         @endforeach
                     </div>
@@ -328,8 +318,8 @@
                     </div>
 
                     <div class="grid gap-2">
-                        <a href="{{ url('/guides') }}" class="flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
-                            <span><i class="fa-regular fa-compass mr-2 text-[#b88a3b]"></i>Guides & conseils</span>
+                        <a href="{{ $devisUrl }}" class="flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
+                            <span><i class="fa-regular fa-pen-to-square mr-2 text-[#b88a3b]"></i>Demander un devis</span>
                             <i class="fa-solid fa-arrow-right text-xs text-[#b88a3b]"></i>
                         </a>
                         <a href="{{ route('contact') }}" class="flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
