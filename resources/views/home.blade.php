@@ -244,9 +244,8 @@
             @foreach($crafts as $craft)
                 <a href="{{ $craft['href'] }}" class="group overflow-hidden rounded-[34px] border border-[#eadfce] bg-[#171411] text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
                     <div class="grid min-h-[360px] md:grid-cols-[1fr_1.08fr]">
-                        <div class="relative min-h-[260px] overflow-hidden md:min-h-full">
-                            <img src="{{ asset($craft['image']) }}" alt="{{ $craft['imageAlt'] }}" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.08),rgba(23,20,17,0.78))]"></div>
+                        <div class="relative min-h-[260px] overflow-hidden bg-cover bg-center transition duration-700 group-hover:scale-[1.02] md:min-h-full"
+                             style="background-image: linear-gradient(180deg, rgba(23, 20, 17, 0.04), rgba(23, 20, 17, 0.52)), url('{{ asset($craft['image']) }}');">
                             <div class="relative z-10 flex h-full flex-col justify-between p-7">
                                 <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/12 text-xl text-[#f0d49a] backdrop-blur">
                                     <i class="{{ $craft['icon'] }}"></i>
