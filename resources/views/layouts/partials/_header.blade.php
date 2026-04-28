@@ -233,57 +233,113 @@
 
 </header>
 
-<div id="mobile-menu" class="fixed inset-0 z-[100] hidden bg-[#171411]/45 backdrop-blur-sm xl:hidden" role="dialog" aria-modal="true" aria-label="Menu mobile">
-    <div class="absolute right-0 top-0 flex h-screen w-full max-w-sm flex-col overflow-hidden bg-[#fbf7f0] shadow-2xl">
-        <div class="flex shrink-0 items-center justify-between border-b border-[#eadfce] px-5 py-4">
-            <div>
-                <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#b88a3b]">Maison 216</div>
-                <div class="font-display text-lg font-bold text-[#171411]">Meubles, ateliers et devis</div>
+<div id="mobile-menu" class="fixed inset-0 z-[100] hidden bg-[#171411]/55 backdrop-blur-sm xl:hidden" role="dialog" aria-modal="true" aria-label="Menu mobile">
+    <div class="absolute inset-y-0 right-0 flex h-screen w-full max-w-[390px] flex-col overflow-hidden bg-[#fbf7f0] shadow-2xl">
+        <div class="shrink-0 bg-[#171411] px-5 pb-5 pt-4 text-white">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#d5b170]">Navigation</div>
+                    <div class="mt-1 font-display text-xl font-bold leading-tight">Maison 216</div>
+                </div>
+                <button id="mobile-menu-close" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/8 text-white transition hover:bg-white/14" aria-label="Fermer le menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
-            <button id="mobile-menu-close" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#eadfce] bg-white text-[#171411]" aria-label="Fermer le menu">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
 
-        <div class="shrink-0 border-b border-[#eadfce] px-5 py-4">
-            <form action="{{ $searchUrl }}" method="get" class="flex gap-2">
+            <form action="{{ $searchUrl }}" method="get" class="mt-5 flex overflow-hidden rounded-full border border-white/10 bg-white">
                 <input name="q" type="search" value="{{ request('q') }}" placeholder="Rechercher un meuble..."
-                       class="min-w-0 flex-1 rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm focus:border-[#c7a36a] focus:ring-0">
-                <button type="submit" class="inline-flex items-center justify-center rounded-2xl bg-[#171411] px-4 text-white" aria-label="Rechercher">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                       class="min-w-0 flex-1 border-0 bg-transparent px-5 py-3 text-sm text-[#171411] placeholder:text-[#85796d] focus:ring-0">
+                <button type="submit" class="inline-flex w-14 items-center justify-center bg-[#d5b170] text-[#171411]" aria-label="Rechercher">
+                    <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
             </form>
+
+            <div class="mt-4 grid grid-cols-2 gap-2">
+                <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-bold text-[#171411]">
+                    <i class="fa-regular fa-pen-to-square text-xs"></i>
+                    Devis
+                </a>
+                @if($whatsappUrl)
+                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-3 text-sm font-bold text-white">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        WhatsApp
+                    </a>
+                @else
+                    <a href="{{ route('contact') }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-4 py-3 text-sm font-bold text-white">
+                        <i class="fa-regular fa-message text-sm"></i>
+                        Contact
+                    </a>
+                @endif
+            </div>
         </div>
 
-        <div class="flex-1 space-y-3 overflow-y-auto px-5 py-5">
-            @foreach($mobileNavigation as $navItem)
-                @if(collect($navItem['children'] ?? [])->isNotEmpty())
-                    <details class="rounded-2xl border border-[#eadfce] bg-white">
-                        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4">
-                            <div>
-                                <div class="font-semibold text-[#171411]">{{ $navItem['title'] }}</div>
-                                <div class="mt-1 text-sm text-[#6d6156]">{{ $navItem['description'] }}</div>
-                            </div>
-                            <svg class="h-5 w-5 shrink-0 text-[#6d6156]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </summary>
-                        <div class="space-y-3 px-4 pb-4">
-                            <a href="{{ $navItem['href'] }}" class="block rounded-xl bg-[#f8f1e4] px-3 py-3 text-sm font-semibold text-[#8e6322]">Voir la rubrique</a>
-                            @foreach($navItem['children'] as $child)
-                                <a href="{{ $child['href'] }}" class="block text-sm font-semibold text-[#5f5146]">{{ $child['title'] }}</a>
-                            @endforeach
-                        </div>
-                    </details>
-                @else
-                    <a href="{{ $navItem['href'] }}" class="block rounded-2xl border border-[#eadfce] bg-white px-4 py-3 font-semibold text-[#171411]">{{ $navItem['title'] }}</a>
-                @endif
-            @endforeach
-        </div>
+        <nav class="flex-1 overflow-y-auto px-5 py-5" aria-label="Navigation mobile">
+            <div class="space-y-7">
+                <section>
+                    <div class="mb-3 flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Ateliers</span>
+                        <span class="h-px flex-1 bg-[#eadfce] ml-4"></span>
+                    </div>
+
+                    <div class="overflow-hidden rounded-[26px] border border-[#eadfce] bg-white">
+                        @foreach($serviceNavigation as $navItem)
+                            @if(collect($navItem['children'] ?? [])->isNotEmpty())
+                                <details class="group border-b border-[#f0e4d3] last:border-b-0">
+                                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4">
+                                        <span class="font-semibold text-[#171411]">{{ $navItem['title'] }}</span>
+                                        <i class="fa-solid fa-chevron-down text-xs text-[#b88a3b] transition group-open:rotate-180"></i>
+                                    </summary>
+                                    <div class="grid gap-1 bg-[#fbf7f0] px-4 pb-4 pt-1">
+                                        <a href="{{ $navItem['href'] }}" class="rounded-xl px-3 py-2 text-sm font-bold text-[#8e6322]">Voir toute la rubrique</a>
+                                        @foreach($navItem['children'] as $child)
+                                            <a href="{{ $child['href'] }}" class="rounded-xl px-3 py-2 text-sm font-medium text-[#5f5146] transition hover:bg-white">{{ $child['title'] }}</a>
+                                        @endforeach
+                                    </div>
+                                </details>
+                            @else
+                                <a href="{{ $navItem['href'] }}" class="flex items-center justify-between border-b border-[#f0e4d3] px-4 py-4 font-semibold text-[#171411] last:border-b-0">
+                                    <span>{{ $navItem['title'] }}</span>
+                                    <i class="fa-solid fa-arrow-right text-xs text-[#b88a3b]"></i>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                </section>
+
+                <section>
+                    <div class="mb-3 flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Meubles</span>
+                        <span class="h-px flex-1 bg-[#eadfce] ml-4"></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach($meubleNavigation as $item)
+                            <a href="{{ $item['href'] }}" class="rounded-2xl border border-[#eadfce] bg-white px-3 py-3 text-sm font-semibold leading-tight text-[#171411] transition hover:border-[#d5b170]">
+                                {{ $item['title'] === 'Cuisine & rangement' ? 'Cuisine' : $item['title'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+
+                <section>
+                    <div class="mb-3 flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#b88a3b]">Aide</span>
+                        <span class="h-px flex-1 bg-[#eadfce] ml-4"></span>
+                    </div>
+
+                    <div class="grid gap-2">
+                        <a href="{{ url('/guides') }}" class="flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
+                            <span><i class="fa-regular fa-compass mr-2 text-[#b88a3b]"></i>Guides & conseils</span>
+                            <i class="fa-solid fa-arrow-right text-xs text-[#b88a3b]"></i>
+                        </a>
+                        <a href="{{ route('contact') }}" class="flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
+                            <span><i class="fa-regular fa-message mr-2 text-[#b88a3b]"></i>Contact</span>
+                            <i class="fa-solid fa-arrow-right text-xs text-[#b88a3b]"></i>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </nav>
     </div>
 </div>
 
