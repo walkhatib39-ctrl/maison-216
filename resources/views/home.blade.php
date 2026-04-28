@@ -115,12 +115,48 @@
     ]);
 
     $realizations = collect([
-        ['type' => 'Cuisine sur mesure', 'place' => 'Projet résidentiel', 'note' => 'Étude, fabrication bois et pose'],
-        ['type' => 'Dressing & placards', 'place' => 'Villa privée', 'note' => 'Rangements intégrés et finitions propres'],
-        ['type' => 'Fenêtres aluminium', 'place' => 'Appartement neuf', 'note' => 'Menuiserie aluminium et pose coordonnée'],
-        ['type' => 'Portail métallique', 'place' => 'Maison individuelle', 'note' => 'Structure métal, finition et installation'],
-        ['type' => 'Agencement restaurant', 'place' => 'Projet professionnel', 'note' => 'Mobilier, comptoir et éléments sur mesure'],
-        ['type' => 'Pergola extérieure', 'place' => 'Espace extérieur', 'note' => 'Ouvrage extérieur adapté au lieu'],
+        [
+            'type' => 'Cuisine sur mesure',
+            'place' => 'Menuiserie bois',
+            'note' => 'Cuisine équipée, rangements intégrés et finitions propres',
+            'image' => 'assets/home/realizations/cuisine-sur-mesure.jpg',
+            'alt' => 'Cuisine sur mesure réalisée par Maison 216',
+        ],
+        [
+            'type' => 'Dressing sur mesure',
+            'place' => 'Rangement intégré',
+            'note' => 'Dressing optimisé, façades soignées et pose ajustée',
+            'image' => 'assets/home/realizations/dressing-sur-mesure.jpg',
+            'alt' => 'Dressing sur mesure réalisé par Maison 216',
+        ],
+        [
+            'type' => 'Volet roulant aluminium',
+            'place' => 'Menuiserie aluminium',
+            'note' => 'Protection solaire, confort et finition aluminium',
+            'image' => 'assets/home/realizations/volet-roulant-aluminium.webp',
+            'alt' => 'Volet roulant aluminium posé par Maison 216',
+        ],
+        [
+            'type' => 'Portail métallique',
+            'place' => 'Fabrication métallique',
+            'note' => 'Structure métal, finition durable et installation sur site',
+            'image' => 'assets/home/realizations/portail-metal.jpg',
+            'alt' => 'Portail métallique fabriqué par Maison 216',
+        ],
+        [
+            'type' => 'Agencement restaurant',
+            'place' => 'Projet professionnel',
+            'note' => 'Mobilier, comptoir et ambiance coordonnée',
+            'image' => 'assets/home/realizations/amenagement-restaurant.jpg',
+            'alt' => 'Agencement restaurant réalisé par Maison 216',
+        ],
+        [
+            'type' => 'Pergola extérieure',
+            'place' => 'Aménagement extérieur',
+            'note' => 'Structure extérieure adaptée au lieu et aux usages',
+            'image' => 'assets/home/realizations/pergola.jpg',
+            'alt' => 'Pergola extérieure réalisée par Maison 216',
+        ],
     ]);
 
     $reviewProofs = collect([
@@ -325,8 +361,9 @@
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             @foreach($realizations as $realization)
-                <article class="group relative min-h-[310px] overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(213,177,112,0.35),transparent_30%),linear-gradient(145deg,#33281f,#171411)] transition duration-500 group-hover:scale-105"></div>
+                <article class="group relative min-h-[330px] overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
+                    <img src="{{ asset($realization['image']) }}" alt="{{ $realization['alt'] }}" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.08),rgba(23,20,17,0.82))]"></div>
                     <div class="relative z-10 flex h-full flex-col justify-between">
                         <div class="inline-flex w-max rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-bold text-[#e7c98d]">{{ $realization['place'] }}</div>
                         <div>
