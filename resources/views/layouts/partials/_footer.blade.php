@@ -1,11 +1,11 @@
 @php
-    $catalog = app(\App\Support\StorefrontCatalog::class);
+    $siteStructure = app(\App\Support\SiteStructure::class);
     $wa = \App\Models\Setting::get('contact.whatsapp');
     $ms = \App\Models\Setting::get('contact.messenger');
     $logo = \App\Models\Setting::get('ui.logo');
     $siteName = \App\Models\Setting::get('site.name', 'Maison 216');
 
-    $footerCategories = $catalog->footerCategories(6);
+    $footerNavigation = $siteStructure->mainNavigation();
     $logoUrl = $logo
         ? (\Illuminate\Support\Str::startsWith($logo, ['http://', 'https://', '/']) ? $logo : asset($logo))
         : null;
@@ -60,13 +60,13 @@
             </div>
 
             <div>
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Univers</div>
+                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Structure</div>
                 <ul class="mt-5 space-y-3.5">
-                    @foreach($footerCategories as $cat)
+                    @foreach($footerNavigation->take(7) as $item)
                         <li>
-                            <a href="{{ $cat['href'] }}" class="inline-flex items-center gap-2 text-sm text-white/72 transition hover:text-white">
+                            <a href="{{ $item['href'] }}" class="inline-flex items-center gap-2 text-sm text-white/72 transition hover:text-white">
                                 <i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>
-                                {{ $cat['name'] }}
+                                {{ $item['title'] }}
                             </a>
                         </li>
                     @endforeach
@@ -76,12 +76,12 @@
             <div>
                 <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Découvrir</div>
                 <ul class="mt-5 space-y-3.5 text-sm text-white/72">
-                    <li><a href="{{ route('categories.index') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Catalogue</a></li>
-                    <li><a href="{{ url('/#composer') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Composer une pièce</a></li>
-                    <li><a href="{{ url('/#sur-mesure') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Projet sur mesure</a></li>
-                    <li><a href="{{ url('/#atelier') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Ateliers</a></li>
+                    <li><a href="{{ url('/meubles') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Meubles</a></li>
+                    <li><a href="{{ url('/cuisine-dressing') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Cuisine & Dressing</a></li>
+                    <li><a href="{{ url('/aluminium') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Aluminium</a></li>
+                    <li><a href="{{ url('/fer-metal') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Fer & Metal</a></li>
                     <li><a href="{{ route('search') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Recherche</a></li>
-                    <li><a href="{{ route('contact') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Contact</a></li>
+                    <li><a href="{{ url('/devis') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Devis</a></li>
                 </ul>
             </div>
 

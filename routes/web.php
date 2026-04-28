@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\SitePageController;
 use Illuminate\Support\Facades\Route;
 
 // Front routes
@@ -21,6 +22,30 @@ Route::post('/checkout/{product}', [CheckoutController::class, 'store'])->name('
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+Route::get('/cuisine-dressing/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'cuisine-dressing')
+    ->name('site.cuisine-dressing');
+Route::get('/aluminium/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'aluminium')
+    ->name('site.aluminium');
+Route::get('/fer-metal/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'fer-metal')
+    ->name('site.fer-metal');
+Route::get('/meubles/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'meubles')
+    ->name('site.meubles');
+Route::get('/guides/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'guides')
+    ->name('site.guides');
+Route::get('/devis', [SitePageController::class, 'show'])
+    ->defaults('section', 'devis')
+    ->name('devis');
 
 // Quick order (guest checkout only)
 Route::post('/order/quick', [ProductController::class, 'quickOrder'])->name('order.quick');
@@ -87,6 +112,7 @@ Route::middleware(['auth', 'admin'])
 Route::get('/sitemap.xml', function () {
     $urls = [];
     $urls[] = url('/');
+    $urls = array_merge($urls, app(\App\Support\SiteStructure::class)->allUrls()->all());
     $categories = \App\Models\Category::select('slug')->get();
     foreach ($categories as $c) {
         $urls[] = url('/c/' . $c->slug);
