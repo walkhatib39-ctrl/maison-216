@@ -146,8 +146,8 @@
 
 <section class="relative isolate overflow-hidden border-b border-[#eadfce] bg-[#f6f1e8]">
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_20%,rgba(184,138,59,0.18),transparent_30%),radial-gradient(circle_at_82%_15%,rgba(23,20,17,0.08),transparent_28%)]"></div>
-    <div class="container mx-auto grid gap-10 px-4 py-14 lg:min-h-[760px] lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-20">
-        <div>
+    <div class="container mx-auto px-4 py-16 lg:py-24">
+        <div class="max-w-6xl">
             <div class="inline-flex items-center gap-2 rounded-full border border-[#d8c7af] bg-white/72 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#8b6426]">
                 <i class="fa-solid fa-industry"></i>
                 Atelier intégré en Tunisie
@@ -158,7 +158,7 @@
                 <span class="block text-[#a47834]">Un seul atelier pour tout votre aménagement.</span>
             </h1>
 
-            <p class="mt-6 max-w-2xl text-lg leading-8 text-[#53463c] lg:text-xl lg:leading-9">
+            <p class="mt-6 max-w-3xl text-lg leading-8 text-[#53463c] lg:text-xl lg:leading-9">
                 Bois, aluminium et métal fabriqués sur mesure dans notre atelier en Tunisie. Particuliers, architectes et promoteurs : un seul interlocuteur, du devis à la pose.
             </p>
 
@@ -173,45 +173,13 @@
                 </a>
             </div>
 
-            <div class="mt-8 grid gap-3 text-sm font-bold text-[#4f4236] sm:grid-cols-2 xl:grid-cols-4">
+            <div class="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm font-bold text-[#4f4236]">
                 @foreach(['Atelier visitable', 'Devis sous 48h', 'Pose incluse', 'Garantie atelier'] as $item)
                     <div class="inline-flex items-center gap-2">
                         <i class="fa-solid fa-check text-[#a47834]"></i>
                         {{ $item }}
                     </div>
                 @endforeach
-            </div>
-        </div>
-
-        <div class="relative">
-            <div class="grid min-h-[520px] gap-4 md:grid-cols-[0.72fr_1fr_0.72fr]">
-                <div class="rounded-[34px] bg-[linear-gradient(145deg,#2b211a,#9a6f32)] p-5 text-white shadow-[0_30px_80px_rgba(23,20,17,0.18)] md:mt-20">
-                    <div class="flex h-full flex-col justify-between rounded-[26px] border border-white/12 bg-white/8 p-5">
-                        <i class="fa-solid fa-gears text-4xl text-[#e7c98d]"></i>
-                        <div>
-                            <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#e7c98d]">Atelier réel</div>
-                            <div class="font-display mt-2 text-2xl font-bold">Bois en fabrication</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounded-[38px] bg-[linear-gradient(160deg,#fff7e8,#d8b77d_48%,#171411)] p-6 shadow-[0_36px_90px_rgba(23,20,17,0.22)]">
-                    <div class="flex h-full flex-col justify-end rounded-[30px] border border-white/35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.55),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.28),rgba(23,20,17,0.72))] p-6 text-white">
-                        <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#ffe2a7]">Réalisation finie</div>
-                        <div class="font-display mt-2 text-3xl font-extrabold">Cuisine & dressing premium</div>
-                        <p class="mt-3 text-sm leading-6 text-white/82">Atelier, fabrication et pose réunis dans un parcours clair.</p>
-                    </div>
-                </div>
-
-                <div class="rounded-[34px] bg-[linear-gradient(145deg,#1d2020,#7d8684)] p-5 text-white shadow-[0_30px_80px_rgba(23,20,17,0.16)] md:mb-20">
-                    <div class="flex h-full flex-col justify-between rounded-[26px] border border-white/12 bg-white/8 p-5">
-                        <i class="fa-solid fa-fire-flame-curved text-4xl text-[#e7c98d]"></i>
-                        <div>
-                            <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#e7c98d]">Alu & métal</div>
-                            <div class="font-display mt-2 text-2xl font-bold">Profilés, soudure, pose</div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
