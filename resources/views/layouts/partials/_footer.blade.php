@@ -77,9 +77,10 @@
                 <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Découvrir</div>
                 <ul class="mt-5 space-y-3.5 text-sm text-white/72">
                     <li><a href="{{ url('/meubles') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Meubles</a></li>
-                    <li><a href="{{ url('/cuisine-dressing') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Cuisine & Dressing</a></li>
-                    <li><a href="{{ url('/aluminium') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Aluminium</a></li>
-                    <li><a href="{{ url('/fer-metal') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Fer & Metal</a></li>
+                    <li><a href="{{ url('/menuiserie-bois') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Menuiserie bois</a></li>
+                    <li><a href="{{ url('/aluminium') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Menuiserie Alu</a></li>
+                    <li><a href="{{ url('/fer-metal') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Fabrication métallique</a></li>
+                    <li><a href="{{ url('/cuisine-dressing') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Sur mesure</a></li>
                     <li><a href="{{ route('search') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Recherche</a></li>
                     <li><a href="{{ url('/devis') }}" class="inline-flex items-center gap-2 transition hover:text-white"><i class="fa-solid fa-angle-right text-[11px] text-[#8f7351]"></i>Devis</a></li>
                 </ul>

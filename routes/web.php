@@ -27,6 +27,13 @@ Route::get('/cuisine-dressing/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
     ->defaults('section', 'cuisine-dressing')
     ->name('site.cuisine-dressing');
+Route::get('/menuiserie-bois/{path?}', [SitePageController::class, 'show'])
+    ->where('path', '.*')
+    ->defaults('section', 'menuiserie-bois')
+    ->name('site.menuiserie-bois');
+Route::redirect('/aluminium/fenetre-alu', '/aluminium/fenetre-aluminium', 301);
+Route::redirect('/aluminium/porte-alu', '/aluminium/porte-aluminium', 301);
+Route::redirect('/aluminium/cloison-alu', '/aluminium/cloison-aluminium', 301);
 Route::get('/aluminium/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
     ->defaults('section', 'aluminium')

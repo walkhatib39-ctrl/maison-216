@@ -4,17 +4,64 @@
     $wa = \App\Models\Setting::get('contact.whatsapp');
     $logo = \App\Models\Setting::get('ui.logo');
     $siteName = \App\Models\Setting::get('site.name', 'Maison 216');
-    $mainNav = $siteStructure->mainNavigation();
+
+    $node = fn (string $path): array => $siteStructure->find($path) ?? [];
+    $children = fn (string $path): array => $node($path)['children'] ?? [];
 
     $homeUrl = route('home');
-    $catalogUrl = url('/meubles');
     $devisUrl = url('/devis');
-    $contactUrl = route('contact');
     $searchUrl = route('search');
     $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : null;
     $logoUrl = $logo
         ? (\Illuminate\Support\Str::startsWith($logo, ['http://', 'https://', '/']) ? $logo : asset($logo))
         : null;
+
+    $serviceNavigation = collect([
+        [
+            'title' => 'Menuiserie bois',
+            'href' => url('/menuiserie-bois'),
+            'description' => $node('menuiserie-bois')['description'] ?? 'Meubles et amenagements bois pour la maison et les espaces professionnels.',
+            'children' => [],
+        ],
+        [
+            'title' => 'Menuiserie Alu',
+            'href' => url('/aluminium'),
+            'description' => $node('aluminium')['description'] ?? 'Fenêtres, portes, vitrines et cloisons aluminium.',
+            'children' => $children('aluminium'),
+        ],
+        [
+            'title' => 'Fabrication métallique',
+            'href' => url('/fer-metal'),
+            'description' => $node('fer-metal')['description'] ?? 'Portails, pergolas, garde-corps et escaliers métalliques.',
+            'children' => $children('fer-metal'),
+        ],
+        [
+            'title' => 'Sur Mesure',
+            'href' => url('/cuisine-dressing'),
+            'description' => $node('cuisine-dressing')['description'] ?? 'Cuisine, dressing, placard, meuble TV et bureau sur mesure.',
+            'children' => $children('cuisine-dressing'),
+        ],
+    ]);
+
+    $meubleNavigation = collect([
+        'meubles/salon-sejour',
+        'meubles/chambres-a-coucher',
+        'meubles/salle-a-manger',
+        'meubles/bureau',
+        'meubles/meubles-tv',
+        'meubles/cuisine-rangement',
+        'meubles/meubles-professionnels',
+    ])->map(fn (string $path) => $siteStructure->find($path))->filter()->values();
+
+    $mobileNavigation = $serviceNavigation
+        ->merge($meubleNavigation)
+        ->merge(collect([
+            $node('guides'),
+            ['title' => 'Contact', 'href' => route('contact'), 'description' => 'Une question, une commande ou un accompagnement.', 'children' => []],
+            $node('devis'),
+        ]))
+        ->filter(fn ($item) => !empty($item['title']) && !empty($item['href']))
+        ->values();
 @endphp
 
 <div class="border-b border-[#e8dcc7] bg-[#efe2cb] text-[#4f4236]">
@@ -37,10 +84,10 @@
     </div>
 </div>
 
-<header class="sticky top-0 z-50 border-b border-[#eadfce] bg-[#fbf7f0]/95 backdrop-blur">
+<header class="sticky top-0 z-50 border-b border-[#eadfce] bg-[#fbf7f0]/96 backdrop-blur">
     <div class="container mx-auto px-4">
         <div class="flex items-center gap-4 py-4">
-            <a href="{{ $homeUrl }}" class="flex min-w-0 items-center gap-3">
+            <a href="{{ $homeUrl }}" class="flex shrink-0 items-center">
                 @if($logoUrl)
                     <img src="{{ $logoUrl }}" alt="{{ $siteName }}" class="h-11 w-auto sm:h-12">
                 @else
@@ -49,46 +96,9 @@
                 <span class="sr-only">{{ $siteName }}</span>
             </a>
 
-            <nav class="hidden xl:flex xl:flex-1 xl:items-center xl:justify-center xl:gap-1" aria-label="Navigation principale">
-                @foreach($mainNav as $navItem)
-                    @if(collect($navItem['children'] ?? [])->isNotEmpty())
-                        <div class="group relative">
-                            <button type="button" class="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#2b241e] transition hover:bg-white hover:text-[#171411]">
-                                {{ $navItem['title'] }}
-                                <i class="fa-solid fa-chevron-down text-[10px] transition group-hover:rotate-180"></i>
-                            </button>
-
-                            <div class="invisible absolute left-1/2 top-full z-40 mt-4 w-[min(980px,calc(100vw-3rem))] -translate-x-1/2 translate-y-2 rounded-xl border border-[#eadfce] bg-white p-6 opacity-0 shadow-[0_24px_70px_rgba(23,20,17,0.12)] transition-all duration-200 group-hover:visible group-hover:-translate-x-1/2 group-hover:translate-y-0 group-hover:opacity-100">
-                                <div class="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-                                    <div>
-                                        <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#b88a3b]">{{ $navItem['title'] }}</div>
-                                        <p class="mt-3 text-sm leading-7 text-[#5f5146]">{{ $navItem['description'] }}</p>
-                                        <a href="{{ $navItem['href'] }}" class="mt-5 inline-flex items-center gap-2 rounded-full bg-[#171411] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#b88a3b]">
-                                            Voir la rubrique
-                                            <i class="fa-solid fa-arrow-right text-xs"></i>
-                                        </a>
-                                    </div>
-
-                                    <div class="grid gap-3 md:grid-cols-2">
-                                        @foreach($navItem['children'] as $child)
-                                            <a href="{{ $child['href'] }}" class="rounded-lg border border-[#eee4d5] bg-[#faf7f1] p-4 transition hover:border-[#d8c3a0] hover:bg-white">
-                                                <div class="font-display text-base font-bold text-[#171411]">{{ $child['title'] }}</div>
-                                                <p class="mt-2 line-clamp-2 text-sm leading-6 text-[#66584d]">{{ $child['description'] }}</p>
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <a href="{{ $navItem['href'] }}" class="rounded-full px-3 py-2 text-sm font-semibold text-[#2b241e] transition hover:bg-white hover:text-[#171411]">{{ $navItem['title'] }}</a>
-                    @endif
-                @endforeach
-            </nav>
-
-            <form action="{{ $searchUrl }}" method="get" class="hidden lg:flex lg:w-full lg:max-w-sm xl:max-w-md"
+            <form action="{{ $searchUrl }}" method="get" class="hidden min-w-[260px] flex-1 lg:flex xl:max-w-[430px]"
                   x-data="{
-                    q: '{{ request('q') }}',
+                    q: @js((string) request('q')),
                     open: false,
                     results: [],
                     highlighted: -1,
@@ -157,8 +167,45 @@
                 </div>
             </form>
 
-            <div class="ml-auto flex items-center gap-3">
-                <a href="{{ $devisUrl }}" class="hidden lg:inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-[#171411] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#b88a3b]">
+            <nav class="hidden shrink-0 items-center gap-1 xl:flex" aria-label="Navigation ateliers et sur mesure">
+                @foreach($serviceNavigation as $item)
+                    @if(collect($item['children'] ?? [])->isNotEmpty())
+                        <div class="group relative">
+                            <a href="{{ $item['href'] }}" class="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#2b241e] transition hover:bg-white hover:text-[#171411]">
+                                {{ $item['title'] }}
+                                <i class="fa-solid fa-chevron-down text-[10px] transition group-hover:rotate-180"></i>
+                            </a>
+
+                            <div class="invisible absolute left-1/2 top-full z-40 mt-4 w-[min(760px,calc(100vw-3rem))] -translate-x-1/2 translate-y-2 rounded-3xl border border-[#eadfce] bg-white p-6 opacity-0 shadow-[0_24px_70px_rgba(23,20,17,0.12)] transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                                <div class="grid gap-6 md:grid-cols-[0.8fr_1.2fr]">
+                                    <div>
+                                        <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#b88a3b]">{{ $item['title'] }}</div>
+                                        <p class="mt-3 text-sm leading-7 text-[#5f5146]">{{ $item['description'] }}</p>
+                                        <a href="{{ $item['href'] }}" class="mt-5 inline-flex items-center gap-2 rounded-full bg-[#171411] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#b88a3b]">
+                                            Voir la rubrique
+                                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                                        </a>
+                                    </div>
+
+                                    <div class="grid gap-3 sm:grid-cols-2">
+                                        @foreach($item['children'] as $child)
+                                            <a href="{{ $child['href'] }}" class="rounded-2xl border border-[#eee4d5] bg-[#faf7f1] p-4 transition hover:border-[#d8c3a0] hover:bg-white">
+                                                <div class="font-display text-base font-bold text-[#171411]">{{ $child['title'] }}</div>
+                                                <p class="mt-2 line-clamp-2 text-sm leading-6 text-[#66584d]">{{ $child['description'] }}</p>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ $item['href'] }}" class="rounded-full px-3 py-2 text-sm font-semibold text-[#2b241e] transition hover:bg-white hover:text-[#171411]">{{ $item['title'] }}</a>
+                    @endif
+                @endforeach
+            </nav>
+
+            <div class="ml-auto flex shrink-0 items-center gap-3">
+                <a href="{{ $devisUrl }}" class="hidden items-center gap-2 whitespace-nowrap rounded-full bg-[#171411] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#b88a3b] lg:inline-flex">
                     <i class="fa-regular fa-pen-to-square text-sm"></i>
                     Demander un devis
                 </a>
@@ -169,6 +216,18 @@
                     </svg>
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div class="hidden border-t border-[#eadfce] bg-white/45 xl:block">
+        <div class="container mx-auto px-4">
+            <nav class="flex items-center justify-center gap-1 py-2.5" aria-label="Navigation meubles">
+                @foreach($meubleNavigation as $item)
+                    <a href="{{ $item['href'] }}" class="rounded-full px-4 py-2 text-sm font-semibold text-[#5f5146] transition hover:bg-white hover:text-[#171411]">
+                        {{ $item['title'] === 'Cuisine & rangement' ? 'Cuisine' : $item['title'] }}
+                    </a>
+                @endforeach
+            </nav>
         </div>
     </div>
 
@@ -199,7 +258,7 @@
             </div>
 
             <div class="space-y-3 px-5 py-5">
-                @foreach($mainNav as $navItem)
+                @foreach($mobileNavigation as $navItem)
                     @if(collect($navItem['children'] ?? [])->isNotEmpty())
                         <details class="rounded-2xl border border-[#eadfce] bg-white">
                             <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4">

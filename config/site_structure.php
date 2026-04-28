@@ -2,6 +2,12 @@
 
 return [
     [
+        'title' => 'Menuiserie bois',
+        'path' => 'menuiserie-bois',
+        'description' => 'Meubles, rangements et amenagements en bois, du produit pret a commander au projet fabrique sur mesure.',
+        'type' => 'quote',
+    ],
+    [
         'title' => 'Cuisine & Dressing',
         'path' => 'cuisine-dressing',
         'description' => 'Des projets sur mesure pour organiser la cuisine, le dressing, le placard, le meuble TV ou le bureau selon votre espace.',
@@ -15,21 +21,21 @@ return [
         ],
     ],
     [
-        'title' => 'Aluminium',
+        'title' => 'Menuiserie Alu',
         'path' => 'aluminium',
         'description' => 'Fenêtres, portes, vitrines, verrieres, cloisons et cabines de douche realisees selon les contraintes du lieu.',
         'type' => 'quote',
         'children' => [
-            ['title' => 'Fenêtre aluminium', 'path' => 'aluminium/fenetre-alu', 'description' => 'Des fenetres aluminium pour mieux gerer luminosite, isolation et ouverture.', 'type' => 'quote'],
-            ['title' => 'Porte aluminium', 'path' => 'aluminium/porte-alu', 'description' => 'Des portes aluminium solides et propres pour maison, local ou espace professionnel.', 'type' => 'quote'],
+            ['title' => 'Fenêtre aluminium', 'path' => 'aluminium/fenetre-aluminium', 'description' => 'Des fenetres aluminium pour mieux gerer luminosite, isolation et ouverture.', 'type' => 'quote'],
+            ['title' => 'Porte aluminium', 'path' => 'aluminium/porte-aluminium', 'description' => 'Des portes aluminium solides et propres pour maison, local ou espace professionnel.', 'type' => 'quote'],
             ['title' => 'Vitrine magasin', 'path' => 'aluminium/vitrine-magasin', 'description' => 'Des vitrines de magasin concues pour presenter, proteger et valoriser votre activite.', 'type' => 'quote'],
             ['title' => 'Verrière', 'path' => 'aluminium/verriere', 'description' => 'Separez sans fermer avec une verriere adaptee a votre interieur.', 'type' => 'quote'],
-            ['title' => 'Cloison aluminium', 'path' => 'aluminium/cloison-alu', 'description' => 'Structurez vos espaces avec des cloisons aluminium nettes et durables.', 'type' => 'quote'],
+            ['title' => 'Cloison aluminium', 'path' => 'aluminium/cloison-aluminium', 'description' => 'Structurez vos espaces avec des cloisons aluminium nettes et durables.', 'type' => 'quote'],
             ['title' => 'Cabine de douche', 'path' => 'aluminium/cabine-de-douche', 'description' => 'Une cabine de douche ajustee aux dimensions de votre salle de bain.', 'type' => 'quote'],
         ],
     ],
     [
-        'title' => 'Fer & Metal',
+        'title' => 'Fabrication métallique',
         'path' => 'fer-metal',
         'description' => 'Portails, pergolas, garde-corps, grilles et escaliers metalliques fabriques pour durer.',
         'type' => 'quote',

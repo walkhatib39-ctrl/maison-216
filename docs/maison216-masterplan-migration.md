@@ -325,15 +325,10 @@ Il faut unifier la marque, pas fusionner les parcours.
 
 Navigation desktop cible finale:
 
-- Cuisine & Dressing
-- Aluminium
-- Fer & Metal
-- Meubles
-- Guides
-- Devis
-- Contact
+- Header principal: logo, recherche, Menuiserie bois, Menuiserie Alu, Fabrication metallique, Sur Mesure, bouton Devis
+- Sous-header meubles: Salon & sejour, Chambres a coucher, Salle a manger, Bureau, Meubles TV, Cuisine, Meubles professionnels
 
-Cette decision remplace l'ancien modele `Decouvrir / Composer / Sur mesure` en navigation principale.
+Cette decision remplace l'ancien modele `Decouvrir / Composer / Sur mesure` en navigation principale et evite la compression des items dans le header.
 Le mode `composer` reste une experience commerciale importante, mais il ne doit pas etre un item top-nav tant que les templates, bundles et compatibilites ne sont pas industrialises.
 
 ## 8.2 Arborescence finale du site
@@ -341,22 +336,24 @@ Le mode `composer` reste une experience commerciale importante, mais il ne doit 
 ```text
 Accueil /
 
-Cuisine & Dressing /cuisine-dressing/
+Menuiserie bois /menuiserie-bois/
+
+Sur Mesure /cuisine-dressing/
 - Cuisine sur mesure /cuisine-dressing/cuisine-sur-mesure/
 - Dressing sur mesure /cuisine-dressing/dressing-sur-mesure/
 - Placard sur mesure /cuisine-dressing/placard-sur-mesure/
 - Meuble TV sur mesure /cuisine-dressing/meuble-tv-sur-mesure/
 - Bureau sur mesure /cuisine-dressing/bureau-sur-mesure/
 
-Aluminium /aluminium/
-- Fenetre aluminium /aluminium/fenetre-alu/
-- Porte aluminium /aluminium/porte-alu/
+Menuiserie Alu /aluminium/
+- Fenetre aluminium /aluminium/fenetre-aluminium/
+- Porte aluminium /aluminium/porte-aluminium/
 - Vitrine magasin /aluminium/vitrine-magasin/
 - Verriere /aluminium/verriere/
-- Cloison aluminium /aluminium/cloison-alu/
+- Cloison aluminium /aluminium/cloison-aluminium/
 - Cabine de douche /aluminium/cabine-de-douche/
 
-Fer & Metal /fer-metal/
+Fabrication metallique /fer-metal/
 - Portail fer forge /fer-metal/portail-fer-forge/
 - Pergola metallique /fer-metal/pergola-metallique/
 - Garde-corps /fer-metal/garde-corps/
@@ -442,11 +439,11 @@ Contact /contact/
 
 ## 8.3 Regles de structure et SEO
 
-- Les offres de fabrication complexe sortent du tunnel meuble standard: `Cuisine & Dressing`, `Aluminium`, `Fer & Metal`.
+- Les offres de fabrication complexe sortent du tunnel meuble standard: `Menuiserie bois`, `Menuiserie Alu`, `Fabrication metallique`, `Sur Mesure`.
 - Les produits commandables restent sous `/meubles/`.
 - `/meubles/chambres-a-coucher/` est le hub catalogue/SEO pour les produits et sous-categories de chambre.
 - `/meubles/chambre-adulte/` et `/meubles/chambre-enfant/` sont des pages d'intention, plus editoriales, pour guider l'achat ou la composition.
-- Les pages `Cuisine & Dressing`, `Aluminium` et `Fer & Metal` doivent etre orientees devis, realisations, preuves atelier et formulaire de qualification.
+- Les pages `Menuiserie bois`, `Menuiserie Alu`, `Fabrication metallique` et `Sur Mesure` doivent etre orientees devis, realisations, preuves atelier et formulaire de qualification.
 - Les pages `/devis/` et `/contact/` ne jouent pas le meme role: `/devis/` qualifie un projet, `/contact/` sert au contact general.
 
 ## 9. Pages cibles a produire

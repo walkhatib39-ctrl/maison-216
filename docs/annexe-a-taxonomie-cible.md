@@ -48,19 +48,20 @@ Le visiteur doit toujours pouvoir entrer:
 
 Les entrees de niveau 1 recommandees sont:
 
-1. Cuisine & Dressing
-2. Aluminium
-3. Fer & Metal
-4. Meubles
-5. Guides
-6. Devis
-7. Contact
+1. Menuiserie bois
+2. Menuiserie Alu
+3. Fabrication metallique
+4. Sur Mesure
+5. Meubles
+6. Guides
+7. Devis
+8. Contact
 
 ## 3.2 Raison de ce choix
 
 - il separe clairement les metiers atelier des meubles commandables
 - il soutient le SEO transactionnel
-- il permet une navigation claire
+- il permet une navigation desktop en deux niveaux, plus aeree et plus lisible
 - il permet ensuite de brancher des sous-categories et des collections
 - il evite de melanger produit catalogue, projet sur mesure et demande de devis dans un seul tunnel
 
@@ -494,7 +495,8 @@ Exemples:
 
 - `/cuisine-dressing/cuisine-sur-mesure/`
 - `/cuisine-dressing/dressing-sur-mesure/`
-- `/aluminium/fenetre-alu/`
+- `/menuiserie-bois/`
+- `/aluminium/fenetre-aluminium/`
 - `/fer-metal/portail-fer-forge/`
 
 ## 12.6 Guides et conversion
