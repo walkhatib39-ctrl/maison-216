@@ -63,7 +63,8 @@
             'href' => url('/menuiserie-bois'),
             'cta' => 'Découvrir l atelier bois',
             'icon' => 'fa-solid fa-tree',
-            'bg' => 'from-[#6f4e2e] to-[#1f1710]',
+            'image' => 'assets/home/menuiserie-bois.webp',
+            'imageAlt' => 'Atelier de menuiserie bois Maison 216',
         ],
         [
             'kicker' => 'Aluminium',
@@ -72,7 +73,8 @@
             'href' => url('/aluminium'),
             'cta' => 'Découvrir l atelier aluminium',
             'icon' => 'fa-solid fa-border-all',
-            'bg' => 'from-[#7f8787] to-[#15191a]',
+            'image' => 'assets/home/menuiserie-aluminium.jpg',
+            'imageAlt' => 'Menuiserie aluminium Maison 216',
         ],
         [
             'kicker' => 'Métal',
@@ -81,7 +83,8 @@
             'href' => url('/fer-metal'),
             'cta' => 'Découvrir l atelier métal',
             'icon' => 'fa-solid fa-fire-flame-curved',
-            'bg' => 'from-[#8a4b2e] to-[#171411]',
+            'image' => 'assets/home/fabrication-metallique.jpg',
+            'imageAlt' => 'Fabrication métallique Maison 216',
         ],
         [
             'kicker' => 'Sur mesure',
@@ -90,7 +93,8 @@
             'href' => url('/sur-mesure'),
             'cta' => 'Voir nos aménagements',
             'icon' => 'fa-solid fa-ruler-combined',
-            'bg' => 'from-[#b88a3b] to-[#1d1711]',
+            'image' => 'assets/home/amenagement-sur-mesure.jpg',
+            'imageAlt' => 'Aménagement sur mesure Maison 216',
         ],
     ]);
 
@@ -239,13 +243,17 @@
         <div class="grid gap-5 lg:grid-cols-2">
             @foreach($crafts as $craft)
                 <a href="{{ $craft['href'] }}" class="group overflow-hidden rounded-[34px] border border-[#eadfce] bg-[#171411] text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
-                    <div class="grid min-h-[330px] md:grid-cols-[0.9fr_1.1fr]">
-                        <div class="bg-gradient-to-br {{ $craft['bg'] }} p-7">
-                            <div class="flex h-full flex-col justify-between rounded-[26px] border border-white/12 bg-white/8 p-6">
-                                <i class="{{ $craft['icon'] }} text-5xl text-[#e7c98d]"></i>
+                    <div class="grid min-h-[360px] md:grid-cols-[1fr_1.08fr]">
+                        <div class="relative min-h-[260px] overflow-hidden md:min-h-full">
+                            <img src="{{ asset($craft['image']) }}" alt="{{ $craft['imageAlt'] }}" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.08),rgba(23,20,17,0.78))]"></div>
+                            <div class="relative z-10 flex h-full flex-col justify-between p-7">
+                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/12 text-xl text-[#f0d49a] backdrop-blur">
+                                    <i class="{{ $craft['icon'] }}"></i>
+                                </span>
                                 <div>
-                                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#e7c98d]">{{ $craft['kicker'] }}</div>
-                                    <div class="font-display mt-2 text-2xl font-extrabold">{{ $craft['title'] }}</div>
+                                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#f0d49a]">{{ $craft['kicker'] }}</div>
+                                    <div class="font-display mt-2 text-3xl font-extrabold text-white">{{ $craft['title'] }}</div>
                                 </div>
                             </div>
                         </div>
