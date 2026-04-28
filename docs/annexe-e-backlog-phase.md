@@ -135,7 +135,7 @@ Refondre la porte d'entree du site autour des intentions.
 ## 6.5 Criteres de sortie
 
 - la homepage n'est plus catalogue-first
-- la navigation expose `Decouvrir`, `Composer`, `Sur mesure`
+- la navigation expose `Cuisine & Dressing`, `Aluminium`, `Fer & Metal`, `Meubles`, `Guides`, `Devis`, `Contact`
 - l'utilisateur comprend les 3 modes d'achat
 
 ## 7. Phase 3 - Pages commerciales coeur
@@ -550,4 +550,3 @@ La prochaine execution concrete devrait etre:
 3. dessiner la homepage haute fidelite
 
 Si l'ordre est inverse, le chantier perdra en coherence.
-

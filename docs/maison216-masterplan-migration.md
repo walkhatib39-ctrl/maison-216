@@ -323,73 +323,131 @@ Il faut unifier la marque, pas fusionner les parcours.
 
 ## 8.1 Navigation principale
 
-Navigation desktop cible:
+Navigation desktop cible finale:
 
-- Decouvrir
-- Composer
-- Sur mesure
-- Realisations
-- Conseil et RDV
-- Promotions
+- Cuisine & Dressing
+- Aluminium
+- Fer & Metal
+- Meubles
+- Guides
+- Devis
+- Contact
 
-## 8.2 Mega-menu "Decouvrir"
+Cette decision remplace l'ancien modele `Decouvrir / Composer / Sur mesure` en navigation principale.
+Le mode `composer` reste une experience commerciale importante, mais il ne doit pas etre un item top-nav tant que les templates, bundles et compatibilites ne sont pas industrialises.
 
-Entrée par univers:
+## 8.2 Arborescence finale du site
 
-- chambre adulte
-- chambre enfant
-- salon et sejour
-- cuisine et rangement
-- bureau
-- deco et rangements complementaires
+```text
+Accueil /
 
-Dans chaque univers:
+Cuisine & Dressing /cuisine-dressing/
+- Cuisine sur mesure /cuisine-dressing/cuisine-sur-mesure/
+- Dressing sur mesure /cuisine-dressing/dressing-sur-mesure/
+- Placard sur mesure /cuisine-dressing/placard-sur-mesure/
+- Meuble TV sur mesure /cuisine-dressing/meuble-tv-sur-mesure/
+- Bureau sur mesure /cuisine-dressing/bureau-sur-mesure/
 
-- categories principales
-- sous-categories
-- collections
-- compositions pretes
-- page "tout voir"
+Aluminium /aluminium/
+- Fenetre aluminium /aluminium/fenetre-alu/
+- Porte aluminium /aluminium/porte-alu/
+- Vitrine magasin /aluminium/vitrine-magasin/
+- Verriere /aluminium/verriere/
+- Cloison aluminium /aluminium/cloison-alu/
+- Cabine de douche /aluminium/cabine-de-douche/
 
-## 8.3 Menu "Composer"
+Fer & Metal /fer-metal/
+- Portail fer forge /fer-metal/portail-fer-forge/
+- Pergola metallique /fer-metal/pergola-metallique/
+- Garde-corps /fer-metal/garde-corps/
+- Grille de protection /fer-metal/grille-de-protection/
+- Escalier metallique /fer-metal/escalier-metallique/
 
-Entrées ciblees:
+Meubles /meubles/
 
-- composer une chambre adulte
-- composer une chambre enfant
-- composer un salon
-- composer un dressing
-- composer une cuisine modulaire
-- concevoir un meuble TV
+1. Salon & sejour /meubles/salon-sejour/
+- Canapes /meubles/salon-sejour/canapes/
+- Fauteuils /meubles/salon-sejour/fauteuils/
+- Tables basses /meubles/salon-sejour/tables-basses/
+- Meubles TV /meubles/salon-sejour/meubles-tv/
+- Buffets /meubles/salon-sejour/buffets/
+- Bibliotheques /meubles/salon-sejour/bibliotheques/
+- Etageres /meubles/salon-sejour/etageres/
+- Bancs /meubles/salon-sejour/bancs/
 
-## 8.4 Menu "Sur mesure"
+2. Chambres a coucher /meubles/chambres-a-coucher/
+- Chambres adultes /meubles/chambres-a-coucher/chambres-adultes/
+- Chambres enfants /meubles/chambres-a-coucher/chambres-enfants/
+- Lits /meubles/chambres-a-coucher/lits/
+  - Lits doubles /meubles/chambres-a-coucher/lits/lits-doubles/
+  - Lits simples /meubles/chambres-a-coucher/lits/lits-simples/
+  - Lits superposes /meubles/chambres-a-coucher/lits/lits-superposes/
+  - Tetes de lit /meubles/chambres-a-coucher/lits/tetes-de-lit/
+- Armoires /meubles/chambres-a-coucher/armoires/
+- Dressings /meubles/chambres-a-coucher/dressings/
+- Commodes /meubles/chambres-a-coucher/commodes/
+- Coiffeuses /meubles/chambres-a-coucher/coiffeuses/
+- Bancs de lit /meubles/chambres-a-coucher/bancs-de-lit/
 
-Entrées par metier et par besoin:
+3. Chambre adulte /meubles/chambre-adulte/
 
-- cuisine sur mesure
-- dressing sur mesure
-- meuble TV sur mesure
-- placard sous pente
-- aluminium
-- ferronnerie
-- verrieres et separations
-- prise de RDV
+4. Chambre enfant /meubles/chambre-enfant/
+- Lits enfants /meubles/chambre-enfant/lits-enfants/
+- Bureaux enfants /meubles/chambre-enfant/bureaux-enfants/
+- Coffres a jouets /meubles/chambre-enfant/coffres-a-jouets/
+- Bibliotheques enfants /meubles/chambre-enfant/bibliotheques-enfants/
 
-## 8.5 Architecture d'URL cible
+5. Salle a manger /meubles/salle-a-manger/
+- Tables a manger /meubles/salle-a-manger/tables-a-manger/
+- Chaises /meubles/salle-a-manger/chaises/
+- Buffets /meubles/salle-a-manger/buffets/
+- Vaisseliers /meubles/salle-a-manger/vaisseliers/
 
-Exemples:
+6. Bureau /meubles/bureau/
+- Caissons de rangement /meubles/bureau/caissons-de-rangement/
+- Meubles imprimante /meubles/bureau/meubles-imprimante/
+- Tables de travail /meubles/bureau/tables-de-travail/
+- Meubles bureau professionnels /meubles/bureau/meubles-bureau-professionnels/
 
-- `/chambre-adulte/`
-- `/chambre-adulte/lits/`
-- `/chambre-adulte/armoires-dressings/`
-- `/chambre-adulte/commodes/`
-- `/collections/lora/`
-- `/compositions/chambre-adulte-4-elements-lora/`
-- `/composer/chambre-adulte/`
-- `/sur-mesure/cuisine/`
-- `/sur-mesure/dressing/`
-- `/realisations/chambre-adulte/`
-- `/guides/comment-choisir-un-dressing-en-tunisie/`
+7. Cuisine & rangement /meubles/cuisine-rangement/
+- Elements de rangement cuisine /meubles/cuisine-rangement/elements-de-rangement-cuisine/
+- Tables de cuisine /meubles/cuisine-rangement/tables-de-cuisine/
+- Placards cuisine /meubles/cuisine-rangement/placards-cuisine/
+
+8. Entree & couloir /meubles/entree-couloir/
+- Meubles d'entree /meubles/entree-couloir/meubles-entree/
+- Porte-chaussures /meubles/entree-couloir/porte-chaussures/
+- Bancs d'entree /meubles/entree-couloir/bancs-entree/
+- Porte-manteaux /meubles/entree-couloir/porte-manteaux/
+- Miroirs /meubles/entree-couloir/miroirs/
+
+9. Meubles TV /meubles/meubles-tv/
+
+10. Meubles professionnels /meubles/meubles-professionnels/
+- Meubles pour bureaux /meubles/meubles-professionnels/meubles-pour-bureaux/
+- Meubles pour boutiques /meubles/meubles-professionnels/meubles-pour-boutiques/
+- Comptoirs d'accueil /meubles/meubles-professionnels/comptoirs-accueil/
+- Presentoirs /meubles/meubles-professionnels/presentoirs/
+- Rangements professionnels /meubles/meubles-professionnels/rangements-professionnels/
+- Mobilier cafe / restaurant /meubles/meubles-professionnels/mobilier-cafe-restaurant/
+
+Guides /guides/
+- Guide de Prix /guides/guide-de-prix/
+- Conseils /guides/conseils/
+
+Devis /devis/
+
+Contact /contact/
+```
+
+## 8.3 Regles de structure et SEO
+
+- Les offres de fabrication complexe sortent du tunnel meuble standard: `Cuisine & Dressing`, `Aluminium`, `Fer & Metal`.
+- Les produits commandables restent sous `/meubles/`.
+- `/meubles/chambres-a-coucher/` est le hub catalogue/SEO pour les produits et sous-categories de chambre.
+- `/meubles/chambre-adulte/` et `/meubles/chambre-enfant/` sont des pages d'intention, plus editoriales, pour guider l'achat ou la composition.
+- Les pages `Cuisine & Dressing`, `Aluminium` et `Fer & Metal` doivent etre orientees devis, realisations, preuves atelier et formulaire de qualification.
+- Les pages `/devis/` et `/contact/` ne jouent pas le meme role: `/devis/` qualifie un projet, `/contact/` sert au contact general.
 
 ## 9. Pages cibles a produire
 

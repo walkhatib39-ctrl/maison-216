@@ -40,14 +40,13 @@ Le MVP de migration doit cadrer ces ecrans:
  Livraison Tunisie | Atelier bois / alu / fer | WhatsApp | RDV
 
 [Header principal]
- Logo | Decouvrir | Composer | Sur mesure | Realisations | Conseil & RDV | Recherche | CTA
+ Logo | Cuisine & Dressing | Aluminium | Fer & Metal | Meubles | Guides | Devis | Contact | Recherche
 
 [Hero signature]
  Titre fort
  Sous-titre clarifiant les 3 modes d'achat
- CTA 1 Composer ma piece
- CTA 2 Voir les collections
- CTA 3 Demander un devis
+ CTA 1 Voir les meubles
+ CTA 2 Demander un devis
  Visuel editorial premium ou scene architecturale
 
 [Bloc 3 voies]
@@ -57,7 +56,7 @@ Le MVP de migration doit cadrer ces ecrans:
 
 [Bloc univers]
  Grille 6 a 8 cartes
- Chambre adulte | Chambre enfant | Salon | Cuisine | Bureau | Sur mesure
+ Salon & sejour | Chambres a coucher | Salle a manger | Bureau | Cuisine & rangement | Entree & couloir
 
 [Bloc composer]
  Titre: Planifiez votre piece en quelques clics
@@ -103,7 +102,7 @@ Le MVP de migration doit cadrer ces ecrans:
  Composer
  Sur mesure
 
-[Univers en cartes swipe ou pile]
+[Meubles et metiers en cartes swipe ou pile]
 
 [Composer en quelques clics]
  cartes compactes
@@ -139,28 +138,29 @@ Le MVP de migration doit cadrer ces ecrans:
 
 ```text
 [Colonne 1]
- Univers
- - Chambre adulte
- - Chambre enfant
- - Salon & sejour
- - Salle a manger
- - Cuisine & rangement
- - Bureau
+ Entrees principales
+ - Cuisine & Dressing
+ - Aluminium
+ - Fer & Metal
+ - Meubles
+ - Guides
+ - Devis
 
 [Colonne 2]
- Sous-categories de l'univers survole
- - Lits
- - Armoires & dressings
- - Commodes
- - Tables de nuit
- - Coiffeuses
+ Sous-entrees du groupe actif
+ - Cuisine sur mesure
+ - Dressing sur mesure
+ - Fenetre aluminium
+ - Portail fer forge
+ - Salon & sejour
+ - Chambres a coucher
 
 [Colonne 3]
  Raccourcis commerciaux
- - Collections
- - Compositions pretes
- - Composer ma piece
- - Voir toutes les realisations
+ - Meubles
+ - Guide de prix
+ - Demander un devis
+ - Contact
 
 [Colonne 4]
  Carte editoriale / visuelle
@@ -174,13 +174,15 @@ Le MVP de migration doit cadrer ces ecrans:
 Le menu mobile ne doit pas reproduire le mega-menu.
 Il doit faire mieux:
 
-- Decouvrir
-- Composer
-- Sur mesure
-- Realisations
+- Cuisine & Dressing
+- Aluminium
+- Fer & Metal
+- Meubles
+- Guides
+- Devis
 - Contact / WhatsApp
 
-Puis accordions simples par univers.
+Puis accordions simples par groupe.
 
 ## 5. Landing page univers
 
@@ -512,4 +514,3 @@ Sur chaque ecran, l'ordre de lecture doit etre:
 - [ ] page composition validee
 - [ ] flow builder chambre adulte valide
 - [ ] page sur mesure validee
-

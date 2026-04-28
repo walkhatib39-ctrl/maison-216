@@ -46,25 +46,23 @@ Le visiteur doit toujours pouvoir entrer:
 
 ## 3.1 Univers principaux
 
-Les univers de niveau 1 recommandes sont:
+Les entrees de niveau 1 recommandees sont:
 
-1. Chambre adulte
-2. Chambre enfant
-3. Salon & sejour
-4. Salle a manger
-5. Cuisine & rangement
-6. Bureau
-7. Entree & rangement
-8. Salle de bain
-9. Exterieur & jardin
-10. Sur mesure & travaux
+1. Cuisine & Dressing
+2. Aluminium
+3. Fer & Metal
+4. Meubles
+5. Guides
+6. Devis
+7. Contact
 
 ## 3.2 Raison de ce choix
 
-- il correspond a la logique de piece du client
+- il separe clairement les metiers atelier des meubles commandables
 - il soutient le SEO transactionnel
 - il permet une navigation claire
 - il permet ensuite de brancher des sous-categories et des collections
+- il evite de melanger produit catalogue, projet sur mesure et demande de devis dans un seul tunnel
 
 ## 4. Taxonomie cible de niveau 2 par univers
 
@@ -472,9 +470,11 @@ Exemples:
 
 ## 12.1 Categories
 
-- `/chambre-adulte/`
-- `/chambre-adulte/lits/`
-- `/salon-sejour/meubles-tv/`
+- `/meubles/salon-sejour/`
+- `/meubles/salon-sejour/meubles-tv/`
+- `/meubles/chambres-a-coucher/lits/lits-doubles/`
+- `/meubles/chambre-adulte/`
+- `/meubles/chambre-enfant/lits-enfants/`
 
 ## 12.2 Collections
 
@@ -492,8 +492,18 @@ Exemples:
 
 ## 12.5 Sur mesure
 
-- `/sur-mesure/cuisine/`
-- `/sur-mesure/aluminium/`
+- `/cuisine-dressing/cuisine-sur-mesure/`
+- `/cuisine-dressing/dressing-sur-mesure/`
+- `/aluminium/fenetre-alu/`
+- `/fer-metal/portail-fer-forge/`
+
+## 12.6 Guides et conversion
+
+- `/guides/`
+- `/guides/guide-de-prix/`
+- `/guides/conseils/`
+- `/devis/`
+- `/contact/`
 
 ## 13. Priorite de mise en oeuvre
 
