@@ -50,19 +50,20 @@
 <div class="border-b border-[#e8dcc7] bg-[#efe2cb] text-[#4f4236]">
     <div class="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs font-semibold sm:text-sm">
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-[#a47834]"></i>Ateliers bois, alu et fer</span>
-            <span class="hidden items-center gap-2 sm:inline-flex"><i class="fa-solid fa-truck-fast text-[#a47834]"></i>Livraison partout en Tunisie</span>
-            <span class="hidden items-center gap-2 lg:inline-flex"><i class="fa-brands fa-whatsapp text-[#a47834]"></i>Conseil rapide sur WhatsApp</span>
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-[#a47834]"></i>Atelier intégré : bois · aluminium · métal</span>
+            <span class="hidden items-center gap-2 sm:inline-flex"><i class="fa-regular fa-clock text-[#a47834]"></i>Devis sous 48h</span>
+            <span class="hidden items-center gap-2 lg:inline-flex"><i class="fa-solid fa-shield-halved text-[#a47834]"></i>Pose & SAV inclus</span>
         </div>
 
         <div class="flex items-center gap-3">
             @if($whatsappUrl)
                 <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-[#2b241e] transition hover:bg-white">
                     <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    WhatsApp
+                    WhatsApp : {{ $wa }}
                 </a>
+            @else
+                <span class="inline-flex items-center gap-2"><i class="fa-brands fa-whatsapp text-[#a47834]"></i>WhatsApp : +216 XX XXX XXX</span>
             @endif
-            <a href="{{ $devisUrl }}" class="text-[#4f4236] transition hover:text-[#171411]">Devis & accompagnement</a>
         </div>
     </div>
 </div>

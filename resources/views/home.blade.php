@@ -4,11 +4,11 @@
 <script type="application/ld+json">
 {!! json_encode([
     '@' . 'context' => 'https://schema.org',
-    '@type' => 'Organization',
+    '@type' => 'LocalBusiness',
     'name' => \App\Models\Setting::get('site.name', config('app.name')),
     'url' => url('/'),
     'logo' => \App\Models\Setting::get('ui.logo'),
-    'description' => 'Maison 216 vend des meubles en Tunisie, accompagne la composition de pieces et traite les projets sur mesure en bois, aluminium et fer.',
+    'description' => 'Atelier intégré bois, aluminium et métal en Tunisie pour cuisines, dressings, fenêtres, portails et projets d aménagement sur mesure.',
     'address' => [
         '@type' => 'PostalAddress',
         'addressCountry' => 'TN',
@@ -19,278 +19,344 @@
 
 @section('content')
 @php
-    $contactUrl = route('contact');
-    $categoriesUrl = route('categories.index');
-    $searchUrl = route('search');
-    $imageUrl = fn (?string $path) => $path
-        ? (\Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/']) ? $path : asset($path))
-        : null;
+    $wa = \App\Models\Setting::get('contact.whatsapp');
+    $adminEmail = \App\Models\Setting::get('contact.admin_email', 'contact@maison216.tn');
+    $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : route('contact');
+    $devisUrl = url('/devis');
 
-    $entryModes = collect([
+    $trustFacts = collect([
+        ['icon' => 'fa-solid fa-industry', 'value' => 'Atelier intégré', 'label' => 'Bois, aluminium et métal sous le même toit'],
+        ['icon' => 'fa-regular fa-clock', 'value' => '48h', 'label' => 'Objectif de retour pour les demandes complètes'],
+        ['icon' => 'fa-solid fa-user-gear', 'value' => 'Pose & SAV', 'label' => 'Un interlocuteur jusqu à la fin du projet'],
+        ['icon' => 'fa-solid fa-location-dot', 'value' => 'Tunisie', 'label' => 'Fabrication locale et projets coordonnés'],
+    ]);
+
+    $audiences = collect([
         [
-            'label' => '01',
-            'eyebrow' => 'Acheter vite',
-            'title' => 'Trouver un meuble précis',
-            'copy' => 'Vous savez déjà ce qu’il vous faut ? Accédez directement aux lits, armoires, tables, salons, bureaux et rangements les plus recherchés.',
-            'href' => $categoriesUrl,
-            'cta' => 'Voir le catalogue',
-            'tone' => 'bg-white',
+            'icon' => 'fa-solid fa-house-chimney',
+            'title' => 'Particuliers',
+            'copy' => 'Vous construisez, rénovez ou aménagez votre maison ou votre appartement. Cuisine, dressings, fenêtres, portail, pergola : nous cadrons l ensemble de votre projet.',
+            'cta' => 'Lancer mon projet',
+            'href' => $devisUrl,
         ],
         [
-            'label' => '02',
-            'eyebrow' => 'Composer',
-            'title' => 'Meubler une pièce complète',
-            'copy' => 'Partez d’une chambre, d’un salon ou d’un espace rangement, puis découvrez les meubles qui fonctionnent bien ensemble.',
-            'href' => '#composer',
-            'cta' => 'Commencer par une pièce',
-            'tone' => 'bg-[#171411] text-white',
+            'icon' => 'fa-solid fa-drafting-compass',
+            'title' => 'Architectes & décorateurs',
+            'copy' => 'Vous concevez, nous fabriquons. Atelier intégré bois + aluminium + métal, respect des plans, finitions soignées et échanges techniques clairs.',
+            'cta' => 'Découvrir le programme partenaire',
+            'href' => '#partenaires',
         ],
         [
-            'label' => '03',
-            'eyebrow' => 'Sur mesure',
-            'title' => 'Confier un projet à l’atelier',
-            'copy' => 'Cuisine, dressing, aluminium, ferronnerie ou besoin spécifique : racontez-nous votre projet et recevez une réponse claire.',
-            'href' => '#sur-mesure',
-            'cta' => 'Demander une étude',
-            'tone' => 'bg-[#efe2cb]',
+            'icon' => 'fa-regular fa-building',
+            'title' => 'Promoteurs & professionnels',
+            'copy' => 'Programmes neufs, cafés, restaurants, boutiques et bureaux. Interlocuteur unique, lots coordonnés et chiffrage exploitable.',
+            'cta' => 'Demander un dossier pro',
+            'href' => '#partenaires',
         ],
     ]);
 
-    $projectSteps = collect([
-        'Choisir la pièce ou le besoin principal',
-        'Sélectionner les modules ou le type de meuble',
-        'Finaliser par achat direct ou demande de devis',
+    $crafts = collect([
+        [
+            'kicker' => 'Bois',
+            'title' => 'Menuiserie bois',
+            'copy' => 'Cuisines, dressings, placards, meubles sur mesure et ouvrages d ébénisterie. MDF laqué, mélaminé, bois massif, plaqué chêne et noyer.',
+            'href' => url('/menuiserie-bois'),
+            'cta' => 'Découvrir l atelier bois',
+            'icon' => 'fa-solid fa-tree',
+            'bg' => 'from-[#6f4e2e] to-[#1f1710]',
+        ],
+        [
+            'kicker' => 'Aluminium',
+            'title' => 'Menuiserie aluminium',
+            'copy' => 'Fenêtres, portes, garde-corps, volets roulants, brise-soleil et moustiquaires. Profilés propres, poses nettes, finitions durables.',
+            'href' => url('/aluminium'),
+            'cta' => 'Découvrir l atelier aluminium',
+            'icon' => 'fa-solid fa-border-all',
+            'bg' => 'from-[#7f8787] to-[#15191a]',
+        ],
+        [
+            'kicker' => 'Métal',
+            'title' => 'Fabrication métallique',
+            'copy' => 'Portails fer forgé, pergolas, escaliers, garde-corps et structures métalliques. Assemblages solides, finitions propres et pose maîtrisée.',
+            'href' => url('/fer-metal'),
+            'cta' => 'Découvrir l atelier métal',
+            'icon' => 'fa-solid fa-fire-flame-curved',
+            'bg' => 'from-[#8a4b2e] to-[#171411]',
+        ],
+        [
+            'kicker' => 'Sur mesure',
+            'title' => 'Aménagements sur mesure',
+            'copy' => 'Cuisine, dressing, placard, meuble TV, bureau. Étude technique, plans selon projet, fabrication atelier, pose et SAV par notre équipe.',
+            'href' => url('/sur-mesure'),
+            'cta' => 'Voir nos aménagements',
+            'icon' => 'fa-solid fa-ruler-combined',
+            'bg' => 'from-[#b88a3b] to-[#1d1711]',
+        ],
     ]);
 
-    $trustRibbon = collect([
-        ['icon' => 'fa-solid fa-truck-fast', 'label' => 'Livraison à domicile'],
-        ['icon' => 'fa-solid fa-hand-holding-dollar', 'label' => 'Paiement à la livraison'],
-        ['icon' => 'fa-solid fa-medal', 'label' => 'Made in Tunisia'],
+    $projects = collect([
+        ['title' => 'Agencement immobilier neuf', 'href' => url('/projets/agencement-immobilier-neuf'), 'copy' => 'Cuisine équipée, dressings, placards et fenêtres pour appartements et programmes neufs.', 'icon' => 'fa-regular fa-building'],
+        ['title' => 'Agencement café & restaurant', 'href' => url('/projets/agencement-cafe-restaurant'), 'copy' => 'Comptoirs, mobilier, banquettes, vitrines et éléments cohérents avec votre identité.', 'icon' => 'fa-solid fa-mug-saucer'],
+        ['title' => 'Agencement bureau entreprise', 'href' => url('/projets/agencement-bureau-entreprise'), 'copy' => 'Open space, salles de réunion, mobilier sur mesure, cloisons aluminium et bois.', 'icon' => 'fa-solid fa-briefcase'],
+        ['title' => 'Agencement magasin', 'href' => url('/projets/agencement-magasin'), 'copy' => 'Vitrines, présentoirs, comptoirs, rangements et signalétique intérieure.', 'icon' => 'fa-solid fa-store'],
+        ['title' => 'Aménagement villa & maison', 'href' => url('/projets/amenagement-villa-maison'), 'copy' => 'Cuisine, dressings, fenêtres alu, portail, pergola et escalier avec un seul atelier.', 'icon' => 'fa-solid fa-house'],
+        ['title' => 'Aménagement extérieur', 'href' => url('/projets/amenagement-exterieur'), 'copy' => 'Pergolas, portails, garde-corps, brise-soleil, terrasses et ouvrages extérieurs.', 'icon' => 'fa-solid fa-seedling'],
     ]);
 
+    $reasons = collect([
+        ['title' => 'Atelier intégré bois + alu + métal', 'copy' => 'Trois métiers réunis dans un seul atelier. Un seul devis, un seul planning, un seul SAV pour votre projet d aménagement.'],
+        ['title' => 'Fabrication en Tunisie', 'copy' => 'Une production locale, plus contrôlable et plus transparente. La visite de l atelier peut être organisée sur rendez-vous.'],
+        ['title' => 'Étude, chiffrage et pose cadrés', 'copy' => 'De la prise de mesures à la pose finale : étude technique, options claires et chiffrage détaillé selon le projet.'],
+        ['title' => 'Engagement de suivi et SAV', 'copy' => 'Délais annoncés par projet, contrôle à la pose et suivi après livraison pour éviter le flou post-chantier.'],
+    ]);
+
+    $realizations = collect([
+        ['type' => 'Cuisine sur mesure', 'place' => 'Projet résidentiel', 'note' => 'Étude, fabrication bois et pose'],
+        ['type' => 'Dressing & placards', 'place' => 'Villa privée', 'note' => 'Rangements intégrés et finitions propres'],
+        ['type' => 'Fenêtres aluminium', 'place' => 'Appartement neuf', 'note' => 'Menuiserie aluminium et pose coordonnée'],
+        ['type' => 'Portail métallique', 'place' => 'Maison individuelle', 'note' => 'Structure métal, finition et installation'],
+        ['type' => 'Agencement restaurant', 'place' => 'Projet professionnel', 'note' => 'Mobilier, comptoir et éléments sur mesure'],
+        ['type' => 'Pergola extérieure', 'place' => 'Espace extérieur', 'note' => 'Ouvrage extérieur adapté au lieu'],
+    ]);
+
+    $reviewProofs = collect([
+        ['icon' => 'fa-regular fa-star', 'title' => 'Avis vérifiés', 'copy' => 'Les témoignages publiés doivent être reliés à un vrai projet, avec accord client et contexte clair.'],
+        ['icon' => 'fa-solid fa-location-dot', 'title' => 'Lieu et type de projet', 'copy' => 'Chaque avis utile précise le type de réalisation et la zone d intervention pour rassurer les futurs clients.'],
+        ['icon' => 'fa-solid fa-link', 'title' => 'Google Reviews à connecter', 'copy' => 'Le lien vers les avis Google devient la preuve externe à afficher dès que la fiche est prête.'],
+    ]);
+
+    $process = collect([
+        ['title' => 'Consultation gratuite', 'copy' => 'Vous décrivez votre projet par WhatsApp, formulaire ou rendez-vous. Nous clarifions l intention, les contraintes et la prochaine étape.'],
+        ['title' => 'Étude & devis détaillé', 'copy' => 'Visite technique si nécessaire, options de matériaux et chiffrage détaillé avec délai annoncé.'],
+        ['title' => 'Fabrication en atelier', 'copy' => 'Validation, acompte, lancement de la fabrication et suivi du planning jusqu à la préparation de pose.'],
+        ['title' => 'Livraison, pose & SAV', 'copy' => 'Pose par l équipe, vérification de conformité et suivi après installation en cas de besoin.'],
+    ]);
+
+    $faqs = collect([
+        ['q' => 'Combien coûte une cuisine sur mesure chez Maison 216 ?', 'a' => 'Le tarif dépend des dimensions, des matériaux, des finitions, des accessoires et de l électroménager intégré. Nous préférons chiffrer après mesures plutôt que donner un prix générique trompeur.'],
+        ['q' => 'Quel est le délai moyen de fabrication et de pose ?', 'a' => 'Le délai varie selon le projet : cuisine, dressing, aluminium ou métal. Il est annoncé clairement dans le devis après validation des dimensions et finitions.'],
+        ['q' => 'Travaillez-vous partout en Tunisie ?', 'a' => 'Nous traitons les demandes en Tunisie avec une organisation adaptée au lieu, au volume du projet et aux contraintes de pose.'],
+        ['q' => 'Peut-on visiter l atelier ?', 'a' => 'Oui, les visites peuvent être organisées sur rendez-vous pour les projets importants ou professionnels.'],
+        ['q' => 'Comment se passe le paiement ?', 'a' => 'Les projets sur mesure fonctionnent généralement avec acompte à la commande puis solde selon avancement ou pose. Les modalités sont précisées dans le devis.'],
+        ['q' => 'Quelle garantie sur les fabrications ?', 'a' => 'Nous distinguons la garantie atelier sur nos fabrications et la garantie fabricant sur les composants tiers. Le SAV est suivi par notre équipe.'],
+        ['q' => 'Travaillez-vous avec architectes et promoteurs ?', 'a' => 'Oui. Nous pouvons intervenir sur plans, lots coordonnés, programmes neufs, commerces et bureaux avec un interlocuteur dédié.'],
+        ['q' => 'Faites-vous aussi les petits projets ?', 'a' => 'Oui. Un placard, un meuble TV, une fenêtre ou une moustiquaire peuvent être traités avec le même sérieux qu un grand projet.'],
+    ]);
 @endphp
 
-<section class="border-b border-[#eadfce] bg-[#f6f1e8]">
-    <div class="container mx-auto px-4 py-10 sm:py-12 lg:py-16">
-        <div class="max-w-4xl">
-            <h1 class="font-display max-w-4xl text-3xl font-bold leading-[1.04] text-[#171411] sm:text-4xl lg:text-6xl">
-                Achetez le bon meuble.
-                <span class="text-[#a47834]">Composez la bonne pièce.</span>
-                Lancez le bon projet.
+<section class="relative isolate overflow-hidden border-b border-[#eadfce] bg-[#f6f1e8]">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_20%,rgba(184,138,59,0.18),transparent_30%),radial-gradient(circle_at_82%_15%,rgba(23,20,17,0.08),transparent_28%)]"></div>
+    <div class="container mx-auto grid gap-10 px-4 py-14 lg:min-h-[760px] lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-20">
+        <div>
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d8c7af] bg-white/72 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#8b6426]">
+                <i class="fa-solid fa-industry"></i>
+                Atelier intégré en Tunisie
+            </div>
+
+            <h1 class="font-display mt-7 max-w-5xl text-4xl font-extrabold leading-[0.98] tracking-[-0.04em] text-[#171411] sm:text-5xl lg:text-7xl">
+                Cuisines, dressings, fenêtres, portails.
+                <span class="block text-[#a47834]">Un seul atelier pour tout votre aménagement.</span>
             </h1>
 
-            <p class="mt-4 max-w-2xl text-base leading-7 text-[#5f5146] sm:mt-5 sm:text-[17px] sm:leading-8 lg:text-lg">
-                Trouvez facilement le meuble qu’il vous faut, composez une pièce harmonieuse ou confiez-nous un projet entièrement adapté à votre espace. Tout est pensé pour vous aider à décider plus vite et plus sereinement.
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-[#53463c] lg:text-xl lg:leading-9">
+                Bois, aluminium et métal fabriqués sur mesure dans notre atelier en Tunisie. Particuliers, architectes et promoteurs : un seul interlocuteur, du devis à la pose.
             </p>
 
-            <div class="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                <a href="#univers" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#b88a3b] sm:px-6 sm:py-4">
-                    <i class="fa-solid fa-compass text-sm"></i>
-                    Voir les univers
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-7 py-4 text-sm font-extrabold text-white shadow-[0_20px_45px_rgba(23,20,17,0.18)] transition hover:bg-[#a47834]">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                    Demander un devis gratuit
                 </a>
-                <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-5 py-3.5 text-sm font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2] sm:px-6 sm:py-4">
-                    <i class="fa-regular fa-pen-to-square text-sm"></i>
-                    Demander un devis
+                <a href="#realisations" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/72 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
+                    <i class="fa-regular fa-images"></i>
+                    Voir nos réalisations
                 </a>
             </div>
 
-            <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[#5b4d42] sm:mt-8 sm:gap-x-8 sm:gap-y-3 sm:text-sm">
-                @foreach($trustRibbon as $item)
-                    <div class="inline-flex items-center gap-3">
-                        <span class="text-[#a47834]">
-                            <i class="{{ $item['icon'] }}"></i>
-                        </span>
-                        {{ $item['label'] }}
+            <div class="mt-8 grid gap-3 text-sm font-bold text-[#4f4236] sm:grid-cols-2 xl:grid-cols-4">
+                @foreach(['Atelier visitable', 'Devis sous 48h', 'Pose incluse', 'Garantie atelier'] as $item)
+                    <div class="inline-flex items-center gap-2">
+                        <i class="fa-solid fa-check text-[#a47834]"></i>
+                        {{ $item }}
                     </div>
-                    @if(!$loop->last)
-                        <span class="hidden h-4 w-px bg-[#d8c7af] lg:block"></span>
-                    @endif
                 @endforeach
             </div>
         </div>
-    </div>
-</section>
 
-<section class="bg-[#fbf7f0] py-12">
-    <div class="container mx-auto px-4">
-        <div class="mb-8 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div class="max-w-3xl">
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Choisissez votre chemin</div>
-                <h2 class="font-display mt-2 text-3xl font-bold text-[#171411] sm:text-4xl">Commencez exactement là où vous en êtes.</h2>
-            </div>
-            <a href="{{ $searchUrl }}" class="text-sm font-semibold text-[#5f5146] transition hover:text-[#171411]">Recherche rapide</a>
-        </div>
-
-        <div class="grid gap-5 lg:grid-cols-3">
-            @foreach($entryModes as $mode)
-                <a href="{{ $mode['href'] }}" class="group rounded-[30px] border border-[#eadfce] px-6 py-6 shadow-[0_16px_40px_rgba(23,20,17,0.05)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(23,20,17,0.09)] {{ $mode['tone'] }}">
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="text-xs font-bold uppercase tracking-[0.22em] {{ str_contains($mode['tone'], 'text-white') ? 'text-[#d8b77d]' : 'text-[#a47834]' }}">{{ $mode['eyebrow'] }}</div>
-                        <div class="font-display text-3xl font-bold {{ str_contains($mode['tone'], 'text-white') ? 'text-white/22' : 'text-[#e8dcc9]' }}">{{ $mode['label'] }}</div>
-                    </div>
-                    <h3 class="font-display mt-4 text-2xl font-bold {{ str_contains($mode['tone'], 'text-white') ? 'text-white' : 'text-[#171411]' }}">{{ $mode['title'] }}</h3>
-                    <p class="mt-3 text-base leading-7 {{ str_contains($mode['tone'], 'text-white') ? 'text-white/74' : 'text-[#5f5146]' }}">{{ $mode['copy'] }}</p>
-                    <div class="mt-6 text-sm font-semibold {{ str_contains($mode['tone'], 'text-white') ? 'text-white' : 'text-[#171411]' }}">
-                        {{ $mode['cta'] }}
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-<section id="univers" class="bg-white py-14 lg:py-18">
-    <div class="container mx-auto px-4">
-        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div class="max-w-3xl">
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Univers</div>
-                <h2 class="font-display mt-2 text-3xl font-bold text-[#171411] sm:text-4xl">Choisissez d’abord votre pièce, puis les meubles qui vont vraiment avec.</h2>
-                <p class="mt-3 text-lg leading-8 text-[#5f5146]">
-                    Chambre adulte, chambre enfant, salon, rangement, cuisine ou bureau : chaque univers vous aide à voir plus vite ce qui correspond à votre style, à votre besoin et à votre budget.
-                </p>
-            </div>
-            <a href="{{ $categoriesUrl }}" class="text-sm font-semibold text-[#5f5146] transition hover:text-[#171411]">Tout le catalogue</a>
-        </div>
-
-        <div class="grid auto-rows-[240px] gap-5 lg:grid-cols-12">
-            @foreach($homeRooms as $room)
-                @php
-                    $cardClass = match ($loop->index) {
-                        0 => 'lg:col-span-7 lg:row-span-2',
-                        1 => 'lg:col-span-5',
-                        2 => 'lg:col-span-5',
-                        3 => 'lg:col-span-3',
-                        4 => 'lg:col-span-4',
-                        default => 'lg:col-span-5',
-                    };
-                @endphp
-                <a href="{{ $room['href'] }}" class="group relative isolate overflow-hidden rounded-[32px] border border-[#eadfce] bg-[#171411] {{ $cardClass }}">
-                    @if(!empty($room['image']))
-                        <img src="{{ $imageUrl($room['image']) }}" alt="{{ $room['name'] }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                    @else
-                        <div class="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(184,138,59,0.22),transparent_42%),linear-gradient(135deg,#f4ead8,#e7d4b8)] font-display text-5xl font-bold text-[#967b54]">
-                            {{ strtoupper(mb_substr($room['name'], 0, 1)) }}
+        <div class="relative">
+            <div class="grid min-h-[520px] gap-4 md:grid-cols-[0.72fr_1fr_0.72fr]">
+                <div class="rounded-[34px] bg-[linear-gradient(145deg,#2b211a,#9a6f32)] p-5 text-white shadow-[0_30px_80px_rgba(23,20,17,0.18)] md:mt-20">
+                    <div class="flex h-full flex-col justify-between rounded-[26px] border border-white/12 bg-white/8 p-5">
+                        <i class="fa-solid fa-gears text-4xl text-[#e7c98d]"></i>
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#e7c98d]">Atelier réel</div>
+                            <div class="font-display mt-2 text-2xl font-bold">Bois en fabrication</div>
                         </div>
-                    @endif
-                    <div class="absolute inset-0 z-0 bg-[#171411]/48 transition duration-500 group-hover:bg-[#171411]/38"></div>
-                    <div class="absolute inset-0 z-0 bg-gradient-to-t from-[#171411]/95 via-[#171411]/58 to-[#171411]/18"></div>
-                    <div class="absolute inset-x-0 bottom-0 z-10 p-5 text-white">
-                        <div class="font-display text-2xl font-bold drop-shadow-[0_2px_12px_rgba(0,0,0,0.55)]">{{ $room['name'] }}</div>
-                        <p class="mt-2 max-w-md text-sm font-medium leading-6 text-white/88 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">{{ $room['tagline'] }}</p>
                     </div>
-                </a>
-            @endforeach
-        </div>
-    </div>
-</section>
-
-<section id="composer" class="bg-[#171411] py-16 text-white lg:py-20">
-    <div class="container mx-auto px-4">
-        <div class="grid gap-8 xl:grid-cols-[0.9fr_1.1fr] xl:items-start">
-            <div class="max-w-2xl">
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d8b77d]">Composer une pièce</div>
-                <h2 class="font-display mt-3 text-3xl font-bold sm:text-4xl">Composez votre pièce sans vous perdre.</h2>
-                <p class="mt-4 text-lg leading-8 text-white/72">
-                    Commencez par la pièce que vous voulez aménager. Nous vous guidons ensuite vers les meubles essentiels, les bons compléments et, si besoin, vers un devis plus personnalisé.
-                </p>
-
-                <div class="mt-8 space-y-4">
-                    @foreach($projectSteps as $step)
-                        <div class="flex items-start gap-4 rounded-[26px] border border-white/10 bg-white/5 px-5 py-4">
-                            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#b88a3b] font-display text-lg font-bold text-[#171411]">{{ $loop->iteration }}</div>
-                            <div class="pt-1 text-base leading-7 text-white/80">{{ $step }}</div>
-                        </div>
-                    @endforeach
                 </div>
 
-                <a href="{{ $contactUrl }}" class="mt-8 inline-flex items-center rounded-full bg-white px-6 py-4 text-sm font-semibold text-[#171411] transition hover:bg-[#efe2cb]">
-                    Parler à un conseiller
-                </a>
-            </div>
+                <div class="rounded-[38px] bg-[linear-gradient(160deg,#fff7e8,#d8b77d_48%,#171411)] p-6 shadow-[0_36px_90px_rgba(23,20,17,0.22)]">
+                    <div class="flex h-full flex-col justify-end rounded-[30px] border border-white/35 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.55),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.28),rgba(23,20,17,0.72))] p-6 text-white">
+                        <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#ffe2a7]">Réalisation finie</div>
+                        <div class="font-display mt-2 text-3xl font-extrabold">Cuisine & dressing premium</div>
+                        <p class="mt-3 text-sm leading-6 text-white/82">Atelier, fabrication et pose réunis dans un parcours clair.</p>
+                    </div>
+                </div>
 
-            <div class="grid gap-5 md:grid-cols-2">
-                @foreach($composerEntries as $entry)
-                    <a href="{{ $entry['href'] }}" class="group rounded-[30px] border border-white/10 bg-white px-6 py-6 text-[#171411] shadow-[0_20px_40px_rgba(0,0,0,0.12)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(0,0,0,0.18)]">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#a47834]">{{ $entry['eyebrow'] }}</div>
-                            <span class="rounded-full bg-[#faf1e3] px-3 py-1 text-[11px] font-bold text-[#8a6528]">{{ $entry['badge'] }}</span>
+                <div class="rounded-[34px] bg-[linear-gradient(145deg,#1d2020,#7d8684)] p-5 text-white shadow-[0_30px_80px_rgba(23,20,17,0.16)] md:mb-20">
+                    <div class="flex h-full flex-col justify-between rounded-[26px] border border-white/12 bg-white/8 p-5">
+                        <i class="fa-solid fa-fire-flame-curved text-4xl text-[#e7c98d]"></i>
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#e7c98d]">Alu & métal</div>
+                            <div class="font-display mt-2 text-2xl font-bold">Profilés, soudure, pose</div>
                         </div>
-                        <h3 class="font-display mt-4 text-2xl font-bold text-[#171411]">{{ $entry['name'] }}</h3>
-                        <p class="mt-3 text-base leading-7 text-[#5f5146]">{{ $entry['description'] }}</p>
-                        <div class="mt-6 text-sm font-semibold text-[#171411] transition group-hover:text-[#a47834]">Commencer</div>
-                    </a>
-                @endforeach
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-@if($featuredCollections->isNotEmpty())
-<section class="bg-[#fbf7f0] py-14 lg:py-18">
+<section class="border-b border-[#eadfce] bg-white">
+    <div class="container mx-auto grid gap-0 px-4 py-6 sm:grid-cols-2 lg:grid-cols-4">
+        @foreach($trustFacts as $fact)
+            <div class="border-[#eadfce] py-5 lg:border-r lg:px-6 lg:last:border-r-0">
+                <div class="flex items-start gap-4">
+                    <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4ead8] text-[#a47834]">
+                        <i class="{{ $fact['icon'] }}"></i>
+                    </span>
+                    <div>
+                        <div class="font-display text-xl font-extrabold text-[#171411]">{{ $fact['value'] }}</div>
+                        <div class="mt-1 text-sm leading-6 text-[#66584d]">{{ $fact['label'] }}</div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</section>
+
+<section class="bg-[#fbf7f0] py-16 lg:py-20">
     <div class="container mx-auto px-4">
-        <div class="mb-8 max-w-3xl">
-            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Collections</div>
-            <h2 class="font-display mt-2 text-3xl font-bold text-[#171411] sm:text-4xl">Un même style, décliné sur plusieurs meubles.</h2>
+        <div class="mb-9 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Pour qui</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Trois profils, une seule équipe.</h2>
         </div>
 
         <div class="grid gap-5 lg:grid-cols-3">
-            @foreach($featuredCollections as $collection)
-                <a href="{{ $collection['href'] }}" class="rounded-[30px] border border-[#eadfce] bg-white p-6 shadow-[0_16px_40px_rgba(23,20,17,0.05)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(23,20,17,0.08)]">
-                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">{{ $collection['eyebrow'] }}</div>
-                    <h3 class="font-display mt-3 text-2xl font-bold text-[#171411]">{{ $collection['name'] }}</h3>
-                    @if(!empty($collection['family']))
-                        <div class="mt-2 text-sm font-semibold text-[#7a6b5e]">{{ $collection['family'] }}</div>
-                    @endif
-                    <p class="mt-4 text-base leading-7 text-[#5f5146]">{{ $collection['description'] }}</p>
-                    <div class="mt-6 flex items-center justify-between">
-                        <span class="text-sm font-semibold text-[#171411]">Explorer la collection</span>
-                        @if(!empty($collection['count']))
-                            <span class="rounded-full bg-[#f8f1e4] px-3 py-1 text-[11px] font-bold text-[#8a6528]">{{ $collection['count'] }} produits</span>
-                        @endif
+            @foreach($audiences as $audience)
+                <article class="rounded-[32px] border border-[#eadfce] bg-white p-7 shadow-[0_18px_45px_rgba(23,20,17,0.05)]">
+                    <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#171411] text-xl text-[#d5b170]">
+                        <i class="{{ $audience['icon'] }}"></i>
+                    </div>
+                    <h3 class="font-display mt-6 text-2xl font-extrabold text-[#171411]">{{ $audience['title'] }}</h3>
+                    <p class="mt-4 text-base leading-8 text-[#5f5146]">{{ $audience['copy'] }}</p>
+                    <a href="{{ $audience['href'] }}" class="mt-7 inline-flex items-center gap-2 text-sm font-extrabold text-[#8e6322]">
+                        {{ $audience['cta'] }}
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section class="bg-white py-16 lg:py-20">
+    <div class="container mx-auto px-4">
+        <div class="mb-9 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Nos métiers</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Trois métiers, un seul atelier.</h2>
+            <p class="mt-4 text-lg leading-8 text-[#5f5146]">Nous fabriquons en interne ce qu un projet d aménagement exige : mobilier bois, menuiserie aluminium et ouvrages métalliques.</p>
+        </div>
+
+        <div class="grid gap-5 lg:grid-cols-2">
+            @foreach($crafts as $craft)
+                <a href="{{ $craft['href'] }}" class="group overflow-hidden rounded-[34px] border border-[#eadfce] bg-[#171411] text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
+                    <div class="grid min-h-[330px] md:grid-cols-[0.9fr_1.1fr]">
+                        <div class="bg-gradient-to-br {{ $craft['bg'] }} p-7">
+                            <div class="flex h-full flex-col justify-between rounded-[26px] border border-white/12 bg-white/8 p-6">
+                                <i class="{{ $craft['icon'] }} text-5xl text-[#e7c98d]"></i>
+                                <div>
+                                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#e7c98d]">{{ $craft['kicker'] }}</div>
+                                    <div class="font-display mt-2 text-2xl font-extrabold">{{ $craft['title'] }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-between bg-[#fbf7f0] p-7 text-[#171411]">
+                            <p class="text-base leading-8 text-[#5f5146]">{{ $craft['copy'] }}</p>
+                            <div class="mt-7 inline-flex items-center gap-2 text-sm font-extrabold text-[#8e6322]">
+                                {{ $craft['cta'] }}
+                                <i class="fa-solid fa-arrow-right text-xs transition group-hover:translate-x-1"></i>
+                            </div>
+                        </div>
                     </div>
                 </a>
             @endforeach
         </div>
     </div>
 </section>
-@endif
 
-<section class="bg-white py-14 lg:py-18">
+<section class="bg-[#f3ece2] py-16 lg:py-20">
     <div class="container mx-auto px-4">
-        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div class="max-w-3xl">
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Sélection du moment</div>
-                <h2 class="font-display mt-2 text-3xl font-bold text-[#171411] sm:text-4xl">Des pièces prêtes à commander dès maintenant.</h2>
-                <p class="mt-3 text-lg leading-8 text-[#5f5146]">
-                    Pour aller vite, retrouvez une sélection de meubles déjà prêts à commander, avec des fiches claires et un passage à l’action direct.
-                </p>
-            </div>
-            <a href="{{ $searchUrl }}" class="text-sm font-semibold text-[#5f5146] transition hover:text-[#171411]">Tous les produits</a>
+        <div class="mb-9 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Types de projets</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Vous avez un projet ? Nous l avons probablement déjà réalisé.</h2>
+            <p class="mt-4 text-lg leading-8 text-[#5f5146]">Du logement neuf à équiper jusqu au café à agencer, nous prenons en charge des projets complets en Tunisie.</p>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            @foreach($featuredProducts as $product)
-                <article class="overflow-hidden rounded-[30px] border border-[#eadfce] bg-[#fbf7f0] shadow-[0_16px_40px_rgba(23,20,17,0.05)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(23,20,17,0.08)]">
-                    <a href="{{ route('product.show', $product->slug) }}" class="block aspect-[4/3] overflow-hidden bg-[#efe4d6]">
-                        @if($product->main_image)
-                            <img src="{{ $imageUrl($product->main_image) }}" alt="{{ $product->title }}" class="h-full w-full object-cover transition duration-700 hover:scale-105">
-                        @else
-                            <div class="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#f5eada,#e8d4b8)] font-display text-4xl font-bold text-[#8b724d]">{{ strtoupper(mb_substr($product->title, 0, 1)) }}</div>
-                        @endif
-                    </a>
-                    <div class="space-y-4 p-6">
-                        @if($product->category)
-                            <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#a47834]">{{ $product->category->name }}</div>
-                        @endif
-                        <h3 class="line-clamp-2 font-display text-2xl font-bold text-[#171411]">{{ $product->title }}</h3>
-                        <div class="flex items-end justify-between gap-4">
-                            <div>
-                                <div class="text-sm text-[#7a6b5e]">Prix</div>
-                                <div class="text-2xl font-extrabold text-[#a47834]">{{ $product->price_display }}</div>
-                            </div>
-                            <a href="{{ route('product.show', $product->slug) }}" class="inline-flex items-center rounded-full bg-[#171411] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#b88a3b]">
-                                Voir la fiche
-                            </a>
+            @foreach($projects as $project)
+                <a href="{{ $project['href'] }}" class="group rounded-[32px] border border-[#eadfce] bg-white p-7 shadow-[0_18px_45px_rgba(23,20,17,0.05)] transition hover:-translate-y-1 hover:shadow-[0_28px_70px_rgba(23,20,17,0.10)]">
+                    <div class="mb-7 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#171411] text-2xl text-[#d5b170]">
+                        <i class="{{ $project['icon'] }}"></i>
+                    </div>
+                    <h3 class="font-display text-2xl font-extrabold text-[#171411]">{{ $project['title'] }}</h3>
+                    <p class="mt-4 text-base leading-8 text-[#5f5146]">{{ $project['copy'] }}</p>
+                    <div class="mt-7 text-sm font-extrabold text-[#8e6322]">Voir les projets <i class="fa-solid fa-arrow-right ml-1 text-xs transition group-hover:translate-x-1"></i></div>
+                </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section class="bg-[#171411] py-16 text-white lg:py-20">
+    <div class="container mx-auto px-4">
+        <div class="mb-10 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Pourquoi Maison 216</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold sm:text-4xl">Pourquoi nos clients nous choisissent.</h2>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-4">
+            @foreach($reasons as $reason)
+                <article class="rounded-[30px] border border-white/10 bg-white/6 p-6">
+                    <div class="font-display text-5xl font-extrabold text-white/12">0{{ $loop->iteration }}</div>
+                    <h3 class="font-display mt-5 text-xl font-extrabold text-white">{{ $reason['title'] }}</h3>
+                    <p class="mt-4 text-sm leading-7 text-white/72">{{ $reason['copy'] }}</p>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section id="realisations" class="bg-white py-16 lg:py-20">
+    <div class="container mx-auto px-4">
+        <div class="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-3xl">
+                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Réalisations</div>
+                <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Nos dernières réalisations.</h2>
+                <p class="mt-4 text-lg leading-8 text-[#5f5146]">Des projets concrets livrés en Tunisie. Cuisines, dressings, pergolas, agencements complets.</p>
+            </div>
+            <a href="{{ url('/projets') }}" class="text-sm font-extrabold text-[#8e6322]">Voir toutes nos réalisations</a>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            @foreach($realizations as $realization)
+                <article class="group relative min-h-[310px] overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(213,177,112,0.35),transparent_30%),linear-gradient(145deg,#33281f,#171411)] transition duration-500 group-hover:scale-105"></div>
+                    <div class="relative z-10 flex h-full flex-col justify-between">
+                        <div class="inline-flex w-max rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-bold text-[#e7c98d]">{{ $realization['place'] }}</div>
+                        <div>
+                            <h3 class="font-display text-2xl font-extrabold">{{ $realization['type'] }}</h3>
+                            <p class="mt-2 text-sm text-white/72">{{ $realization['note'] }}</p>
                         </div>
                     </div>
                 </article>
@@ -299,81 +365,92 @@
     </div>
 </section>
 
-<section id="atelier" class="bg-[#f3ece2] py-14 lg:py-18">
+<section class="bg-[#fbf7f0] py-16 lg:py-20">
     <div class="container mx-auto px-4">
-        <div class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
-            <div>
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Ateliers</div>
-                <h2 class="font-display mt-2 text-3xl font-bold text-[#171411] sm:text-4xl">Besoin d’un projet adapté à votre maison ? Nos ateliers prennent le relais.</h2>
-                <p class="mt-3 max-w-2xl text-lg leading-8 text-[#5f5146]">
-                    Quand les dimensions, la finition ou l’usage demandent quelque chose de plus précis, vous n’êtes pas seul. Nous pouvons vous conseiller, adapter et fabriquer selon votre besoin.
-                </p>
-
-                <div class="mt-8 grid gap-5 md:grid-cols-3">
-                    @foreach($atelierCapabilities as $capability)
-                        <article class="rounded-[28px] border border-[#eadfce] bg-white p-6 shadow-[0_16px_40px_rgba(23,20,17,0.05)]">
-                            <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#a47834]">Savoir-faire</div>
-                            <h3 class="font-display mt-3 text-2xl font-bold text-[#171411]">{{ $capability['title'] }}</h3>
-                            <p class="mt-3 text-base leading-7 text-[#5f5146]">{{ $capability['copy'] }}</p>
-                        </article>
-                    @endforeach
-                </div>
-            </div>
-
-            <div id="sur-mesure" class="rounded-[34px] bg-[#171411] p-7 text-white shadow-[0_28px_70px_rgba(23,20,17,0.16)] lg:p-8">
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d8b77d]">Sur mesure</div>
-                <h2 class="font-display mt-3 text-3xl font-bold">Cuisine, dressing, aluminium ou ferronnerie : parlez-nous de votre projet.</h2>
-                <p class="mt-4 text-base leading-8 text-white/72">
-                    Si votre projet dépend des mesures, des finitions ou d’une contrainte particulière, nous préparons avec vous une réponse plus juste qu’un simple achat standard.
-                </p>
-
-                <div class="mt-6 space-y-3">
-                    <div class="rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white/80">1. Envoyez votre besoin, vos dimensions ou quelques photos.</div>
-                    <div class="rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white/80">2. Nous clarifions avec vous l’usage, le style et les contraintes.</div>
-                    <div class="rounded-2xl border border-white/10 bg-white/6 px-4 py-4 text-sm text-white/80">3. Vous recevez une réponse plus précise, plus utile et plus crédible.</div>
-                </div>
-
-                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <a href="{{ $contactUrl }}" class="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#171411] transition hover:bg-[#efe2cb]">
-                        Demander une étude
-                    </a>
-                    <a href="{{ $categoriesUrl }}" class="inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-                        Continuer vers le catalogue
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@if($latest->isNotEmpty())
-<section class="bg-white py-14 lg:py-16">
-    <div class="container mx-auto px-4">
-        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Nouveautés</div>
-                <h2 class="font-display mt-2 text-3xl font-bold text-[#171411]">Ce qui vient d’entrer au catalogue</h2>
-            </div>
-            <a href="{{ $searchUrl }}" class="text-sm font-semibold text-[#5f5146] transition hover:text-[#171411]">Voir plus</a>
+        <div class="mb-9 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Avis clients</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Des avis vérifiables, pas des slogans.</h2>
+            <p class="mt-4 text-lg leading-8 text-[#5f5146]">Chaque retour client publié doit rester utile : type de projet, zone d intervention, détail concret et accord du client.</p>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            @foreach($latest as $product)
-                <a href="{{ route('product.show', $product->slug) }}" class="group overflow-hidden rounded-[26px] border border-[#eadfce] bg-[#fbf7f0] shadow-[0_12px_28px_rgba(23,20,17,0.04)] transition hover:-translate-y-1 hover:shadow-[0_20px_46px_rgba(23,20,17,0.08)]">
-                    <div class="aspect-square overflow-hidden bg-[#efe4d6]">
-                        @if($product->main_image)
-                            <img src="{{ $imageUrl($product->main_image) }}" alt="{{ $product->title }}" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                        @endif
+        <div class="grid gap-5 lg:grid-cols-3">
+            @foreach($reviewProofs as $proof)
+                <article class="rounded-[32px] border border-[#eadfce] bg-white p-7">
+                    <div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#171411] text-[#d5b170]">
+                        <i class="{{ $proof['icon'] }}"></i>
                     </div>
-                    <div class="space-y-2 p-4">
-                        <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#a47834]">{{ $product->category?->name ?? 'Produit' }}</div>
-                        <div class="line-clamp-2 font-semibold text-[#171411]">{{ $product->title }}</div>
-                        <div class="text-lg font-bold text-[#a47834]">{{ $product->price_display }}</div>
-                    </div>
-                </a>
+                    <h3 class="font-display mt-6 text-xl font-extrabold text-[#171411]">{{ $proof['title'] }}</h3>
+                    <p class="mt-4 text-base leading-8 text-[#5f5146]">{{ $proof['copy'] }}</p>
+                </article>
             @endforeach
         </div>
     </div>
 </section>
-@endif
+
+<section class="bg-white py-16 lg:py-20">
+    <div class="container mx-auto px-4">
+        <div class="mb-10 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Process</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Votre projet en 4 étapes.</h2>
+        </div>
+
+        <div class="grid gap-5 lg:grid-cols-4">
+            @foreach($process as $step)
+                <article class="rounded-[30px] border border-[#eadfce] bg-[#fbf7f0] p-6">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#171411] font-display text-lg font-extrabold text-[#d5b170]">{{ $loop->iteration }}</div>
+                    <h3 class="font-display mt-6 text-xl font-extrabold text-[#171411]">{{ $step['title'] }}</h3>
+                    <p class="mt-4 text-sm leading-7 text-[#5f5146]">{{ $step['copy'] }}</p>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section id="partenaires" class="bg-[#d5b170]">
+    <div class="container mx-auto flex flex-col gap-5 px-4 py-8 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <div class="text-sm font-extrabold uppercase tracking-[0.18em] text-[#4b3618]">Architecte, décorateur, promoteur, entrepreneur ?</div>
+            <p class="mt-2 text-lg font-bold text-[#171411]">Découvrez notre programme partenaire et nos conditions dédiées aux professionnels.</p>
+        </div>
+        <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center rounded-full bg-[#171411] px-6 py-4 text-sm font-extrabold text-white">Devenir partenaire</a>
+    </div>
+</section>
+
+<section id="faq" class="bg-[#fbf7f0] py-16 lg:py-20">
+    <div class="container mx-auto px-4">
+        <div class="mb-9 max-w-3xl">
+            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">FAQ</div>
+            <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Questions fréquentes.</h2>
+        </div>
+
+        <div class="mx-auto max-w-4xl divide-y divide-[#eadfce] rounded-[34px] border border-[#eadfce] bg-white p-2">
+            @foreach($faqs as $faq)
+                <details class="group rounded-[26px] px-5 py-4 open:bg-[#fbf7f0]">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-lg font-extrabold text-[#171411]">
+                        {{ $faq['q'] }}
+                        <i class="fa-solid fa-chevron-down shrink-0 text-sm text-[#a47834] transition group-open:rotate-180"></i>
+                    </summary>
+                    <p class="mt-4 max-w-3xl text-base leading-8 text-[#5f5146]">{{ $faq['a'] }}</p>
+                </details>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section class="bg-[#171411] py-16 text-white">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="font-display text-3xl font-extrabold sm:text-5xl">Prêt à lancer votre projet ?</h2>
+        <p class="mx-auto mt-4 max-w-2xl text-lg leading-8 text-white/72">Recevez un devis gratuit et détaillé. Vous pouvez passer par le formulaire ou nous écrire directement sur WhatsApp.</p>
+        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-extrabold text-[#171411]">
+                <i class="fa-regular fa-pen-to-square"></i>
+                Demander un devis
+            </a>
+            <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-7 py-4 text-sm font-extrabold text-white">
+                <i class="fa-brands fa-whatsapp"></i>
+                WhatsApp direct
+            </a>
+        </div>
+    </div>
+</section>
 @endsection
