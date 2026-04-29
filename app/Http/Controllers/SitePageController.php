@@ -55,6 +55,40 @@ class SitePageController extends Controller
             ]);
         }
 
+        if (in_array($fullPath, ['aluminium/garde-corps', 'aluminium/moustiquaire', 'aluminium/volet-roulant', 'aluminium/brise-soleil'], true)) {
+            $pageMeta = [
+                'aluminium/garde-corps' => [
+                    'key' => 'guardrail',
+                    'title' => 'Garde-corps aluminium sur mesure en Tunisie | Balcon, terrasse, escalier',
+                    'description' => 'Garde-corps aluminium sur mesure en Tunisie. Balcon, terrasse, escalier, mezzanine. Barreaux, verre ou lames. Devis sous 48h.',
+                ],
+                'aluminium/moustiquaire' => [
+                    'key' => 'mosquito',
+                    'title' => 'Moustiquaire aluminium sur mesure en Tunisie | Enroulable, coulissante',
+                    'description' => 'Moustiquaires aluminium sur mesure en Tunisie. Enroulable, coulissante ou fixe. Fabriquée aux dimensions de vos fenêtres, posée par notre équipe.',
+                ],
+                'aluminium/volet-roulant' => [
+                    'key' => 'shutter',
+                    'title' => 'Volet roulant aluminium sur mesure en Tunisie | Manuel & motorisé',
+                    'description' => 'Volets roulants aluminium sur mesure en Tunisie. Manuel ou motorisé, pose en applique ou intégrée. Fabrication atelier, devis sous 48h.',
+                ],
+                'aluminium/brise-soleil' => [
+                    'key' => 'sunshade',
+                    'title' => 'Brise-soleil aluminium sur mesure en Tunisie | Lames fixes & orientables',
+                    'description' => 'Brise-soleil aluminium sur mesure en Tunisie. Lames fixes, orientables ou motorisées. Protège du soleil sans bloquer la vue. Devis gratuit.',
+                ],
+            ][$fullPath];
+
+            return view('site-structure.aluminium-product', [
+                'pageKey' => $pageMeta['key'],
+                'title' => $pageMeta['title'],
+                'metaDescription' => $pageMeta['description'],
+                'canonical' => url('/' . $fullPath),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/menuiserie-aluminium.jpg'),
+            ]);
+        }
+
         if ($fullPath === 'fer-metal') {
             return view('site-structure.fer-metal', [
                 'title' => 'Fabrication métallique en Tunisie | Portails et pergolas sur mesure',
