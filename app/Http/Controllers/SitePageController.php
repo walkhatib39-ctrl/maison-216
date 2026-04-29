@@ -18,6 +18,16 @@ class SitePageController extends Controller
 
         abort_if(!$page, 404);
 
+        if ($fullPath === 'menuiserie-bois') {
+            return view('site-structure.menuiserie-bois', [
+                'title' => 'Menuiserie bois en Tunisie | Atelier sur mesure',
+                'metaDescription' => 'Atelier de menuiserie bois en Tunisie. Cuisines, dressings, mobilier sur mesure. Fabrication 100% interne, plans 3D, pose incluse. Devis sous 48h.',
+                'canonical' => url('/menuiserie-bois'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/menuiserie-bois.webp'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
