@@ -28,6 +28,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'aluminium') {
+            return view('site-structure.aluminium', [
+                'title' => 'Menuiserie aluminium en Tunisie | Atelier alu sur mesure',
+                'metaDescription' => 'Atelier de menuiserie aluminium en Tunisie. Fenêtres, portes, garde-corps, volets roulants, moustiquaires et brise-soleil. Devis alu sous 48h.',
+                'canonical' => url('/aluminium'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/menuiserie-aluminium.jpg'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
