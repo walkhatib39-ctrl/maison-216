@@ -38,6 +38,23 @@ class SitePageController extends Controller
             ]);
         }
 
+        if (in_array($fullPath, ['aluminium/fenetre-aluminium', 'aluminium/porte-aluminium'], true)) {
+            $isWindow = $fullPath === 'aluminium/fenetre-aluminium';
+
+            return view('site-structure.aluminium-detail', [
+                'pageKey' => $isWindow ? 'window' : 'door',
+                'title' => $isWindow
+                    ? 'Fenêtre aluminium sur mesure en Tunisie | Fabrication & pose'
+                    : 'Porte aluminium sur mesure en Tunisie | Entrée, baie, coulissant',
+                'metaDescription' => $isWindow
+                    ? 'Fenêtres aluminium sur mesure fabriquées en atelier en Tunisie. Rupture de pont thermique, double vitrage, toutes teintes RAL. Métré gratuit, devis sous 48h, pose incluse.'
+                    : 'Portes aluminium sur mesure fabriquées en atelier en Tunisie. Porte d’entrée, porte-fenêtre, baie coulissante. Toutes teintes RAL, serrurerie multipoints, pose incluse. Devis sous 48h.',
+                'canonical' => url('/' . $fullPath),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/menuiserie-aluminium.jpg'),
+            ]);
+        }
+
         if ($fullPath === 'fer-metal') {
             return view('site-structure.fer-metal', [
                 'title' => 'Fabrication métallique en Tunisie | Portails et pergolas sur mesure',
