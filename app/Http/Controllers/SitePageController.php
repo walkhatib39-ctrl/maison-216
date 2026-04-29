@@ -38,6 +38,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'fer-metal') {
+            return view('site-structure.fer-metal', [
+                'title' => 'Fabrication métallique en Tunisie | Portails et pergolas sur mesure',
+                'metaDescription' => 'Atelier de ferronnerie et fabrication métallique en Tunisie. Portails fer forgé, pergolas, escaliers et garde-corps sur mesure. Devis sous 48h.',
+                'canonical' => url('/fer-metal'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/fabrication-metallique.jpg'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
