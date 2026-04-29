@@ -48,6 +48,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'sur-mesure') {
+            return view('site-structure.sur-mesure', [
+                'title' => 'Meuble sur mesure en Tunisie | Cuisine, dressing, placard',
+                'metaDescription' => 'Fabrication sur mesure en Tunisie : cuisine, dressing, placard, meuble TV, bureau. Plans 3D, fabrication atelier, pose incluse. Devis gratuit sous 48h.',
+                'canonical' => url('/sur-mesure'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/amenagement-sur-mesure.jpg'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
