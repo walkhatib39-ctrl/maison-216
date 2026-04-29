@@ -99,6 +99,40 @@ class SitePageController extends Controller
             ]);
         }
 
+        if (in_array($fullPath, ['fer-metal/portail-fer-forge', 'fer-metal/pergola-metallique', 'fer-metal/garde-corps', 'fer-metal/escalier-metallique'], true)) {
+            $pageMeta = [
+                'fer-metal/portail-fer-forge' => [
+                    'key' => 'gate',
+                    'title' => 'Portail fer forgé sur mesure en Tunisie | Battant, coulissant, motorisé',
+                    'description' => 'Portail fer forgé sur mesure en Tunisie. Battant ou coulissant, classique ou contemporain, manuel ou motorisé. Traitement anti-corrosion, pose incluse.',
+                ],
+                'fer-metal/pergola-metallique' => [
+                    'key' => 'pergola',
+                    'title' => 'Pergola métallique sur mesure en Tunisie | Terrasse & jardin',
+                    'description' => 'Pergola métallique sur mesure en Tunisie. Adossée, autoportée ou bioclimatique. Polycarbonate, bois ou lames orientables. Devis sous 48h.',
+                ],
+                'fer-metal/garde-corps' => [
+                    'key' => 'guardrail',
+                    'title' => 'Garde-corps métallique sur mesure en Tunisie | Fer forgé, acier, inox',
+                    'description' => 'Garde-corps métallique sur mesure en Tunisie. Fer forgé, acier contemporain, inox, verre sécurisé. Balcon, escalier, mezzanine. Devis sous 48h.',
+                ],
+                'fer-metal/escalier-metallique' => [
+                    'key' => 'staircase',
+                    'title' => 'Escalier métallique sur mesure en Tunisie | Droit, hélicoïdal, suspendu',
+                    'description' => 'Escalier métallique sur mesure en Tunisie. Droit, hélicoïdal, tournant ou suspendu. Marches bois, verre ou métal, garde-corps assorti.',
+                ],
+            ][$fullPath];
+
+            return view('site-structure.fer-metal-product', [
+                'pageKey' => $pageMeta['key'],
+                'title' => $pageMeta['title'],
+                'metaDescription' => $pageMeta['description'],
+                'canonical' => url('/' . $fullPath),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/fabrication-metallique.jpg'),
+            ]);
+        }
+
         if ($fullPath === 'sur-mesure') {
             return view('site-structure.sur-mesure', [
                 'title' => 'Meuble sur mesure en Tunisie | Cuisine, dressing, placard',
