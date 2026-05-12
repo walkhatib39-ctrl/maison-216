@@ -182,6 +182,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'projets/agencement-immobilier-neuf') {
+            return view('site-structure.project-real-estate-new', [
+                'title' => 'Agencement appartement neuf en Tunisie | Cuisine, dressings, menuiserie',
+                'metaDescription' => 'Cuisine équipée, dressings, fenêtres alu pour appartements neufs en Tunisie. Un seul atelier pour tout l’aménagement. Promoteurs et particuliers. Devis sous 48h.',
+                'canonical' => url('/projets/agencement-immobilier-neuf'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/amenagement-sur-mesure.jpg'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
