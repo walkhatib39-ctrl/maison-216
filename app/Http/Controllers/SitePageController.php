@@ -143,6 +143,45 @@ class SitePageController extends Controller
             ]);
         }
 
+        if (in_array($fullPath, ['sur-mesure/cuisine-sur-mesure', 'sur-mesure/dressing-sur-mesure', 'sur-mesure/placard-sur-mesure', 'sur-mesure/meuble-tv-sur-mesure', 'sur-mesure/bureau-sur-mesure'], true)) {
+            $pageMeta = [
+                'sur-mesure/cuisine-sur-mesure' => [
+                    'key' => 'kitchen',
+                    'title' => 'Cuisine sur mesure en Tunisie | Fabrication atelier, pose incluse',
+                    'description' => 'Cuisine sur mesure fabriquée en atelier en Tunisie. Plans 3D, choix des matériaux, quincaillerie premium, pose par notre équipe. Devis sous 48h.',
+                ],
+                'sur-mesure/dressing-sur-mesure' => [
+                    'key' => 'dressing',
+                    'title' => 'Dressing sur mesure en Tunisie | Fabrication atelier, pose incluse',
+                    'description' => 'Dressing sur mesure fabriqué en atelier en Tunisie. Toutes configurations, aménagement intérieur personnalisé, portes battantes ou coulissantes.',
+                ],
+                'sur-mesure/placard-sur-mesure' => [
+                    'key' => 'closet',
+                    'title' => 'Placard sur mesure en Tunisie | Entrée, chambre, couloir',
+                    'description' => 'Placard sur mesure fabriqué en atelier en Tunisie. Entrée, chambre, couloir, sous escalier. Portes battantes ou coulissantes, devis sous 48h.',
+                ],
+                'sur-mesure/meuble-tv-sur-mesure' => [
+                    'key' => 'tv',
+                    'title' => 'Meuble TV sur mesure en Tunisie | Mural, suspendu, pleine hauteur',
+                    'description' => 'Meuble TV sur mesure fabriqué en atelier en Tunisie. Suspendu, pleine hauteur ou avec bibliothèque. LED, câbles invisibles, devis sous 48h.',
+                ],
+                'sur-mesure/bureau-sur-mesure' => [
+                    'key' => 'desk',
+                    'title' => 'Bureau sur mesure en Tunisie | Home office, étudiant, professionnel',
+                    'description' => 'Bureau sur mesure fabriqué en atelier en Tunisie. Droit, en L ou avec bibliothèque intégrée. Home office, étudiant, professionnel.',
+                ],
+            ][$fullPath];
+
+            return view('site-structure.sur-mesure-product', [
+                'pageKey' => $pageMeta['key'],
+                'title' => $pageMeta['title'],
+                'metaDescription' => $pageMeta['description'],
+                'canonical' => url('/' . $fullPath),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/amenagement-sur-mesure.jpg'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
