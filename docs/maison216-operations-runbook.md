@@ -314,11 +314,11 @@ Implemented as dedicated templates:
 - `/sur-mesure/placard-sur-mesure`
 - `/sur-mesure/meuble-tv-sur-mesure`
 - `/sur-mesure/bureau-sur-mesure`
+- `/projets/agencement-immobilier-neuf`
+- `/projets/agencement-cafe-restaurant`
 
 Known missing strategic project pages:
 - `/projets`
-- `/projets/agencement-immobilier-neuf`
-- `/projets/agencement-cafe-restaurant`
 - `/projets/agencement-bureau-entreprise`
 - `/projets/agencement-magasin`
 - `/projets/amenagement-villa-maison`
@@ -394,4 +394,3 @@ Then test that the key no longer works:
 ```powershell
 ssh -i "$env:USERPROFILE\.ssh\maison216_codex" -o BatchMode=yes debian@37.59.114.202 'whoami'
 ```
-

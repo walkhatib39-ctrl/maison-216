@@ -192,6 +192,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'projets/agencement-cafe-restaurant') {
+            return view('site-structure.project-cafe-restaurant', [
+                'title' => 'Agencement café et restaurant en Tunisie | Comptoir, mobilier, terrasse',
+                'metaDescription' => 'Agencement complet de café et restaurant en Tunisie. Comptoir, mobilier sur mesure, vitrine, terrasse couverte. Bois, métal et alu. Devis sous 48h.',
+                'canonical' => url('/projets/agencement-cafe-restaurant'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/realizations/amenagement-restaurant.jpg'),
+            ]);
+        }
+
         $children = $structure->childrenOf($fullPath);
         $ancestors = $structure->ancestorsOf($fullPath);
         $siblings = $ancestors->last()
