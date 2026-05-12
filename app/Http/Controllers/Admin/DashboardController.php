@@ -3,49 +3,42 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\CatalogCollection;
-use App\Models\Category;
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\ProductType;
-use App\Models\Room;
-use Illuminate\Http\Request;
+use App\Models\SitePage;
+use App\Support\SitePageSyncer;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(SitePageSyncer $syncer)
     {
-        $ordersToday = Order::whereDate('created_at', now()->toDateString())->count();
-        $ordersTotal = Order::count();
-        $revenueTotalMillimes = (int) (Order::sum('total_millimes') ?? 0);
-        $revenueTotalDT = $revenueTotalMillimes / 1000;
+        if (SitePage::query()->count() === 0) {
+            $syncer->sync();
+        }
 
-        $productsCount = Product::count();
-        $categoriesCount = Category::count();
-        $roomsCount = Room::count();
-        $productTypesCount = ProductType::count();
-        $collectionsCount = CatalogCollection::count();
-        
-        // Recent orders for dashboard
-        $recentOrders = Order::with(['items.product'])
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->map(function ($order) {
-                $order->total_display = number_format((int) floor(($order->total_millimes ?? 0) / 1000)) . ' DT';
-                return $order;
+        $missingMetaQuery = SitePage::query()
+            ->active()
+            ->where(function ($q) {
+                $q->whereNull('meta_title')
+                    ->orWhere('meta_title', '')
+                    ->orWhereNull('meta_description')
+                    ->orWhere('meta_description', '');
             });
 
         return view('admin.dashboard', [
-            'ordersToday' => $ordersToday,
-            'ordersTotal' => $ordersTotal,
-            'revenueTotalDT' => $revenueTotalDT,
-            'productsCount' => $productsCount,
-            'categoriesCount' => $categoriesCount,
-            'roomsCount' => $roomsCount,
-            'productTypesCount' => $productTypesCount,
-            'collectionsCount' => $collectionsCount,
-            'recentOrders' => $recentOrders,
+            'stats' => [
+                'pages' => SitePage::query()->active()->count(),
+                'missing_meta' => (clone $missingMetaQuery)->count(),
+                'noindex' => SitePage::query()->active()->where('is_indexable', false)->count(),
+                'obsolete' => SitePage::query()->where('is_obsolete', true)->count(),
+            ],
+            'missingMetaPages' => $missingMetaQuery
+                ->orderBy('sort_order')
+                ->limit(8)
+                ->get(),
+            'recentPages' => SitePage::query()
+                ->active()
+                ->latest('updated_at')
+                ->limit(6)
+                ->get(),
         ]);
     }
 }

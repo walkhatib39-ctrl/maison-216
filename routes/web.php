@@ -90,6 +90,12 @@ Route::middleware(['auth', 'admin'])
         // Basic dashboard
         Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
+        // Public site pages and SEO
+        Route::post('site-pages/sync', [\App\Http\Controllers\Admin\SitePageController::class, 'sync'])->name('site-pages.sync');
+        Route::get('site-pages', [\App\Http\Controllers\Admin\SitePageController::class, 'index'])->name('site-pages.index');
+        Route::get('site-pages/{sitePage}/edit', [\App\Http\Controllers\Admin\SitePageController::class, 'edit'])->name('site-pages.edit');
+        Route::put('site-pages/{sitePage}', [\App\Http\Controllers\Admin\SitePageController::class, 'update'])->name('site-pages.update');
+
         // Products - Import via UI
         Route::get('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'importForm'])->name('products.import');
         Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import.store');
@@ -132,12 +138,21 @@ Route::middleware(['auth', 'admin'])
 Route::get('/sitemap.xml', function () {
     $urls = [];
     $urls[] = url('/');
-    $urls = array_merge($urls, app(\App\Support\SiteStructure::class)->allUrls()->all());
-    $categories = \App\Models\Category::select('slug')->get();
-    foreach ($categories as $c) {
-        $urls[] = url('/c/' . $c->slug);
+
+    if (\Illuminate\Support\Facades\Schema::hasTable('site_pages') && \App\Models\SitePage::query()->exists()) {
+        $sitePageUrls = \App\Models\SitePage::query()
+            ->active()
+            ->where('is_indexable', true)
+            ->orderBy('sort_order')
+            ->pluck('path')
+            ->map(fn (string $path) => url('/' . ltrim($path, '/')))
+            ->all();
+        $urls = array_merge($urls, $sitePageUrls);
+    } else {
+        $urls = array_merge($urls, app(\App\Support\SiteStructure::class)->allUrls()->all());
     }
-    $products = \App\Models\Product::where('is_active', true)->select('slug', 'updated_at')->get();
+
+    $products = collect();
 
     return response()->view('sitemap', [
         'urls' => $urls,
