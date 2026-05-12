@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Setting;
+use App\Support\SiteSettings;
 use Illuminate\Support\Facades\Mail;
 
 class OrderService
@@ -81,14 +82,14 @@ class OrderService
 
         // Email notifications (client + admin)
         try {
-            $adminEmail = (string) (Setting::get('contact.admin_email', '') ?? '');
+            $adminEmails = SiteSettings::adminEmails();
 
             if (!empty($payload['email'])) {
                 Mail::to($payload['email'])
                     ->send(new OrderPlacedClient($order->load('items')));
             }
-            if (!empty($adminEmail)) {
-                Mail::to($adminEmail)
+            if ($adminEmails !== []) {
+                Mail::to($adminEmails)
                     ->send(new OrderPlacedAdmin($order));
             }
         } catch (\Throwable $e) {

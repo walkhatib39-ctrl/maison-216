@@ -1,7 +1,8 @@
 @extends('layouts.store')
 
 @php
-    $whatsappUrl = 'https://wa.me/21696813203';
+    $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? route('contact');
+    $phoneDisplay = \App\Support\SiteSettings::phoneDisplay();
     $heroImage = asset('assets/home/amenagement-sur-mesure.jpg');
     $workshopImage = asset('assets/home/menuiserie-bois.webp');
 
@@ -251,7 +252,7 @@
                 <p class="mt-5 text-base leading-8 text-[#5f5146]">Envoyez votre demande, vos plans ou votre besoin. Nous vous répondons avec les prochaines étapes.</p>
                 <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="mt-7 inline-flex items-center gap-2 rounded-full border border-[#eadfce] bg-[#fbf7ee] px-5 py-3 text-sm font-extrabold text-[#171411]">
                     <i class="fa-brands fa-whatsapp text-[#a47834]"></i>
-                    WhatsApp professionnels : +216 96 813 203
+                    WhatsApp professionnels : {{ $phoneDisplay }}
                 </a>
             </div>
 
@@ -279,7 +280,7 @@
                     </label>
                     <label class="block">
                         <span class="text-sm font-bold text-[#171411]">Téléphone / WhatsApp *</span>
-                        <input type="tel" name="phone" required value="{{ old('phone') }}" placeholder="96 813 203" class="mt-2 w-full rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm focus:border-[#a47834] focus:ring-0">
+                        <input type="tel" name="phone" required value="{{ old('phone') }}" placeholder="{{ $phoneDisplay }}" class="mt-2 w-full rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm focus:border-[#a47834] focus:ring-0">
                     </label>
                     <label class="block">
                         <span class="text-sm font-bold text-[#171411]">Email professionnel *</span>

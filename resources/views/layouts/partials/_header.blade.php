@@ -1,9 +1,11 @@
 @php
     $siteStructure = app(\App\Support\SiteStructure::class);
 
-    $wa = \App\Models\Setting::get('contact.whatsapp');
-    $logo = \App\Models\Setting::get('ui.logo');
     $siteName = \App\Models\Setting::get('site.name', 'Maison 216');
+    $logoUrl = \App\Support\SiteSettings::logoUrl();
+    $whatsappUrl = \App\Support\SiteSettings::whatsappUrl();
+    $topBarPhone = \App\Support\SiteSettings::phoneDisplay();
+    $topBarWhatsappUrl = $whatsappUrl ?? route('contact');
 
     $node = fn (string $path): array => $siteStructure->find($path) ?? [];
     $children = fn (string $path): array => $node($path)['children'] ?? [];
@@ -11,12 +13,6 @@
     $homeUrl = route('home');
     $devisUrl = url('/devis');
     $searchUrl = route('search');
-    $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : null;
-    $topBarPhone = '96 813 203';
-    $topBarWhatsappUrl = 'https://wa.me/21696813203';
-    $logoUrl = $logo
-        ? (\Illuminate\Support\Str::startsWith($logo, ['http://', 'https://', '/']) ? $logo : asset($logo))
-        : null;
 
     $serviceNavigation = collect([
         [

@@ -65,14 +65,15 @@
           <h3>Besoin d’aide ?</h3>
           <div class="meta">
             @php
-              $wh = \App\Models\Setting::get('contact.whatsapp');
               $ms = \App\Models\Setting::get('contact.messenger');
-              $digits = $wh ? preg_replace('/\D+/', '', (string)$wh) : null;
+              $digits = \App\Support\SiteSettings::whatsappDigits();
+              $phoneDisplay = \App\Support\SiteSettings::phoneDisplay();
+              $publicEmail = \App\Support\SiteSettings::publicEmail();
             @endphp
             @if($digits)
               <span class="chip">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.78 11.78 0 0012.06 0C5.44 0 .06 5.28.06 11.8c0 2.08.54 4.14 1.58 5.94L0 24l6.3-1.66a11.92 11.92 0 005.76 1.46h.01c6.62 0 12-5.28 12-11.8a11.6 11.6 0 00-3.55-8.52z"/></svg>
-                WhatsApp: <a class="mono" href="https://wa.me/{{ $digits }}">+216 {{ $digits }}</a>
+                WhatsApp: <a class="mono" href="https://wa.me/{{ $digits }}">{{ $phoneDisplay }}</a>
               </span>
             @endif
             @if($ms)
@@ -83,7 +84,7 @@
             @endif
             <span class="chip">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 5a2 2 0 012-2h5l2 2h9a2 2 0 012 2v3H2V5zM2 12h20v7a2 2 0 01-2 2H4a2 2 0 01-2-2v-7z"/></svg>
-              Email: <span class="mono">{{ \App\Models\Setting::get('contact.admin_email', 'contact@maison216.tn') }}</span>
+              Email: <span class="mono">{{ $publicEmail }}</span>
             </span>
           </div>
         </div>

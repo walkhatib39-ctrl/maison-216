@@ -935,3 +935,43 @@ Notes:
 
 Prochaine action recommandee:
 - demarrer Sprint 2: parametres site dynamiques, telephone/WhatsApp/email/reseaux sociaux, tokens Search Console/Bing sans scripts libres, puis remplacement des valeurs hardcodees dans le front.
+
+### 2026-05-12 - Sprint 2 livre: parametres site dynamiques
+
+Livres:
+- refonte complete de l'ecran `Parametres site`
+- suppression de l'UI settings e-commerce: frais livraison, boutons checkout, discours boutique
+- ajout des groupes Identite, Contact, Localisation, Reseaux sociaux, SEO & outils, Assets
+- ajout du helper `App\Support\SiteSettings` pour centraliser telephone, WhatsApp, emails, adresse, logo, favicon
+- topbar, header, footer, page contact, pages silos, pages projets, erreurs 404/500 et espace professionnels branches sur les settings dynamiques
+- emails de notification contact et anciennes commandes branches sur la liste `Emails de reception`
+- ajout des tokens Google Search Console et Bing Webmaster dans le layout public
+- image OG globale configurable par URL/chemin ou upload
+- seeder settings enrichi avec les valeurs Maison216 actuelles
+
+Verification locale:
+- `php -l app/Support/SiteSettings.php`
+- `php -l app/Http/Controllers/Admin/SettingController.php`
+- `php -l app/Http/Controllers/ContactController.php`
+- `php -l app/Http/Controllers/ProductController.php`
+- `php -l app/Services/OrderService.php`
+- `php artisan optimize:clear`
+- `php artisan view:cache`
+- `php artisan route:list --path=admin/settings`
+- `php artisan tinker --execute="dump([...])"` pour verifier telephone, WhatsApp et emails dynamiques
+- `npm run build`
+- `git diff --check`
+
+Notes:
+- aucun champ de script head/body n'a ete ajoute
+- canonical reste genere automatiquement par le layout public
+- les URL d'assets accepts en admin sont limitees aux URL http(s), chemins commencant par `/`, ou chemins relatifs sans schema dangereux
+- les anciennes tables et routes e-commerce ne sont pas encore supprimees; elles restent dans l'archive jusqu'au sprint de nettoyage
+
+Risques ou limites:
+- les formulaires ne creent pas encore de leads en base; ils envoient encore des emails
+- les realisations restent codees dans les vues publiques
+- les anciens ecrans produits/commandes existent encore pour ne pas casser la production avant le nouveau CRM
+
+Prochaine action recommandee:
+- demarrer Sprint 3: creer la table `leads`, connecter les formulaires Contact, Devis et Espace professionnels, puis ajouter l'admin `Demandes` avec statuts et notes internes.

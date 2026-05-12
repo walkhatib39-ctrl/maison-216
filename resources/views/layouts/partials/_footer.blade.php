@@ -1,14 +1,22 @@
 @php
-    $wa = \App\Models\Setting::get('contact.whatsapp');
     $ms = \App\Models\Setting::get('contact.messenger');
-    $adminEmail = \App\Models\Setting::get('contact.admin_email', 'contact@maison216.tn');
-    $logo = \App\Models\Setting::get('ui.logo');
     $siteName = \App\Models\Setting::get('site.name', 'Maison 216');
+    $logoUrl = \App\Support\SiteSettings::logoUrl();
+    $whatsappUrl = \App\Support\SiteSettings::whatsappUrl();
+    $phoneDisplay = \App\Support\SiteSettings::phoneDisplay();
+    $publicEmail = \App\Support\SiteSettings::publicEmail();
+    $address = \App\Support\SiteSettings::address();
+    $serviceArea = \App\Support\SiteSettings::serviceArea();
 
-    $logoUrl = $logo
-        ? (\Illuminate\Support\Str::startsWith($logo, ['http://', 'https://', '/']) ? $logo : asset($logo))
-        : null;
-    $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : null;
+    $socialLinks = collect([
+        ['label' => 'Facebook', 'href' => \App\Models\Setting::get('social.facebook'), 'icon' => 'fa-brands fa-facebook-f'],
+        ['label' => 'Instagram', 'href' => \App\Models\Setting::get('social.instagram'), 'icon' => 'fa-brands fa-instagram'],
+        ['label' => 'TikTok', 'href' => \App\Models\Setting::get('social.tiktok'), 'icon' => 'fa-brands fa-tiktok'],
+        ['label' => 'LinkedIn', 'href' => \App\Models\Setting::get('social.linkedin'), 'icon' => 'fa-brands fa-linkedin-in'],
+        ['label' => 'YouTube', 'href' => \App\Models\Setting::get('social.youtube'), 'icon' => 'fa-brands fa-youtube'],
+        ['label' => 'Messenger', 'href' => $ms, 'icon' => 'fa-brands fa-facebook-messenger'],
+        ['label' => 'WhatsApp', 'href' => $whatsappUrl, 'icon' => 'fa-brands fa-whatsapp'],
+    ])->filter(fn ($link) => filled($link['href']));
 
     $craftLinks = collect([
         ['title' => 'Menuiserie bois', 'href' => url('/menuiserie-bois')],
@@ -52,33 +60,28 @@
                 <div class="mt-7 space-y-3 text-sm text-white/70">
                     <div class="flex items-start gap-3">
                         <i class="fa-solid fa-location-dot mt-1 text-[#d5b170]"></i>
-                        <span>Atelier en Tunisie · visite sur rendez-vous</span>
+                        <span>{{ $address }} · {{ $serviceArea }}</span>
                     </div>
-                    @if($wa)
+                    @if($whatsappUrl)
                         <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="flex items-center gap-3 transition hover:text-white">
                             <i class="fa-brands fa-whatsapp text-[#d5b170]"></i>
-                            <span>{{ $wa }}</span>
+                            <span>{{ $phoneDisplay }}</span>
                         </a>
                     @endif
-                    @if($adminEmail)
-                        <a href="mailto:{{ $adminEmail }}" class="flex items-center gap-3 transition hover:text-white">
+                    @if($publicEmail)
+                        <a href="mailto:{{ $publicEmail }}" class="flex items-center gap-3 transition hover:text-white">
                             <i class="fa-regular fa-envelope text-[#d5b170]"></i>
-                            <span>{{ $adminEmail }}</span>
+                            <span>{{ $publicEmail }}</span>
                         </a>
                     @endif
                 </div>
 
                 <div class="mt-7 flex flex-wrap gap-3">
-                    @if($ms)
-                        <a href="{{ $ms }}" target="_blank" rel="noopener" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/70 transition hover:bg-white hover:text-[#171411]" aria-label="Messenger">
-                            <i class="fa-brands fa-facebook-messenger"></i>
+                    @foreach($socialLinks as $socialLink)
+                        <a href="{{ $socialLink['href'] }}" target="_blank" rel="noopener" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/70 transition hover:bg-white hover:text-[#171411]" aria-label="{{ $socialLink['label'] }}">
+                            <i class="{{ $socialLink['icon'] }}"></i>
                         </a>
-                    @endif
-                    @if($whatsappUrl)
-                        <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/70 transition hover:bg-white hover:text-[#171411]" aria-label="WhatsApp">
-                            <i class="fa-brands fa-whatsapp"></i>
-                        </a>
-                    @endif
+                    @endforeach
                 </div>
             </div>
 

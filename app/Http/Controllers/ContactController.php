@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Setting;
+use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -42,8 +42,8 @@ class ContactController extends Controller
         ]);
 
         // Build email content
-        $adminEmail = (string) (Setting::get('contact.admin_email', '') ?? '');
-        if (!empty($adminEmail)) {
+        $adminEmails = SiteSettings::adminEmails();
+        if ($adminEmails !== []) {
             try {
                 Mail::send('emails.contact', [
                     'name' => $data['name'],
@@ -58,8 +58,8 @@ class ContactController extends Controller
                     'hasProject' => $data['has_project'] ?? null,
                     'ip' => $request->ip(),
                     'ua' => (string) $request->userAgent(),
-                ], function ($m) use ($adminEmail, $data) {
-                    $m->to($adminEmail)->subject(($data['subject'] ?? 'Nouveau message de contact') . ' — Maison 216');
+                ], function ($m) use ($adminEmails, $data) {
+                    $m->to($adminEmails)->subject(($data['subject'] ?? 'Nouveau message de contact') . ' — Maison 216');
                 });
             } catch (\Throwable $e) {
                 logger()->warning('Contact email failed: ' . $e->getMessage());

@@ -25,7 +25,10 @@
             ?: ($metaDescription ?? 'Atelier Maison216 en Tunisie : menuiserie bois, aluminium, fabrication metallique et amenagement sur mesure. Devis gratuit, pose et SAV inclus.');
         $resolvedOgImage = $seoPage?->og_image
             ?: ($ogImage ?? \App\Models\Setting::get('seo.og_image') ?? \App\Models\Setting::get('ui.logo'));
+        $resolvedOgImage = \App\Support\SiteSettings::assetUrl($resolvedOgImage);
         $resolvedRobots = $seoPage && !$seoPage->is_indexable ? 'noindex,nofollow' : ($robots ?? null);
+        $googleSiteVerification = \App\Models\Setting::get('seo.google_site_verification');
+        $bingSiteVerification = \App\Models\Setting::get('seo.bing_site_verification');
     @endphp
     
     {{-- SEO Optimized Title --}}
@@ -62,6 +65,13 @@
     @if($resolvedRobots)
         <meta name="robots" content="{{ $resolvedRobots }}">
     @endif
+
+    @if($googleSiteVerification)
+        <meta name="google-site-verification" content="{{ $googleSiteVerification }}">
+    @endif
+    @if($bingSiteVerification)
+        <meta name="msvalidate.01" content="{{ $bingSiteVerification }}">
+    @endif
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,7 +80,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer">
     
     {{-- Favicon --}}
-    @php $favicon = \App\Models\Setting::get('ui.favicon'); @endphp
+    @php $favicon = \App\Support\SiteSettings::faviconUrl(); @endphp
     @if($favicon)
         <link rel="icon" type="image/x-icon" href="{{ $favicon }}">
     @endif

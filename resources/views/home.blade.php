@@ -7,10 +7,15 @@
     '@type' => 'LocalBusiness',
     'name' => \App\Models\Setting::get('site.name', config('app.name')),
     'url' => url('/'),
-    'logo' => \App\Models\Setting::get('ui.logo'),
+    'logo' => \App\Support\SiteSettings::logoUrl(),
+    'telephone' => \App\Support\SiteSettings::phoneDisplay(),
+    'email' => \App\Support\SiteSettings::publicEmail(),
     'description' => 'Atelier intégré bois, aluminium et métal en Tunisie pour cuisines, dressings, fenêtres, portails et projets d aménagement sur mesure.',
     'address' => [
         '@type' => 'PostalAddress',
+        'streetAddress' => \App\Support\SiteSettings::address(),
+        'addressLocality' => \App\Support\SiteSettings::city(),
+        'addressRegion' => 'Grand Tunis',
         'addressCountry' => 'TN',
     ],
 ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) !!}
@@ -19,9 +24,7 @@
 
 @section('content')
 @php
-    $wa = \App\Models\Setting::get('contact.whatsapp');
-    $adminEmail = \App\Models\Setting::get('contact.admin_email', 'contact@maison216.tn');
-    $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : route('contact');
+    $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? route('contact');
     $devisUrl = url('/devis');
 
     $trustFacts = collect([

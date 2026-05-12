@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Setting;
+use App\Support\SiteSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,12 +20,8 @@ class ProductController extends Controller
     {
         $product = Product::with('images', 'category')->where('slug', $slug)->where('is_active', true)->firstOrFail();
 
-        // WhatsApp/Messenger from settings
-        $whats = (string) (Setting::get('contact.whatsapp') ?? '');
         $messenger = (string) (Setting::get('contact.messenger') ?? '');
-
-        // Normalize whatsapp number to digits only
-        $normalizedWhats = preg_replace('/\D+/', '', $whats ?? '');
+        $normalizedWhats = SiteSettings::whatsappDigits();
 
         // Pre-filled message
         $message = rawurlencode("Bonjour, je souhaite commander: {$product->title} - Lien: " . url()->current());
@@ -37,7 +34,7 @@ class ProductController extends Controller
             'whatsLink' => $whatsLink,
             'messengerLink' => $messengerLink,
             'title' => $product->title,
-            'metaDescription' => $product->short_description ? strip_tags($product->short_description) : (\App\Models\Setting::get('site.tagline', 'Meubles & Décoration en Tunisie')),
+            'metaDescription' => $product->short_description ? strip_tags($product->short_description) : (\App\Models\Setting::get('site.tagline', 'Atelier Maison216 en Tunisie')),
             'ogType' => 'product',
             'ogImage' => $product->main_image ?? ($product->images->first()->url ?? (\App\Models\Setting::get('seo.og_image') ?? \App\Models\Setting::get('ui.logo'))),
         ]);
@@ -110,14 +107,14 @@ class ProductController extends Controller
 
         // Email notifications (client + admin)
         try {
-            $adminEmail = (string) (Setting::get('contact.admin_email', '') ?? '');
+            $adminEmails = SiteSettings::adminEmails();
 
             if (!empty($data['email'])) {
                 Mail::to($data['email'])
                     ->send(new OrderPlacedClient($order->load('items')));
             }
-            if (!empty($adminEmail)) {
-                Mail::to($adminEmail)
+            if ($adminEmails !== []) {
+                Mail::to($adminEmails)
                     ->send(new OrderPlacedAdmin($order));
             }
         } catch (\Throwable $e) {

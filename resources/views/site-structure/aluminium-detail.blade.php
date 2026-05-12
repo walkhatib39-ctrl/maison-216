@@ -3,8 +3,7 @@
 @php
     $devisUrl = url('/devis');
     $contactUrl = route('contact');
-    $wa = \App\Models\Setting::get('contact.whatsapp');
-    $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : $contactUrl;
+    $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? $contactUrl;
 
     $heroImage = asset('assets/home/menuiserie-aluminium.jpg');
     $voletImage = asset('assets/home/realizations/volet-roulant-aluminium.webp');
