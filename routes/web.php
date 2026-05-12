@@ -60,6 +60,9 @@ Route::get('/meubles/{path?}', function () {
 Route::get('/guides/{path?}', function () {
     return redirect('/projets', 301);
 })->where('path', '.*');
+Route::get('/partenaires', [SitePageController::class, 'show'])
+    ->defaults('section', 'partenaires')
+    ->name('site.partenaires');
 Route::get('/devis', [SitePageController::class, 'show'])
     ->defaults('section', 'devis')
     ->name('devis');

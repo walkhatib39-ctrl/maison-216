@@ -182,6 +182,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'partenaires') {
+            return view('site-structure.partners', [
+                'title' => 'Espace professionnels | Atelier de fabrication bois, alu, métal — Maison216 Tunisie',
+                'metaDescription' => 'Atelier de fabrication intégré bois-aluminium-métal en Tunisie pour architectes, maîtres d’œuvre, décorateurs et promoteurs. Respect des plans, devis sous 24h, SAV interne. Visite atelier sur rendez-vous.',
+                'canonical' => url('/partenaires'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/amenagement-sur-mesure.jpg'),
+            ]);
+        }
+
         if ($fullPath === 'projets/agencement-immobilier-neuf') {
             return view('site-structure.project-real-estate-new', [
                 'title' => 'Agencement appartement neuf en Tunisie | Cuisine, dressings, menuiserie',
@@ -303,7 +313,7 @@ class SitePageController extends Controller
                 'faqs' => [
                     ['q' => 'Quel est le budget d’un agencement de bureaux en Tunisie ?', 'a' => 'Un agencement de bureau complet, open space 10 postes + salle de réunion + accueil, se situe généralement entre 20 000 et 60 000 DT selon les finitions et le niveau d’équipement. Devis personnalisé sur visite.'],
                     ['q' => 'Pouvez-vous travailler sur des plans fournis par notre architecte ?', 'a' => 'Oui. Nous sommes habitués à travailler sur des plans techniques fournis. Respect strict des dimensions, des matériaux spécifiés et des délais de livraison.'],
-                    ['q' => 'Proposez-vous un programme partenaire pour les architectes d’intérieur ?', 'a' => 'Oui. Commission garantie, interlocuteur dédié, conditions tarifaires préférentielles. Voir notre programme partenaire.'],
+                    ['q' => 'Proposez-vous un espace professionnels pour les architectes d’intérieur ?', 'a' => 'Oui. Nous avons un espace professionnels avec interlocuteur dédié, chiffrage prioritaire, étude technique et conditions adaptées selon le profil professionnel.'],
                     ['q' => 'Intervenez-vous pendant les heures creuses pour ne pas perturber l’activité ?', 'a' => 'Oui. Nous planifions la pose pour minimiser l’impact sur votre activité : week-end, soirée ou phasage par zone si nécessaire.'],
                 ],
                 'finalCta' => ['h2' => 'Vous aménagez ou rénovez vos bureaux ?', 'subtitle' => 'Visite gratuite, devis détaillé sous 48h.', 'label' => 'Demander un devis'],
@@ -312,7 +322,7 @@ class SitePageController extends Controller
                     ['title' => 'Menuiserie aluminium', 'href' => url('/aluminium'), 'copy' => 'Cloisons vitrées et séparations.'],
                     ['title' => 'Bureau sur mesure', 'href' => url('/sur-mesure/bureau-sur-mesure'), 'copy' => 'Postes individuels et direction.'],
                     ['title' => 'Agencement magasin', 'href' => url('/projets/agencement-magasin'), 'copy' => 'Retail, présentation, caisse.'],
-                    ['title' => 'Programme partenaire', 'href' => url('/#partenaires'), 'copy' => 'Architectes et décorateurs.'],
+                    ['title' => 'Espace professionnels', 'href' => url('/partenaires'), 'copy' => 'Architectes, décorateurs et promoteurs.'],
                 ],
             ],
             'projets/agencement-magasin' => [
@@ -436,7 +446,7 @@ class SitePageController extends Controller
                     ['q' => 'Pouvez-vous vraiment tout faire dans un seul devis ?', 'a' => 'Oui. Cuisine, dressings, fenêtres alu, portail, pergola, garde-corps, escalier : tout est chiffré dans un seul document. Vous avez la visibilité sur l’ensemble du budget avant de vous engager poste par poste.'],
                     ['q' => 'Dans quel ordre se fait la pose ?', 'a' => 'L’ordre standard : fenêtres et portes en premier, puis cuisine et mobilier intérieur, puis portail et ouvrages extérieurs. Nous planifions cet ordre avec votre entrepreneur principal.'],
                     ['q' => 'Quel est le budget pour l’aménagement complet d’une villa ?', 'a' => 'Pour une villa de taille moyenne, 300-500m², un aménagement complet cuisine + dressings + fenêtres + portail + pergola représente généralement entre 60 000 et 200 000 DT selon le niveau de finition et les options choisies.'],
-                    ['q' => 'Travaillez-vous avec les architectes et les décorateurs ?', 'a' => 'Oui. Programme partenaire dédié avec commission garantie, interlocuteur dédié et respect strict des plans fournis.'],
+                    ['q' => 'Travaillez-vous avec les architectes et les décorateurs ?', 'a' => 'Oui. Nous travaillons avec les architectes sur une base technique stricte : respect des plans, coordination chantier et qualité d’exécution. Les autres professionnels peuvent passer par notre espace professionnels.'],
                 ],
                 'finalCta' => ['h2' => 'Vous aménagez votre villa ou votre maison ?', 'subtitle' => 'Visite complète gratuite, devis intégral sous 48h.', 'label' => 'Demander un devis villa'],
                 'internalLinks' => [
@@ -447,7 +457,7 @@ class SitePageController extends Controller
                     ['title' => 'Pergola métallique', 'href' => url('/fer-metal/pergola-metallique'), 'copy' => 'Terrasse et jardin.'],
                     ['title' => 'Volet roulant', 'href' => url('/aluminium/volet-roulant'), 'copy' => 'Manuel ou motorisé.'],
                     ['title' => 'Garde-corps', 'href' => url('/fer-metal/garde-corps'), 'copy' => 'Balcon, terrasse, escalier.'],
-                    ['title' => 'Programme partenaire', 'href' => url('/#partenaires'), 'copy' => 'Architectes et décorateurs.'],
+                    ['title' => 'Espace professionnels', 'href' => url('/partenaires'), 'copy' => 'Architectes, décorateurs et promoteurs.'],
                 ],
             ],
             'projets/amenagement-exterieur' => [

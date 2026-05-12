@@ -280,9 +280,9 @@
                 <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-[#d5b170]">Promoteurs & programmes neufs</div>
                 <h2 class="font-display mt-3 text-3xl font-extrabold leading-tight tracking-[-0.04em] sm:text-5xl">Vous livrez des programmes entiers. Nous équipons les lots.</h2>
                 <p class="mt-6 text-lg leading-9 text-white/72">Un appartement équipé d’une cuisine intégrée et de dressings sur mesure se vend plus vite et à un prix plus élevé qu’un appartement brut. Pour un promoteur, l’agencement n’est pas une finition : c’est un levier de valeur perçue.</p>
-                <a href="{{ $devisUrl }}" class="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#d5b170] px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:bg-white">
+                <a href="{{ url('/partenaires') }}" class="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#d5b170] px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:bg-white">
                     <i class="fa-regular fa-file-lines"></i>
-                    Programme partenaire
+                    Espace professionnels
                 </a>
             </div>
             <div class="rounded-[36px] border border-white/10 bg-white/[0.055] p-7 lg:p-9">

@@ -29,7 +29,7 @@
     $resourceLinks = collect([
         ['title' => 'Réalisations', 'href' => url('/#realisations')],
         ['title' => 'Questions fréquentes', 'href' => url('/#faq')],
-        ['title' => 'Programme partenaire', 'href' => url('/#partenaires')],
+        ['title' => 'Espace professionnels', 'href' => url('/partenaires')],
         ['title' => 'Demander un devis', 'href' => url('/devis')],
         ['title' => 'Contact', 'href' => route('contact')],
     ]);

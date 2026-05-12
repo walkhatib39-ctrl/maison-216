@@ -61,6 +61,12 @@ return [
         ],
     ],
     [
+        'title' => 'Espace professionnels',
+        'path' => 'partenaires',
+        'description' => 'Atelier de fabrication intégré bois, aluminium et métal pour architectes, maîtres d œuvre, décorateurs, promoteurs et entrepreneurs.',
+        'type' => 'quote',
+    ],
+    [
         'title' => 'Devis',
         'path' => 'devis',
         'description' => 'Envoyez votre besoin, vos dimensions ou vos photos pour recevoir une orientation claire.',

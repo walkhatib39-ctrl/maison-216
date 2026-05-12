@@ -43,15 +43,15 @@
             'icon' => 'fa-solid fa-drafting-compass',
             'title' => 'Architectes & décorateurs',
             'copy' => 'Vous concevez, nous fabriquons. Atelier intégré bois + aluminium + métal, respect des plans, finitions soignées et échanges techniques clairs.',
-            'cta' => 'Découvrir le programme partenaire',
-            'href' => '#partenaires',
+            'cta' => 'Découvrir l’espace professionnels',
+            'href' => url('/partenaires'),
         ],
         [
             'icon' => 'fa-regular fa-building',
             'title' => 'Promoteurs & professionnels',
             'copy' => 'Programmes neufs, cafés, restaurants, boutiques et bureaux. Interlocuteur unique, lots coordonnés et chiffrage exploitable.',
             'cta' => 'Demander un dossier pro',
-            'href' => '#partenaires',
+            'href' => url('/partenaires'),
         ],
     ]);
 
@@ -421,9 +421,9 @@
     <div class="container mx-auto flex flex-col gap-5 px-4 py-8 lg:flex-row lg:items-center lg:justify-between">
         <div>
             <div class="text-sm font-extrabold uppercase tracking-[0.18em] text-[#4b3618]">Architecte, décorateur, promoteur, entrepreneur ?</div>
-            <p class="mt-2 text-lg font-bold text-[#171411]">Découvrez notre programme partenaire et nos conditions dédiées aux professionnels.</p>
+            <p class="mt-2 text-lg font-bold text-[#171411]">Découvrez notre espace professionnels : plans, chiffrage, atelier et projets multi-lots.</p>
         </div>
-        <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center rounded-full bg-[#171411] px-6 py-4 text-sm font-extrabold text-white">Devenir partenaire</a>
+        <a href="{{ url('/partenaires') }}" class="inline-flex items-center justify-center rounded-full bg-[#171411] px-6 py-4 text-sm font-extrabold text-white">Espace professionnels</a>
     </div>
 </section>
 

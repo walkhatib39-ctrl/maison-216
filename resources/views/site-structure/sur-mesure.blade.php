@@ -117,9 +117,9 @@
         [
             "title" => "Architectes & décorateurs",
             "copy" => "Vos projets exigent des solutions fabriquées selon plans, cotes, matériaux et finitions. Nous fabriquons en atelier et organisons un échange technique clair.",
-            "tags" => ["Plans respectés", "Délais suivis", "Conditions partenaires"],
-            "cta" => "Programme partenaire",
-            "href" => url('/#partenaires'),
+            "tags" => ["Plans respectés", "Délais suivis", "Conditions professionnelles"],
+            "cta" => "Espace professionnels",
+            "href" => url('/partenaires'),
             "icon" => "fa-solid fa-drafting-compass",
         ],
         [

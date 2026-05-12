@@ -86,8 +86,8 @@
 
     $audiences = collect([
         ['title' => 'Particuliers', 'copy' => 'Cuisine équipée, dressings, mobilier sur mesure pour maison ou appartement. Conseil, plans 3D et devis détaillé.', 'cta' => 'Lancer mon projet', 'href' => $devisUrl, 'icon' => 'fa-solid fa-house-chimney'],
-        ['title' => 'Architectes & décorateurs', 'copy' => 'Vous concevez, nous fabriquons. Respect des plans, échanges techniques, finitions haut de gamme et interlocuteur dédié.', 'cta' => 'Programme partenaire', 'href' => url('/#partenaires'), 'icon' => 'fa-solid fa-drafting-compass'],
-        ['title' => 'Professionnels', 'copy' => 'Agencement de cafés, restaurants, boutiques et bureaux. Mobilier de série, coordination logistique et lots professionnels.', 'cta' => 'Dossier pro', 'href' => url('/#partenaires'), 'icon' => 'fa-regular fa-building'],
+        ['title' => 'Architectes & décorateurs', 'copy' => 'Vous concevez, nous fabriquons. Respect des plans, échanges techniques, finitions haut de gamme et interlocuteur dédié.', 'cta' => 'Espace professionnels', 'href' => url('/partenaires'), 'icon' => 'fa-solid fa-drafting-compass'],
+        ['title' => 'Professionnels', 'copy' => 'Agencement de cafés, restaurants, boutiques et bureaux. Mobilier de série, coordination logistique et lots professionnels.', 'cta' => 'Dossier pro', 'href' => url('/partenaires'), 'icon' => 'fa-regular fa-building'],
     ]);
 
     $woodRealizations = collect([

@@ -335,6 +335,10 @@
                             <span><i class="fa-regular fa-message mr-2 text-[#b88a3b]"></i>Contact</span>
                             <i class="fa-solid fa-arrow-right text-xs text-[#b88a3b]"></i>
                         </a>
+                        <a href="{{ url('/partenaires') }}" class="flex items-center justify-between rounded-2xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
+                            <span><i class="fa-solid fa-user-tie mr-2 text-[#b88a3b]"></i>Espace professionnels</span>
+                            <i class="fa-solid fa-arrow-right text-xs text-[#b88a3b]"></i>
+                        </a>
                     </div>
                 </section>
             </div>

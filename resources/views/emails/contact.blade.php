@@ -37,6 +37,44 @@
         <div class="value">{{ $phone }}</div>
       </div>
       @endif
+      @if(!empty($subjectLine))
+      <div class="row">
+        <div class="label">Objet</div>
+        <div class="value">{{ $subjectLine }}</div>
+      </div>
+      @endif
+      @if(!empty($company))
+      <div class="row">
+        <div class="label">Entreprise / Cabinet</div>
+        <div class="value">{{ $company }}</div>
+      </div>
+      @endif
+      @if(!empty($profession))
+      <div class="row">
+        <div class="label">Profession</div>
+        <div class="value">{{ $profession }}</div>
+      </div>
+      @endif
+      @if(!empty($location))
+      <div class="row">
+        <div class="label">Localisation</div>
+        <div class="value">{{ $location }}</div>
+      </div>
+      @endif
+      @if(!empty($hasProject))
+      <div class="row">
+        <div class="label">Projet en cours à chiffrer</div>
+        <div class="value">{{ $hasProject }}</div>
+      </div>
+      @endif
+      @if(!empty($projectType))
+      <div class="row">
+        <div class="label">Type de projets</div>
+        <div class="box">
+          <div style="white-space:pre-wrap;">{{ $projectType }}</div>
+        </div>
+      </div>
+      @endif
 
       <div class="row">
         <div class="label">Message</div>
