@@ -208,20 +208,8 @@
                 <div class="relative overflow-hidden rounded-[38px] bg-[#171411] p-3 shadow-[0_35px_90px_rgba(23,20,17,0.18)]">
                     <div class="relative min-h-[470px] overflow-hidden rounded-[30px]">
                         <img src="{{ $heroImage }}" alt="Agencement d'un appartement neuf par Maison216" class="absolute inset-0 h-full w-full object-cover">
-                        <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.05),rgba(23,20,17,0.78))]"></div>
-                        <div class="relative z-10 flex min-h-[470px] flex-col justify-end p-7 text-white">
-                            <div class="max-w-sm rounded-[28px] border border-white/18 bg-black/24 p-5 backdrop-blur">
-                                <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-[#f0d49a]">Appartement livré brut</div>
-                                <div class="font-display mt-3 text-3xl font-extrabold">Une coordination au lieu de quatre chantiers.</div>
-                                <p class="mt-4 text-sm leading-7 text-white/82">Cuisine, rangements et menuiserie alu avancent dans un planning unique.</p>
-                            </div>
-                        </div>
+                        <div class="absolute inset-0 ring-1 ring-inset ring-white/10"></div>
                     </div>
-                </div>
-                <div class="mt-4 grid grid-cols-3 gap-3 text-center text-xs font-extrabold uppercase tracking-[0.12em] text-[#8e6322]">
-                    <div class="rounded-2xl border border-[#eadfce] bg-white px-3 py-4">Cuisine</div>
-                    <div class="rounded-2xl border border-[#eadfce] bg-white px-3 py-4">Dressings</div>
-                    <div class="rounded-2xl border border-[#eadfce] bg-white px-3 py-4">Aluminium</div>
                 </div>
             </div>
         </div>
@@ -261,18 +249,17 @@
         <div class="grid gap-5 lg:grid-cols-2">
             @foreach($scopeItems as $item)
                 <a href="{{ $item['href'] }}" class="group overflow-hidden rounded-[34px] border border-[#eadfce] bg-white shadow-[0_18px_60px_rgba(23,20,17,0.07)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.12)]">
-                    <div class="grid min-h-[330px] sm:grid-cols-[0.88fr_1.12fr]">
-                        <div class="relative min-h-[240px] overflow-hidden">
+                    <div class="grid min-h-[390px] sm:grid-cols-[1.05fr_0.95fr]">
+                        <div class="relative min-h-[280px] overflow-hidden bg-[#e8ddce]">
                             <img src="{{ $item['image'] }}" alt="{{ $item['title'] }} Maison216" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.02),rgba(23,20,17,0.7))]"></div>
-                            <div class="relative z-10 flex h-full flex-col justify-between p-6 text-white">
-                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/12 text-xl text-[#f0d49a] backdrop-blur">
-                                    <i class="{{ $item['icon'] }}"></i>
-                                </span>
-                                <div class="font-display text-2xl font-extrabold">{{ $item['title'] }}</div>
-                            </div>
                         </div>
                         <div class="flex flex-col justify-between p-7">
+                            <div>
+                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[#eadfce] bg-[#fbf7ee] text-xl text-[#a47834]">
+                                    <i class="{{ $item['icon'] }}"></i>
+                                </span>
+                                <h3 class="font-display mt-5 text-2xl font-extrabold leading-tight text-[#171411]">{{ $item['title'] }}</h3>
+                            </div>
                             <p class="text-base leading-8 text-[#5f5146]">{{ $item['copy'] }}</p>
                             <div class="mt-7 inline-flex items-center gap-2 text-sm font-extrabold text-[#8e6322]">
                                 {{ $item['cta'] }}
