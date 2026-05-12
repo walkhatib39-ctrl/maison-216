@@ -12,6 +12,8 @@
     $devisUrl = url('/devis');
     $searchUrl = route('search');
     $whatsappUrl = $wa ? 'https://wa.me/' . preg_replace('/\D+/', '', (string) $wa) : null;
+    $topBarPhone = '96 813 203';
+    $topBarWhatsappUrl = 'https://wa.me/21696813203';
     $logoUrl = $logo
         ? (\Illuminate\Support\Str::startsWith($logo, ['http://', 'https://', '/']) ? $logo : asset($logo))
         : null;
@@ -48,23 +50,29 @@
 @endphp
 
 <div class="border-b border-[#e8dcc7] bg-[#efe2cb] text-[#4f4236]">
-    <div class="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs font-semibold sm:text-sm">
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-[#a47834]"></i>Atelier intégré : bois · aluminium · métal</span>
-            <span class="hidden items-center gap-2 sm:inline-flex"><i class="fa-regular fa-clock text-[#a47834]"></i>Devis sous 48h</span>
-            <span class="hidden items-center gap-2 lg:inline-flex"><i class="fa-solid fa-shield-halved text-[#a47834]"></i>Pose & SAV inclus</span>
+    <div class="container mx-auto hidden items-center justify-between gap-4 px-4 py-2 text-sm font-semibold sm:flex">
+        <div class="flex items-center gap-3 whitespace-nowrap">
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-[#a47834]"></i>Atelier Maison216</span>
+            <span class="text-[#b58b51]">|</span>
+            <span>Devis gratuit</span>
+            <span class="text-[#b58b51]">|</span>
+            <span>Pose & SAV inclus</span>
         </div>
 
-        <div class="flex items-center gap-3">
-            @if($whatsappUrl)
-                <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-[#2b241e] transition hover:bg-white">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    WhatsApp : {{ $wa }}
-                </a>
-            @else
-                <span class="inline-flex items-center gap-2"><i class="fa-brands fa-whatsapp text-[#a47834]"></i>WhatsApp : +216 XX XXX XXX</span>
-            @endif
-        </div>
+        <a href="{{ $topBarWhatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white/70 px-3 py-1 text-[#2b241e] transition hover:bg-white">
+            <i class="fa-brands fa-whatsapp text-[#a47834]"></i>
+            Téléphone/Whatsapp : {{ $topBarPhone }}
+        </a>
+    </div>
+
+    <div class="container mx-auto flex items-center justify-center px-3 py-2 text-[11px] font-semibold leading-none text-[#4f4236] sm:hidden">
+        <a href="{{ $topBarWhatsappUrl }}" target="_blank" rel="noopener" class="inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap">
+            <span>Devis gratuit</span>
+            <span class="text-[#b58b51]">|</span>
+            <span>Pose & SAV inclus</span>
+            <span class="text-[#b58b51]">|</span>
+            <span>{{ $topBarPhone }}</span>
+        </a>
     </div>
 </div>
 
