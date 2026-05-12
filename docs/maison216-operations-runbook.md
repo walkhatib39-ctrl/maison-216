@@ -316,13 +316,13 @@ Implemented as dedicated templates:
 - `/sur-mesure/bureau-sur-mesure`
 - `/projets/agencement-immobilier-neuf`
 - `/projets/agencement-cafe-restaurant`
-
-Known missing strategic project pages:
-- `/projets`
 - `/projets/agencement-bureau-entreprise`
 - `/projets/agencement-magasin`
 - `/projets/amenagement-villa-maison`
 - `/projets/amenagement-exterieur`
+
+Known missing strategic project pages:
+- `/projets`
 
 Future strategic pages not yet fully modeled:
 - `/realisations`
