@@ -962,6 +962,16 @@ Verification locale:
 - `npm run build`
 - `git diff --check`
 
+Verification production:
+- commit deploye: `05d441a0 Build dynamic site settings cockpit`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm ci`, `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- HTTP smoke: `https://maison216.tn` retourne `200`
+- URLs verifiees en `200`: `/`, `/contact`, `/partenaires`, `/menuiserie-bois`, `/aluminium`, `/fer-metal`, `/sur-mesure`
+- `/admin/settings` retourne `302` vers `/login`, comportement attendu hors session admin
+- verification contenu: topbar affiche `Atelier Maison216`, `Devis gratuit`, `Telephone/Whatsapp` et `96 813 203`
+- verification serveur via Tinker: `SiteSettings::phoneDisplay()`, `SiteSettings::whatsappUrl()` et `SiteSettings::adminEmails()` retournent les valeurs attendues
+
 Notes:
 - aucun champ de script head/body n'a ete ajoute
 - canonical reste genere automatiquement par le layout public
