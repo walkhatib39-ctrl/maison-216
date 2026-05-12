@@ -12,6 +12,21 @@ Objectif:
 
 ## 1. Decisions verrouillees
 
+### 1.0 Regle de livraison des sprints
+
+Avant chaque livraison de sprint, l'agent doit obligatoirement mettre a jour ce document.
+
+La mise a jour doit inclure:
+- ce qui a ete livre
+- les verifications effectuees
+- les remarques techniques
+- les risques ou limites restants
+- la prochaine action recommandee
+
+Regle de communication:
+- le message final au proprietaire doit toujours indiquer la prochaine etape prevue
+- aucun sprint ne doit etre considere termine si le changelog de ce fichier n'a pas ete mis a jour
+
 ### 1.1 Pas de scripts libres dans l'admin
 
 L'admin ne doit pas permettre de coller du JavaScript arbitraire dans le head ou le body.
@@ -910,3 +925,13 @@ Notes:
 - l'ancien modele e-commerce n'est pas encore supprime physiquement
 - il est isole dans le menu `Archive e-commerce`
 - suppression destructive a garder pour Sprint 6 apres remplacement leads/realisations/settings
+
+### 2026-05-12 - Regle de suivi sprint ajoutee
+
+Notes:
+- ajout d'une regle obligatoire de livraison des sprints
+- chaque sprint doit mettre a jour ce fichier avant le message final
+- chaque message final doit annoncer la prochaine etape prevue
+
+Prochaine action recommandee:
+- demarrer Sprint 2: parametres site dynamiques, telephone/WhatsApp/email/reseaux sociaux, tokens Search Console/Bing sans scripts libres, puis remplacement des valeurs hardcodees dans le front.
