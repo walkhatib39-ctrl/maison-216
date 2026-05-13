@@ -1035,4 +1035,46 @@ Risques ou limites:
 - les demandes n'ont pas encore de pieces jointes pour plans/photos; a etudier apres stabilisation du cockpit
 
 Prochaine action recommandee:
-- deployer Sprint 3 en production, executer la migration serveur, verifier `/devis`, `/admin/leads` et la table `leads`, puis demarrer Sprint 4 sur la gestion complete des realisations.
+- demarrer Sprint 4: gestion complete des realisations, upload images, assignation aux pages, homepage incluse, puis remplacement des sections statiques publiques par des donnees admin.
+
+### 2026-05-13 - Sprint 4 livre localement: realisations dynamiques
+
+Livres:
+- migration `realizations`, `realization_images` et table pivot `realization_site_page`
+- modeles `App\Models\Realization` et `App\Models\RealizationImage`
+- relation `SitePage::realizations()`
+- resolver `App\Support\RealizationResolver` pour recuperer les realisations par page, par silo ou pour l'accueil, avec fallback avant migration
+- admin `Realisations` avec liste visuelle, filtres, stats, creation, edition, suppression, upload image principale, galerie et assignation aux pages
+- dashboard admin enrichi avec les realisations publiees et les dernieres realisations
+- colonne `Realisations` ajoutee dans `Pages & SEO` pour voir combien de preuves sont assignees a chaque page
+- seeder `RealizationSeeder` avec 6 realisations de depart basees sur les images existantes
+- homepage branchee sur les realisations dynamiques
+- hubs `Menuiserie bois`, `Menuiserie aluminium`, `Fabrication metallique` et `Sur mesure` branches sur les realisations dynamiques
+- pages produits aluminium, metal et sur-mesure branchees sur les realisations dynamiques selon leur page ou silo
+- pages projets, y compris immobilier neuf et cafe/restaurant, enrichies avec une section realisations dynamique
+- partial public reutilisable `site-structure.partials.realization-showcase`
+
+Verification locale:
+- `php -l` sur migration, modeles, resolver, controleur admin, seeder et controleurs admin modifies
+- `php artisan route:list --path=admin/realizations`
+- `php artisan migrate`
+- `php artisan site-pages:sync`
+- `php artisan db:seed --class=RealizationSeeder`
+- verification Tinker: `6` realisations, `6` publiees, `27` assignations pages
+- `php artisan view:cache`
+- `npm run build`
+- `php artisan optimize:clear`
+
+Notes:
+- l'admin ne cree pas encore de pages detail de realisation; les realisations servent d'abord les sections portfolio sur les pages publiques
+- les images seedees restent dans `public/assets/home/realizations`; les nouveaux uploads admin seront stockes dans le disque public Laravel
+- le deploy serveur devra executer `php artisan storage:link` pour exposer les uploads admin
+- les anciennes sections statiques ont ete remplacees par des donnees dynamiques ou par le resolver; quelques tableaux hardcodes de fallback restent volontairement dans les vues tant que la table peut etre absente avant migration
+
+Risques ou limites:
+- il faudra valider visuellement l'UX admin avec de vraies images uploadées apres production
+- les realisations n'ont pas encore de tags avancés ni tri par drag-and-drop; l'ordre se gere par champ numerique
+- les pieces jointes pour leads/devis restent hors scope de ce sprint
+
+Prochaine action recommandee:
+- deployer Sprint 4, verifier `/admin/realizations`, la homepage et plusieurs pages silos/projets, puis demarrer Sprint 5 sur le dashboard final du cockpit et la preparation du nettoyage e-commerce.

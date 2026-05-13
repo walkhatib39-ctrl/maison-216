@@ -34,6 +34,12 @@
             'icon' => 'leads',
         ],
         [
+            'label' => 'Realisations',
+            'route' => 'admin.realizations.index',
+            'active' => 'admin.realizations.*',
+            'icon' => 'gallery',
+        ],
+        [
             'label' => 'Parametres site',
             'route' => 'admin.settings.index',
             'active' => 'admin.settings.*',
@@ -61,6 +67,7 @@
             'dashboard' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-3H4v3Z"/>',
             'pages' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v13H7V3Zm7 0v5h5M10 13h6M10 17h6M10 9h2"/>',
             'leads' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h5M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5l-4 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/>',
+            'gallery' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16v14H4V5Zm3 10 3.5-4 2.5 3 2-2.5 3 3.5M8 9h.01"/>',
             'settings' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 6.5 12 3l1.5 3.5 3.7-1.1-.8 3.8 3.2 2.1-3.2 2.1.8 3.8-3.7-1.1L12 20l-1.5-3.5-3.7 1.1.8-3.8-3.2-2.1 3.2-2.1-.8-3.8 3.7 1.1ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>',
             'search' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.2-5.2M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/>',
             default => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>',
@@ -84,13 +91,6 @@
                         {{ $item['label'] }}
                     </a>
                 @endforeach
-            </div>
-
-            <div class="mt-8">
-                <div class="px-4 text-xs font-bold uppercase tracking-[0.18em] text-white/40">A venir</div>
-                <div class="mt-2 space-y-1">
-                    <div class="rounded-xl px-4 py-3 text-sm font-bold text-white/40">Realisations</div>
-                </div>
             </div>
 
             <details class="mt-8 rounded-2xl border border-white/10 bg-white/5 p-2">

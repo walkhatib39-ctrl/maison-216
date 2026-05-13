@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class SitePage extends Model
 {
@@ -40,6 +41,14 @@ class SitePage extends Model
     public function scopeForSilo(Builder $query, ?string $silo): Builder
     {
         return $silo ? $query->where('silo', $silo) : $query;
+    }
+
+    public function realizations(): BelongsToMany
+    {
+        return $this->belongsToMany(Realization::class, 'realization_site_page')
+            ->withPivot(['sort_order', 'is_featured_on_page'])
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
     }
 
     public function publicUrl(): string

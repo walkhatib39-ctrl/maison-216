@@ -105,6 +105,7 @@
         ['title' => 'Agencement magasin', 'href' => url('/projets/agencement-magasin'), 'copy' => 'Boutique, showroom, présentoirs.'],
         ['title' => 'Agencement bureau entreprise', 'href' => url('/projets/agencement-bureau-entreprise'), 'copy' => 'Bureaux, accueil, rangements.'],
     ];
+    $projectRealizations = app(\App\Support\RealizationResolver::class)->forPage('projets/agencement-cafe-restaurant', 6, 'projets');
 
     $schema = [
         [
@@ -319,6 +320,13 @@
         </div>
     </div>
 </section>
+
+@include('site-structure.partials.realization-showcase', [
+    'realizations' => $projectRealizations,
+    'eyebrow' => 'Réalisations CHR',
+    'title' => 'Quelques projets livrés pour cafés, restaurants et espaces commerciaux.',
+    'description' => 'Comptoirs, mobilier, pergolas, façades et agencements coordonnés dans un seul atelier.',
+])
 
 <section class="bg-white py-16 lg:py-24">
     <div class="container mx-auto px-4">

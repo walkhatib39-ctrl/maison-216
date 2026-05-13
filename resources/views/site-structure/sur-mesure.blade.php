@@ -10,6 +10,7 @@
     $dressingImage = asset('assets/home/realizations/dressing-sur-mesure.jpg');
     $boisImage = asset('assets/home/menuiserie-bois.webp');
     $restaurantImage = asset('assets/home/realizations/amenagement-restaurant.jpg');
+    $surMesureRealizations = app(\App\Support\RealizationResolver::class)->forPage('sur-mesure', 6, 'sur-mesure');
 
     $breadcrumbs = [
         ["name" => "Accueil", "url" => route('home')],
@@ -429,14 +430,7 @@
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            @foreach([
-                ["type" => "Cuisine sur mesure", "place" => "Projet résidentiel", "image" => $cuisineImage, "copy" => "Rangements, finitions et plan de travail coordonnés."],
-                ["type" => "Dressing sur mesure", "place" => "Chambre", "image" => $dressingImage, "copy" => "Pleine hauteur, façades propres, rangements optimisés."],
-                ["type" => "Placard intégré", "place" => "Appartement", "image" => $heroImage, "copy" => "Une niche transformée en rangement discret et utile."],
-                ["type" => "Meuble TV mural", "place" => "Salon", "image" => $boisImage, "copy" => "Câbles masqués, niches et volume adapté au mur."],
-                ["type" => "Bureau sur mesure", "place" => "Home office", "image" => $heroImage, "copy" => "Plan de travail, caissons et passage de câbles intégrés."],
-                ["type" => "Agencement complet", "place" => "Projet professionnel", "image" => $restaurantImage, "copy" => "Mobilier, comptoir et rangements dans un seul projet."],
-            ] as $realization)
+            @foreach($surMesureRealizations as $realization)
                 <article class="relative min-h-[330px] overflow-hidden rounded-[34px] bg-cover bg-center p-6 shadow-[0_20px_55px_rgba(0,0,0,0.20)]" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.80)), url('{{ $realization['image'] }}');">
                     <div class="relative z-10 flex h-full flex-col justify-between">
                         <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ $realization['place'] }}</span>

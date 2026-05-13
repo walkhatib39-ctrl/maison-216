@@ -265,6 +265,7 @@
     ];
 
     $data = $pages[$pageKey];
+    $realizations = app(\App\Support\RealizationResolver::class)->forPage($data['path'], 3, 'aluminium');
     $breadcrumbs = [
         ['name' => 'Accueil', 'url' => route('home')],
         ['name' => 'Menuiserie aluminium', 'url' => url('/aluminium')],
@@ -486,16 +487,12 @@
         </div>
 
         <div class="grid gap-5 md:grid-cols-3">
-            @foreach([
-                ['type' => $data['name'], 'place' => 'Sur mesure', 'image' => $data['heroImage'], 'copy' => 'Fabrication atelier, finition et pose sur site.'],
-                ['type' => 'Projet villa', 'place' => 'Résidentiel', 'image' => $villaImage, 'copy' => 'Solution adaptée à une maison ou une terrasse.'],
-                ['type' => 'Projet professionnel', 'place' => 'Commercial', 'image' => $restaurantImage, 'copy' => 'Ouvrage pensé pour usage intensif et image du lieu.'],
-            ] as $realization)
+            @foreach($realizations as $realization)
                 <article class="relative min-h-[320px] overflow-hidden rounded-[34px] bg-cover bg-center p-6" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.82)), url('{{ $realization['image'] }}');">
                     <div class="relative z-10 flex h-full flex-col justify-between">
-                        <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ $realization['place'] }}</span>
+                        <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ ($realization['location'] ?? null) ?: ($realization['place'] ?? $realization['type']) }}</span>
                         <div>
-                            <h3 class="font-display text-2xl font-extrabold">{{ $realization['type'] }}</h3>
+                            <h3 class="font-display text-2xl font-extrabold">{{ $realization['title'] }}</h3>
                             <p class="mt-2 text-sm leading-6 text-white/76">{{ $realization['copy'] }}</p>
                         </div>
                     </div>

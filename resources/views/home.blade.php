@@ -161,6 +161,7 @@
             'alt' => 'Pergola extérieure réalisée par Maison 216',
         ],
     ]);
+    $realizations = app(\App\Support\RealizationResolver::class)->forHome(6);
 
     $reviewProofs = collect([
         ['icon' => 'fa-regular fa-star', 'title' => 'Avis vérifiés', 'copy' => 'Les témoignages publiés doivent être reliés à un vrai projet, avec accord client et contexte clair.'],

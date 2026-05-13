@@ -101,6 +101,10 @@ Route::middleware(['auth', 'admin'])
         Route::get('leads/{lead}', [\App\Http\Controllers\Admin\LeadController::class, 'show'])->name('leads.show');
         Route::put('leads/{lead}', [\App\Http\Controllers\Admin\LeadController::class, 'update'])->name('leads.update');
 
+        // Realizations portfolio
+        Route::resource('realizations', \App\Http\Controllers\Admin\RealizationController::class)
+            ->except(['show']);
+
         // Products - Import via UI
         Route::get('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'importForm'])->name('products.import');
         Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import.store');

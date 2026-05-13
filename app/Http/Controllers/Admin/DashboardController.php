@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
+use App\Models\Realization;
 use App\Models\SitePage;
 use App\Support\SitePageSyncer;
 
@@ -30,6 +31,7 @@ class DashboardController extends Controller
                 'open_leads' => Lead::query()->open()->count(),
                 'pages' => SitePage::query()->active()->count(),
                 'missing_meta' => (clone $missingMetaQuery)->count(),
+                'published_realizations' => Realization::query()->where('status', Realization::STATUS_PUBLISHED)->count(),
                 'noindex' => SitePage::query()->active()->where('is_indexable', false)->count(),
                 'obsolete' => SitePage::query()->where('is_obsolete', true)->count(),
             ],
@@ -45,6 +47,10 @@ class DashboardController extends Controller
                 ->active()
                 ->latest('updated_at')
                 ->limit(6)
+                ->get(),
+            'recentRealizations' => Realization::query()
+                ->latest()
+                ->limit(4)
                 ->get(),
         ]);
     }

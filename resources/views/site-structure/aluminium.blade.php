@@ -123,6 +123,7 @@
         ['type' => 'Volets roulants', 'place' => 'Maison familiale', 'image' => $voletImage, 'copy' => 'Protection solaire et confort quotidien, manuel ou motorisé.'],
         ['type' => 'Structure extérieure', 'place' => 'Aménagement extérieur', 'image' => $portailImage, 'copy' => 'Ouvrage coordonné avec aluminium, métal et finitions atelier.'],
     ]);
+    $realizations = app(\App\Support\RealizationResolver::class)->forPage('aluminium', 6, 'aluminium');
 
     $process = collect([
         ['step' => '01', 'title' => 'Métré sur place', 'copy' => 'Visite technique, prise de cotes précises, conseil sur profilés, vitrages et types d’ouverture.'],

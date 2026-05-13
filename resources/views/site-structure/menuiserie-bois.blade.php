@@ -97,6 +97,7 @@
         ['type' => 'Atelier bois', 'place' => 'Fabrication interne', 'image' => asset('assets/home/menuiserie-bois.webp'), 'copy' => 'Production et contrôle dans notre propre atelier.'],
         ['type' => 'Aménagement extérieur bois', 'place' => 'Extérieur', 'image' => asset('assets/home/realizations/pergola.jpg'), 'copy' => 'Structure et habillage adaptés aux usages extérieurs.'],
     ]);
+    $woodRealizations = app(\App\Support\RealizationResolver::class)->forPage('menuiserie-bois', 6, 'menuiserie-bois');
 
     $process = collect([
         ['step' => '01', 'title' => 'Étude & conception', 'copy' => 'Visite technique si nécessaire, prise de mesures, choix des matériaux et conception en plans techniques ou 3D.'],

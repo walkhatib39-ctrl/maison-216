@@ -18,6 +18,7 @@ class SitePageController extends Controller
         }
 
         $query = SitePage::query()
+            ->withCount('realizations')
             ->orderBy('sort_order')
             ->orderBy('path');
 

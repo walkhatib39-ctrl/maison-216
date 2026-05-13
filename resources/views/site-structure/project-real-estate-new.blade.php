@@ -104,6 +104,7 @@
         ['title' => 'Porte aluminium', 'href' => url('/aluminium/porte-aluminium'), 'copy' => 'Entrée, porte-fenêtre, baie.'],
         ['title' => 'Sur mesure', 'href' => url('/sur-mesure'), 'copy' => 'Retour au hub sur mesure.'],
     ];
+    $projectRealizations = app(\App\Support\RealizationResolver::class)->forPage('projets/agencement-immobilier-neuf', 6, 'projets');
 
     $schema = [
         [
@@ -343,6 +344,13 @@
         </div>
     </div>
 </section>
+
+@include('site-structure.partials.realization-showcase', [
+    'realizations' => $projectRealizations,
+    'eyebrow' => 'Réalisations projet',
+    'title' => 'Quelques agencements livrés par Maison216.',
+    'description' => 'Cuisine, rangements, menuiseries aluminium et projets coordonnés pour appartements, villas et programmes neufs.',
+])
 
 <section class="bg-white py-16 lg:py-24">
     <div class="container mx-auto px-4">

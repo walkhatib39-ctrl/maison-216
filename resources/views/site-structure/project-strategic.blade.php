@@ -4,6 +4,7 @@
     $devisUrl = url('/devis');
     $contactUrl = route('contact');
     $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? $contactUrl;
+    $projectRealizations = app(\App\Support\RealizationResolver::class)->forCurrentPage(6, 'projets');
 
     $schema = [
         [
@@ -226,6 +227,13 @@
         </div>
     </div>
 </section>
+
+@include('site-structure.partials.realization-showcase', [
+    'realizations' => $projectRealizations,
+    'eyebrow' => 'Réalisations projet',
+    'title' => 'Quelques réalisations liées à ce type de projet.',
+    'description' => 'Des ouvrages livrés par Maison216, filtrés selon le silo projet et les pages associées.',
+])
 
 <section class="bg-white py-16 lg:py-24">
     <div class="container mx-auto px-4">

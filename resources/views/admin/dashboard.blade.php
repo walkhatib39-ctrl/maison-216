@@ -26,8 +26,8 @@
             <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['pages'] }}</div>
         </div>
         <div class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
-            <div class="text-sm font-semibold text-[#6a5a4c]">Meta manquante</div>
-            <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['missing_meta'] }}</div>
+            <div class="text-sm font-semibold text-[#6a5a4c]">Realisations publiees</div>
+            <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['published_realizations'] }}</div>
         </div>
     </div>
 
@@ -109,6 +109,26 @@
                     </a>
                 @empty
                     <div class="rounded-2xl border border-[#eadfce] bg-[#fbf7f0] p-4 text-sm font-semibold text-[#6a5a4c]">Aucune page modifiee.</div>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm xl:col-span-2">
+            <div class="flex items-center justify-between gap-3">
+                <h2 class="text-base font-extrabold text-[#171411]">Dernieres realisations</h2>
+                <a href="{{ route('admin.realizations.index') }}" class="text-sm font-bold text-[#8e6322] hover:text-[#171411]">Voir</a>
+            </div>
+            <div class="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                @forelse($recentRealizations as $realization)
+                    <a href="{{ route('admin.realizations.edit', $realization) }}" class="overflow-hidden rounded-2xl border border-[#eadfce] bg-[#fbf7f0] transition hover:bg-white">
+                        <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" class="h-28 w-full object-cover">
+                        <div class="p-3">
+                            <div class="line-clamp-1 font-bold text-[#171411]">{{ $realization->title }}</div>
+                            <div class="mt-1 text-xs text-[#6a5a4c]">{{ $realization->statusLabel() }}</div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="rounded-2xl border border-[#eadfce] bg-[#fbf7f0] p-4 text-sm font-semibold text-[#6a5a4c] md:col-span-2 xl:col-span-4">Aucune realisation.</div>
                 @endforelse
             </div>
         </section>

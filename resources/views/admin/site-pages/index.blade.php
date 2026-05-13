@@ -97,6 +97,7 @@
                             <th class="px-5 py-3">URL</th>
                             <th class="px-5 py-3">Meta title</th>
                             <th class="px-5 py-3">Meta description</th>
+                            <th class="px-5 py-3">Realisations</th>
                             <th class="px-5 py-3">Indexation</th>
                             <th class="px-5 py-3 text-right">Actions</th>
                         </tr>
@@ -126,6 +127,9 @@
                                     @else
                                         <span class="inline-flex whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800">Manquante</span>
                                     @endif
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="inline-flex whitespace-nowrap rounded-full bg-[#fbf7f0] px-2.5 py-1 text-xs font-bold text-[#6a5a4c]">{{ $page->realizations_count }}</span>
                                 </td>
                                 <td class="px-5 py-4">
                                     @if($page->is_obsolete)
