@@ -1,6 +1,6 @@
 # Maison216 - Plan refonte admin cockpit, SEO, leads et realisations
 
-Last updated: 2026-05-12
+Last updated: 2026-05-13
 
 Ce document est la reference de travail pour la refonte complete de l'espace admin Maison216.
 
@@ -985,3 +985,43 @@ Risques ou limites:
 
 Prochaine action recommandee:
 - demarrer Sprint 3: creer la table `leads`, connecter les formulaires Contact, Devis et Espace professionnels, puis ajouter l'admin `Demandes` avec statuts et notes internes.
+
+### 2026-05-13 - Sprint 3 livre localement: leads et demandes
+
+Livres:
+- migration `leads` avec champs type, source, contact, payload, statut, priorite, notes internes et date de dernier contact
+- modele `App\Models\Lead` avec libelles de type/statut/priorite, scope demandes ouvertes et lien WhatsApp rapide
+- service `App\Support\LeadCapture` pour transformer les formulaires publics en demandes stockees en base
+- formulaire public `/devis` avec type de projet, localisation, message, telephone et CTA WhatsApp
+- connexion des formulaires Contact, Devis et Espace professionnels a la table `leads`
+- maintien des emails de notification vers les emails admin configures dans `Parametres site`
+- admin `Demandes` avec liste table, filtres type/statut/priorite/recherche, stats, detail, changement de statut, priorite et notes internes
+- menu admin mis a jour: `Demandes` devient une entree principale
+- dashboard admin enrichi avec nouvelles demandes, demandes a traiter et demandes recentes
+
+Verification locale:
+- `php -l` sur la migration, le modele, le service et les controleurs modifies
+- `php artisan route:list --path=admin/leads`
+- `php artisan route:list --path=devis`
+- `php artisan route:list --path=contact`
+- `php artisan migrate`
+- creation/suppression d'un lead test via `php artisan tinker`
+- `php artisan view:cache`
+- `npm run build`
+- `php artisan optimize:clear`
+- `php artisan migrate:status --path=database\migrations\2026_05_13_000001_create_leads_table.php`
+- `git diff --check` sur les fichiers du sprint
+
+Notes:
+- la premiere tentative de migration locale a revele une limite MySQL sur les index de chaines longues
+- la migration a ete corrigee en limitant les longueurs des champs indexes (`type`, `status`, `priority`, `source_page_path`)
+- le formulaire accepte maintenant email ou telephone, mais refuse une demande sans aucun moyen de contact
+- le sprint cree le CRM minimum utile; il ne gere pas encore l'export, l'historique d'activite detaille ou les pieces jointes
+
+Risques ou limites:
+- les realisations restent codees dans les vues publiques
+- les anciens ecrans produits/commandes restent encore dans l'archive e-commerce jusqu'au nettoyage final
+- les demandes n'ont pas encore de pieces jointes pour plans/photos; a etudier apres stabilisation du cockpit
+
+Prochaine action recommandee:
+- deployer Sprint 3 en production, executer la migration serveur, verifier `/devis`, `/admin/leads` et la table `leads`, puis demarrer Sprint 4 sur la gestion complete des realisations.

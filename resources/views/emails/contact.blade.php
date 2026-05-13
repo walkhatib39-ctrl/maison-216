@@ -27,10 +27,12 @@
         <div class="label">Nom</div>
         <div class="value">{{ $name }}</div>
       </div>
+      @if(!empty($email))
       <div class="row">
         <div class="label">Email</div>
         <div class="value">{{ $email }}</div>
       </div>
+      @endif
       @if(!empty($phone))
       <div class="row">
         <div class="label">Téléphone</div>

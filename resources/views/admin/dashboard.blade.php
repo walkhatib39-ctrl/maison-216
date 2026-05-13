@@ -7,12 +7,20 @@
             <h1 class="text-2xl font-extrabold tracking-tight text-[#171411]">Tableau de bord</h1>
             <p class="mt-1 text-sm text-[#6a5a4c]">Etat du cockpit Maison216.</p>
         </div>
-        <a href="{{ route('admin.site-pages.index') }}" class="inline-flex items-center justify-center rounded-xl bg-[#171411] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#a47834]">
-            Ouvrir Pages & SEO
+        <a href="{{ route('admin.leads.index') }}" class="inline-flex items-center justify-center rounded-xl bg-[#171411] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#a47834]">
+            Voir les demandes
         </a>
     </div>
 
     <div class="grid gap-4 md:grid-cols-4">
+        <div class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
+            <div class="text-sm font-semibold text-[#6a5a4c]">Nouvelles demandes</div>
+            <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['new_leads'] }}</div>
+        </div>
+        <div class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
+            <div class="text-sm font-semibold text-[#6a5a4c]">Demandes a traiter</div>
+            <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['open_leads'] }}</div>
+        </div>
         <div class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
             <div class="text-sm font-semibold text-[#6a5a4c]">Pages actives</div>
             <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['pages'] }}</div>
@@ -21,17 +29,30 @@
             <div class="text-sm font-semibold text-[#6a5a4c]">Meta manquante</div>
             <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['missing_meta'] }}</div>
         </div>
-        <div class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
-            <div class="text-sm font-semibold text-[#6a5a4c]">Noindex</div>
-            <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['noindex'] }}</div>
-        </div>
-        <div class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
-            <div class="text-sm font-semibold text-[#6a5a4c]">Obsoletes</div>
-            <div class="mt-2 text-3xl font-extrabold text-[#171411]">{{ $stats['obsolete'] }}</div>
-        </div>
     </div>
 
-    <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section class="overflow-hidden rounded-2xl border border-[#eadfce] bg-white shadow-sm">
+            <div class="border-b border-[#eadfce] bg-[#fbf7f0] px-5 py-4">
+                <h2 class="text-base font-extrabold text-[#171411]">Demandes recentes</h2>
+            </div>
+            <div class="divide-y divide-[#f0e7da]">
+                @forelse($recentLeads as $lead)
+                    <a href="{{ route('admin.leads.show', $lead) }}" class="block px-5 py-4 transition hover:bg-[#fbf7f0]">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="font-bold text-[#171411]">{{ $lead->name }}</div>
+                                <div class="mt-1 text-sm text-[#6a5a4c]">{{ $lead->subject ?: $lead->typeLabel() }}</div>
+                            </div>
+                            <div class="whitespace-nowrap text-xs font-semibold text-[#6a5a4c]">{{ $lead->created_at->format('d/m H:i') }}</div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="px-5 py-10 text-center text-sm font-semibold text-[#6a5a4c]">Aucune demande pour le moment.</div>
+                @endforelse
+            </div>
+        </section>
+
         <section class="overflow-hidden rounded-2xl border border-[#eadfce] bg-white shadow-sm">
             <div class="border-b border-[#eadfce] bg-[#fbf7f0] px-5 py-4">
                 <h2 class="text-base font-extrabold text-[#171411]">Pages a completer</h2>
@@ -78,7 +99,7 @@
             </div>
         </section>
 
-        <section class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm">
+        <section class="rounded-2xl border border-[#eadfce] bg-white p-5 shadow-sm xl:col-span-2">
             <h2 class="text-base font-extrabold text-[#171411]">Dernieres pages modifiees</h2>
             <div class="mt-4 space-y-3">
                 @forelse($recentPages as $page)

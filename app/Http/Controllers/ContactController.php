@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\SiteSettings;
+use App\Support\LeadCapture;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -18,14 +19,14 @@ class ContactController extends Controller
         ]);
     }
 
-    public function submit(Request $request): RedirectResponse
+    public function submit(Request $request, LeadCapture $leadCapture): RedirectResponse
     {
         $tnPattern = '^(?:\+?216\s*)?(?:[24579]\d{7}|[24579]\d\s\d{3}\s\d{3})$';
 
         $data = $request->validate([
             'name'         => ['required', 'string', 'max:120'],
-            'email'        => ['required', 'email', 'max:150'],
-            'phone'        => ['nullable', 'string', 'max:30', "regex:/{$tnPattern}/"],
+            'email'        => ['nullable', 'required_without:phone', 'email', 'max:150'],
+            'phone'        => ['nullable', 'required_without:email', 'string', 'max:30', "regex:/{$tnPattern}/"],
             'message'      => ['required', 'string', 'max:3000'],
             'subject'      => ['nullable', 'string', 'max:160'],
             'company'      => ['nullable', 'string', 'max:160'],
@@ -35,11 +36,14 @@ class ContactController extends Controller
             'has_project'  => ['nullable', 'string', 'max:20'],
         ], [
             'name.required'    => 'Votre nom est obligatoire.',
-            'email.required'   => 'Votre email est obligatoire.',
             'email.email'      => 'Adresse email invalide.',
+            'email.required_without' => 'Ajoutez un email ou un téléphone.',
+            'phone.required_without' => 'Ajoutez un téléphone ou un email.',
             'phone.regex'      => 'Le téléphone doit être un numéro tunisien valide (ex : 55 123 456).',
             'message.required' => 'Veuillez saisir votre message.',
         ]);
+
+        $leadCapture->createFromContactForm($request, $data);
 
         // Build email content
         $adminEmails = SiteSettings::adminEmails();
@@ -47,7 +51,7 @@ class ContactController extends Controller
             try {
                 Mail::send('emails.contact', [
                     'name' => $data['name'],
-                    'email' => $data['email'],
+                    'email' => $data['email'] ?? null,
                     'phone' => $data['phone'] ?? null,
                     'messageBody' => $data['message'],
                     'subjectLine' => $data['subject'] ?? 'Nouveau message de contact',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Lead;
 use App\Models\SitePage;
 use App\Support\SitePageSyncer;
 
@@ -25,11 +26,17 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', [
             'stats' => [
+                'new_leads' => Lead::query()->where('status', Lead::STATUS_NEW)->count(),
+                'open_leads' => Lead::query()->open()->count(),
                 'pages' => SitePage::query()->active()->count(),
                 'missing_meta' => (clone $missingMetaQuery)->count(),
                 'noindex' => SitePage::query()->active()->where('is_indexable', false)->count(),
                 'obsolete' => SitePage::query()->where('is_obsolete', true)->count(),
             ],
+            'recentLeads' => Lead::query()
+                ->latest()
+                ->limit(6)
+                ->get(),
             'missingMetaPages' => $missingMetaQuery
                 ->orderBy('sort_order')
                 ->limit(8)

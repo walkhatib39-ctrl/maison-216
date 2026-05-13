@@ -96,6 +96,11 @@ Route::middleware(['auth', 'admin'])
         Route::get('site-pages/{sitePage}/edit', [\App\Http\Controllers\Admin\SitePageController::class, 'edit'])->name('site-pages.edit');
         Route::put('site-pages/{sitePage}', [\App\Http\Controllers\Admin\SitePageController::class, 'update'])->name('site-pages.update');
 
+        // Leads and requests
+        Route::get('leads', [\App\Http\Controllers\Admin\LeadController::class, 'index'])->name('leads.index');
+        Route::get('leads/{lead}', [\App\Http\Controllers\Admin\LeadController::class, 'show'])->name('leads.show');
+        Route::put('leads/{lead}', [\App\Http\Controllers\Admin\LeadController::class, 'update'])->name('leads.update');
+
         // Products - Import via UI
         Route::get('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'importForm'])->name('products.import');
         Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import.store');

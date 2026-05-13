@@ -192,6 +192,16 @@ class SitePageController extends Controller
             ]);
         }
 
+        if ($fullPath === 'devis') {
+            return view('site-structure.devis', [
+                'title' => 'Demander un devis | Maison216 Tunisie',
+                'metaDescription' => 'Demandez un devis Maison216 pour cuisine, dressing, menuiserie aluminium, fabrication métallique ou projet complet. Réponse sous 48h.',
+                'canonical' => url('/devis'),
+                'ogType' => 'website',
+                'ogImage' => asset('assets/home/amenagement-sur-mesure.jpg'),
+            ]);
+        }
+
         if ($fullPath === 'projets/agencement-immobilier-neuf') {
             return view('site-structure.project-real-estate-new', [
                 'title' => 'Agencement appartement neuf en Tunisie | Cuisine, dressings, menuiserie',
