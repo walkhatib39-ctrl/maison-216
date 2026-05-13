@@ -1228,5 +1228,15 @@ Verification locale:
 - `npm run build`
 - `git diff --check`
 
+Verification production:
+- commit deploye: `e541498d Add public realizations portfolio page`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan site-pages:sync`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- sync serveur: `1` page creee, `35` mises a jour, `40` pages au total
+- HTTP smoke: `https://maison216.tn/realisations` retourne `200`
+- verification contenu: la page portfolio contient les realisations et `6` liens vers des pages detail `/realisations/...`
+- verification home/footer: liens vers `https://maison216.tn/realisations` detectes
+- verification serveur via Tinker: page `realisations` existe dans `site_pages`, silo `realisations`, type `portfolio`, meta title renseigne
+
 Prochaine action recommandee:
 - deployer, executer `php artisan site-pages:sync` en production, verifier `/realisations`, le footer et `/admin/site-pages`.
