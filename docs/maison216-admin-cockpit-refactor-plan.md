@@ -1153,5 +1153,14 @@ Verification locale:
 - `php artisan view:cache`
 - `php artisan route:list --path=realisations`
 
+Verification production:
+- commit deploye: `ef09fb21 Refine realization detail page UX`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `php artisan optimize:clear`, `php artisan view:cache`
+- page verifiee: `https://maison216.tn/realisations/cuisine-sur-mesure`
+- section `Voir les services lies a cette realisation` absente
+- libelle texte `WhatsApp` absent des boutons; le numero `96 813 203` est affiche
+- l'ancienne mention hero du silo n'est plus rendue dans le hero; les occurrences restantes de `Menuiserie bois` proviennent de la navigation globale et des meta keywords
+
 Prochaine action recommandee:
 - deployer le correctif, verifier mobile sur `/realisations/cuisine-sur-mesure`, puis reprendre Sprint 5 du cockpit admin.
