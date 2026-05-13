@@ -1384,7 +1384,13 @@ Verification locale:
 - `git diff --check` sur les fichiers modifies
 
 Verification production:
-- a effectuer apres push et deploiement Plesk
+- commit deploye: `47b84aaa Show phone number on WhatsApp CTAs`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- pages verifiees: `/`, `/menuiserie-bois`, `/aluminium`, `/fer-metal`, `/sur-mesure`, `/devis`, `/contact`, `/partenaires`, `/projets/amenagement-exterieur`
+- verification HTML: aucun ancien libelle `WhatsApp atelier`, `WhatsApp direct`, `WhatsApp professionnels`, `WhatsApp :` ou bouton `WhatsApp` seul detecte sur ces pages
+- verification HTML: le numero `96 813 203` est present sur les pages testees
+- verification serveur: aucun ancien libelle de bouton WhatsApp detecte dans `resources/views` et `app/Http/Controllers`
 
 Prochaine action recommandee:
 - deployer, verifier les CTA sur `/menuiserie-bois`, `/aluminium`, `/fer-metal`, `/sur-mesure`, `/devis`, `/contact` et `/partenaires`, puis reprendre Sprint 5 du cockpit admin.
