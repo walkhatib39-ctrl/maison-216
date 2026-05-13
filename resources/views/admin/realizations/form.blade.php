@@ -13,7 +13,7 @@
             <p class="mt-1 text-sm text-[#6a5a4c]">{{ $isEdit ? 'Modifier le portfolio public.' : 'Creer une carte portfolio assignable aux pages.' }}</p>
         </div>
         @if($isEdit && $realization->status === \App\Models\Realization::STATUS_PUBLISHED)
-            <a href="{{ url('/#realisations') }}" target="_blank" class="inline-flex items-center justify-center rounded-xl border border-[#d8c7af] bg-white px-4 py-2.5 text-sm font-bold text-[#171411] transition hover:bg-[#fbf7f0]">
+            <a href="{{ route('realizations.show', $realization) }}" target="_blank" class="inline-flex items-center justify-center rounded-xl border border-[#d8c7af] bg-white px-4 py-2.5 text-sm font-bold text-[#171411] transition hover:bg-[#fbf7f0]">
                 Voir sur le site
             </a>
         @endif
@@ -60,7 +60,7 @@
                             @error('project_type')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
                         </label>
 
-                        <label class="block">
+                        <label class="block md:col-span-2">
                             <span class="text-sm font-bold text-[#171411]">Silo *</span>
                             <select name="silo" required class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 focus:ring-4">
                                 @foreach($silos as $value => $label)
@@ -68,12 +68,6 @@
                                 @endforeach
                             </select>
                             @error('silo')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
-                        </label>
-
-                        <label class="block">
-                            <span class="text-sm font-bold text-[#171411]">Localisation</span>
-                            <input name="location" value="{{ old('location', $realization->location) }}" class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 focus:ring-4" placeholder="La Marsa, Ennasr...">
-                            @error('location')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
                         </label>
 
                         <label class="block md:col-span-2">

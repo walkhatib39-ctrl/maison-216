@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SitePageController;
+use App\Http\Controllers\RealizationController;
 use Illuminate\Support\Facades\Route;
 
 // Front routes
@@ -22,6 +23,7 @@ Route::post('/checkout/{product}', [CheckoutController::class, 'store'])->name('
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::get('/realisations/{realization:slug}', [RealizationController::class, 'show'])->name('realizations.show');
 
 Route::get('/menuiserie-bois/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
@@ -159,6 +161,15 @@ Route::get('/sitemap.xml', function () {
         $urls = array_merge($urls, $sitePageUrls);
     } else {
         $urls = array_merge($urls, app(\App\Support\SiteStructure::class)->allUrls()->all());
+    }
+
+    if (\Illuminate\Support\Facades\Schema::hasTable('realizations')) {
+        $urls = array_merge($urls, \App\Models\Realization::query()
+            ->published()
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (\App\Models\Realization $realization) => route('realizations.show', $realization))
+            ->all());
     }
 
     $products = collect();

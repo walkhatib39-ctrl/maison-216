@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -34,7 +35,6 @@ class RealizationController extends Controller
             $query->where(function ($builder) use ($q) {
                 $builder->where('title', 'like', "%{$q}%")
                     ->orWhere('project_type', 'like', "%{$q}%")
-                    ->orWhere('location', 'like', "%{$q}%")
                     ->orWhere('short_description', 'like', "%{$q}%");
             });
         }
@@ -162,7 +162,6 @@ class RealizationController extends Controller
             'slug' => ['nullable', 'string', 'max:190', $slugRule],
             'project_type' => ['nullable', 'string', 'max:120'],
             'silo' => ['required', Rule::in(array_keys(Realization::siloLabels()))],
-            'location' => ['nullable', 'string', 'max:120'],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string', 'max:5000'],
             'cover_alt' => ['nullable', 'string', 'max:190'],
@@ -240,7 +239,18 @@ class RealizationController extends Controller
 
     private function storeImage(UploadedFile $file): string
     {
-        return $file->store('realizations', 'public');
+        $directory = public_path('uploads/realizations');
+
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
+        $filename = Str::random(40) . '.' . $extension;
+
+        $file->move($directory, $filename);
+
+        return 'uploads/realizations/' . $filename;
     }
 
     private function deleteStoredImage(?string $path): void
@@ -248,6 +258,16 @@ class RealizationController extends Controller
         $path = trim((string) $path);
 
         if ($path === '' || str_starts_with($path, 'assets/') || str_starts_with($path, 'http')) {
+            return;
+        }
+
+        if (str_starts_with($path, 'uploads/')) {
+            $fullPath = public_path($path);
+
+            if (is_file($fullPath)) {
+                @unlink($fullPath);
+            }
+
             return;
         }
 

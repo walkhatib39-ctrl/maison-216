@@ -28,15 +28,15 @@
 
             <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 @foreach($items as $realization)
-                    <article class="relative min-h-[320px] overflow-hidden rounded-[34px] bg-cover bg-center p-6 shadow-[0_20px_65px_rgba(23,20,17,0.12)]" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.84)), url('{{ $realization['image'] }}');">
+                    <a href="{{ $realization['url'] }}" class="group relative min-h-[320px] overflow-hidden rounded-[34px] bg-cover bg-center p-6 shadow-[0_20px_65px_rgba(23,20,17,0.12)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.18)]" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.84)), url('{{ $realization['image'] }}');">
                         <div class="relative z-10 flex h-full flex-col justify-between">
-                            <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ ($realization['location'] ?? null) ?: ($realization['place'] ?? $realization['type']) }}</span>
+                            <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ $realization['place'] }}</span>
                             <div class="text-white">
                                 <h3 class="font-display text-2xl font-extrabold">{{ $realization['title'] }}</h3>
                                 <p class="mt-2 text-sm leading-6 text-white/78">{{ $realization['copy'] }}</p>
                             </div>
                         </div>
-                    </article>
+                    </a>
                 @endforeach
             </div>
         </div>

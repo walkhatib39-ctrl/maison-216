@@ -1090,3 +1090,37 @@ Risques ou limites:
 
 Prochaine action recommandee:
 - deployer Sprint 4, verifier `/admin/realizations`, la homepage et plusieurs pages silos/projets, puis demarrer Sprint 5 sur le dashboard final du cockpit et la preparation du nettoyage e-commerce.
+
+### 2026-05-13 - Correctifs Sprint 4 apres test admin
+
+Problemes constates:
+- le champ `Localisation` n'etait pas clair pour l'admin et n'avait pas de valeur operationnelle immediate
+- les images uploadées via le disque `storage/public` etaient cassees en production car Plesk retournait `403` sur `/storage/...`
+- les cartes de realisations publiques n'etaient pas cliquables
+- les pages sans realisation assignée affichaient quand meme une section realisations vide ou alimentee par fallback
+
+Correctifs livres:
+- retrait du champ `Localisation` de l'admin realisations et du front realisations
+- stockage des nouveaux uploads dans `public/uploads/realizations` pour eviter le probleme Plesk `/storage`
+- compatibilite ajoutee pour les anciennes images `realizations/...` apres migration vers `public/uploads/realizations`
+- ajout d'une page publique detail realisation: `/realisations/{slug}`
+- cartes de realisations rendues cliquables sur homepage, silos, pages produits et pages projets
+- sections realisations masquees automatiquement quand aucune realisation n'est assignee a la page
+- sitemap enrichi avec les realisations publiees
+
+Verification locale:
+- `php -l` sur `Realization`, `RealizationResolver`, controleurs admin/public et seeder
+- `php artisan route:list --path=realisations`
+- `php artisan view:cache`
+- `php artisan db:seed --class=RealizationSeeder`
+- verification Tinker: URL detail realisation generee, homepage avec 6 realisations, page non assignee avec 0 realisation
+- `npm run build`
+- `php artisan optimize:clear`
+
+Note de deploiement:
+- copier les fichiers existants de `storage/app/public/realizations` vers `public/uploads/realizations`
+- mettre a jour les chemins DB `realizations/...` vers `uploads/realizations/...`
+- relancer build et caches Laravel
+
+Prochaine action recommandee:
+- deployer ces correctifs, verifier l'image uploadée dans l'admin et l'URL detail `/realisations/cuisine-sur-mesure`, puis reprendre Sprint 5.

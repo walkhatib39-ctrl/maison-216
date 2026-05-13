@@ -30,9 +30,7 @@ class RealizationResolver
                 ->get();
         }
 
-        return $items->isNotEmpty()
-            ? $items->map->toCardArray()
-            : $this->fallback(null, $limit);
+        return $items->map->toCardArray();
     }
 
     public function forCurrentPage(int $limit = 6, ?string $fallbackSilo = null): Collection
@@ -57,38 +55,19 @@ class RealizationResolver
             ->where('path', $path)
             ->first();
 
-        $silo = $fallbackSilo ?: $page?->silo ?: $this->siloFromPath($path);
-
-        if ($page) {
-            $assigned = $page->realizations()
-                ->published()
-                ->withPivot(['sort_order', 'is_featured_on_page'])
-                ->orderByDesc('realization_site_page.is_featured_on_page')
-                ->orderBy('realization_site_page.sort_order')
-                ->limit($limit)
-                ->get();
-
-            if ($assigned->isNotEmpty()) {
-                return $assigned->map->toCardArray();
-            }
+        if (!$page) {
+            return collect();
         }
 
-        $siloItems = Realization::query()
+        $assigned = $page->realizations()
             ->published()
-            ->where('silo', $silo)
-            ->ordered()
+            ->withPivot(['sort_order', 'is_featured_on_page'])
+            ->orderByDesc('realization_site_page.is_featured_on_page')
+            ->orderBy('realization_site_page.sort_order')
             ->limit($limit)
             ->get();
 
-        if ($siloItems->isNotEmpty()) {
-            return $siloItems->map->toCardArray();
-        }
-
-        $featured = $this->forHome($limit);
-
-        return $featured->isNotEmpty()
-            ? $featured
-            : $this->fallback($silo, $limit);
+        return $assigned->map->toCardArray();
     }
 
     private function tablesReady(): bool
@@ -110,73 +89,73 @@ class RealizationResolver
                 'title' => 'Cuisine sur mesure',
                 'type' => 'Cuisine sur mesure',
                 'place' => 'Menuiserie bois',
-                'location' => null,
                 'note' => 'Cuisine équipée, rangements intégrés et finitions propres',
                 'copy' => 'Cuisine équipée, rangements intégrés et finitions propres',
                 'image' => asset('assets/home/realizations/cuisine-sur-mesure.jpg'),
                 'image_url' => asset('assets/home/realizations/cuisine-sur-mesure.jpg'),
                 'alt' => 'Cuisine sur mesure réalisée par Maison216',
                 'silo' => 'menuiserie-bois',
+                'url' => '#',
             ],
             [
                 'title' => 'Dressing sur mesure',
                 'type' => 'Dressing sur mesure',
                 'place' => 'Rangement intégré',
-                'location' => null,
                 'note' => 'Dressing optimisé, façades soignées et pose ajustée',
                 'copy' => 'Dressing optimisé, façades soignées et pose ajustée',
                 'image' => asset('assets/home/realizations/dressing-sur-mesure.jpg'),
                 'image_url' => asset('assets/home/realizations/dressing-sur-mesure.jpg'),
                 'alt' => 'Dressing sur mesure réalisé par Maison216',
                 'silo' => 'sur-mesure',
+                'url' => '#',
             ],
             [
                 'title' => 'Volet roulant aluminium',
                 'type' => 'Volet roulant aluminium',
                 'place' => 'Menuiserie aluminium',
-                'location' => null,
                 'note' => 'Protection solaire, confort et finition aluminium',
                 'copy' => 'Protection solaire, confort et finition aluminium',
                 'image' => asset('assets/home/realizations/volet-roulant-aluminium.webp'),
                 'image_url' => asset('assets/home/realizations/volet-roulant-aluminium.webp'),
                 'alt' => 'Volet roulant aluminium posé par Maison216',
                 'silo' => 'aluminium',
+                'url' => '#',
             ],
             [
                 'title' => 'Portail métallique',
                 'type' => 'Portail métallique',
                 'place' => 'Fabrication métallique',
-                'location' => null,
                 'note' => 'Structure métal, finition durable et installation sur site',
                 'copy' => 'Structure métal, finition durable et installation sur site',
                 'image' => asset('assets/home/realizations/portail-metal.jpg'),
                 'image_url' => asset('assets/home/realizations/portail-metal.jpg'),
                 'alt' => 'Portail métallique fabriqué par Maison216',
                 'silo' => 'fer-metal',
+                'url' => '#',
             ],
             [
                 'title' => 'Agencement restaurant',
                 'type' => 'Agencement restaurant',
                 'place' => 'Projet professionnel',
-                'location' => null,
                 'note' => 'Mobilier, comptoir et ambiance coordonnée',
                 'copy' => 'Mobilier, comptoir et ambiance coordonnée',
                 'image' => asset('assets/home/realizations/amenagement-restaurant.jpg'),
                 'image_url' => asset('assets/home/realizations/amenagement-restaurant.jpg'),
                 'alt' => 'Agencement restaurant réalisé par Maison216',
                 'silo' => 'projets',
+                'url' => '#',
             ],
             [
                 'title' => 'Pergola extérieure',
                 'type' => 'Pergola extérieure',
                 'place' => 'Aménagement extérieur',
-                'location' => null,
                 'note' => 'Structure extérieure adaptée au lieu et aux usages',
                 'copy' => 'Structure extérieure adaptée au lieu et aux usages',
                 'image' => asset('assets/home/realizations/pergola.jpg'),
                 'image_url' => asset('assets/home/realizations/pergola.jpg'),
                 'alt' => 'Pergola extérieure réalisée par Maison216',
                 'silo' => 'fer-metal',
+                'url' => '#',
             ],
         ]);
 

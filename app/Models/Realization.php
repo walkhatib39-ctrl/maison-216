@@ -24,7 +24,6 @@ class Realization extends Model
         'slug',
         'project_type',
         'silo',
-        'location',
         'short_description',
         'description',
         'cover_image',
@@ -121,13 +120,21 @@ class Realization extends Model
             return asset($path);
         }
 
+        if (Str::startsWith($path, 'uploads/')) {
+            return asset($path);
+        }
+
+        if (Str::startsWith($path, 'realizations/')) {
+            return asset('uploads/' . $path);
+        }
+
         return Storage::disk('public')->url($path);
     }
 
     public function toCardArray(): array
     {
         $image = $this->coverImageUrl();
-        $place = $this->location ?: $this->siloLabel();
+        $place = $this->project_type ?: $this->siloLabel();
         $type = $this->project_type ?: $this->title;
         $copy = $this->short_description ?: $this->description ?: $this->title;
 
@@ -135,7 +142,6 @@ class Realization extends Model
             'title' => $this->title,
             'type' => $type,
             'place' => $place,
-            'location' => $this->location,
             'note' => $copy,
             'copy' => $copy,
             'image' => $image,
@@ -143,6 +149,7 @@ class Realization extends Model
             'alt' => $this->cover_alt ?: $this->title,
             'silo' => $this->silo,
             'silo_label' => $this->siloLabel(),
+            'url' => route('realizations.show', $this),
         ];
     }
 

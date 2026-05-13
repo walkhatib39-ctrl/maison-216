@@ -497,6 +497,7 @@
     </div>
 </section>
 
+@if($realizations->isNotEmpty())
 <section id="realisations-metal" class="bg-white py-16 lg:py-20">
     <div class="container mx-auto px-4">
         <div class="mb-9 max-w-3xl">
@@ -506,19 +507,20 @@
 
         <div class="grid gap-5 md:grid-cols-3">
             @foreach($realizations as $realization)
-                <article class="relative min-h-[320px] overflow-hidden rounded-[34px] bg-cover bg-center p-6" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.82)), url('{{ $realization['image'] }}');">
+                <a href="{{ $realization['url'] }}" class="group relative min-h-[320px] overflow-hidden rounded-[34px] bg-cover bg-center p-6 transition hover:-translate-y-1" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.82)), url('{{ $realization['image'] }}');">
                     <div class="relative z-10 flex h-full flex-col justify-between">
-                        <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ ($realization['location'] ?? null) ?: ($realization['place'] ?? $realization['type']) }}</span>
+                        <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ $realization['place'] }}</span>
                         <div class="text-white">
                             <h3 class="font-display text-2xl font-extrabold">{{ $realization['title'] }}</h3>
                             <p class="mt-2 text-sm leading-6 text-white/76">{{ $realization['copy'] }}</p>
                         </div>
                     </div>
-                </article>
+                </a>
             @endforeach
         </div>
     </div>
 </section>
+@endif
 
 <section class="bg-[#fbf7ee] py-16 lg:py-20">
     <div class="container mx-auto px-4">

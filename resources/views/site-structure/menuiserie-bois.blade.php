@@ -392,6 +392,7 @@
     </div>
 </section>
 
+@if($woodRealizations->isNotEmpty())
 <section id="realisations-bois" class="bg-[#171411] py-16 text-white lg:py-20">
     <div class="container mx-auto px-4">
         <div class="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -404,7 +405,7 @@
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             @foreach($woodRealizations as $realization)
-                <article class="group relative min-h-[330px] overflow-hidden rounded-[34px] bg-cover bg-center p-6 shadow-[0_20px_55px_rgba(0,0,0,0.20)]" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.78)), url('{{ $realization['image'] }}');">
+                <a href="{{ $realization['url'] }}" class="group relative min-h-[330px] overflow-hidden rounded-[34px] bg-cover bg-center p-6 shadow-[0_20px_55px_rgba(0,0,0,0.20)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(0,0,0,0.25)]" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.78)), url('{{ $realization['image'] }}');">
                     <div class="relative z-10 flex h-full flex-col justify-between">
                         <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ $realization['place'] }}</span>
                         <div>
@@ -412,11 +413,12 @@
                             <p class="mt-2 text-sm leading-6 text-white/76">{{ $realization['copy'] }}</p>
                         </div>
                     </div>
-                </article>
+                </a>
             @endforeach
         </div>
     </div>
 </section>
+@endif
 
 <section class="bg-white py-16 lg:py-20">
     <div class="container mx-auto px-4">

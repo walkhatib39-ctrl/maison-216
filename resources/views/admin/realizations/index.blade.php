@@ -48,7 +48,7 @@
         <div class="grid gap-3 xl:grid-cols-[1fr_180px_180px_220px_150px_auto]">
             <div>
                 <label for="q" class="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6a5a4c]">Recherche</label>
-                <input id="q" name="q" value="{{ $filters['q'] }}" class="w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm text-[#171411] outline-none ring-[#b88a3b]/20 focus:ring-4" placeholder="Titre, type, lieu">
+                <input id="q" name="q" value="{{ $filters['q'] }}" class="w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm text-[#171411] outline-none ring-[#b88a3b]/20 focus:ring-4" placeholder="Titre ou type de projet">
             </div>
             <div>
                 <label for="silo" class="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6a5a4c]">Silo</label>
@@ -111,9 +111,6 @@
                     <p class="mt-2 line-clamp-2 text-sm leading-6 text-[#6a5a4c]">{{ $realization->short_description ?: $realization->project_type }}</p>
 
                     <div class="mt-4 flex flex-wrap gap-2 text-xs font-bold text-[#6a5a4c]">
-                        @if($realization->location)
-                            <span class="rounded-full bg-[#fbf7f0] px-2.5 py-1">{{ $realization->location }}</span>
-                        @endif
                         <span class="rounded-full bg-[#fbf7f0] px-2.5 py-1">{{ $realization->pages_count }} page{{ $realization->pages_count > 1 ? 's' : '' }}</span>
                     </div>
 
@@ -121,6 +118,11 @@
                         <a href="{{ route('admin.realizations.edit', $realization) }}" class="inline-flex items-center justify-center rounded-xl border border-[#d8c7af] bg-white px-3 py-2 text-xs font-bold text-[#171411] transition hover:bg-[#fbf7f0]">
                             Modifier
                         </a>
+                        @if($realization->status === \App\Models\Realization::STATUS_PUBLISHED)
+                            <a href="{{ route('realizations.show', $realization) }}" target="_blank" class="inline-flex items-center justify-center rounded-xl border border-[#d8c7af] bg-white px-3 py-2 text-xs font-bold text-[#171411] transition hover:bg-[#fbf7f0]">
+                                Voir
+                            </a>
+                        @endif
                         <form method="POST" action="{{ route('admin.realizations.destroy', $realization) }}" onsubmit="return confirm('Supprimer cette realisation ?')">
                             @csrf
                             @method('DELETE')

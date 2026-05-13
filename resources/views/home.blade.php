@@ -352,6 +352,7 @@
     </div>
 </section>
 
+@if($realizations->isNotEmpty())
 <section id="realisations" class="bg-white py-16 lg:py-20">
     <div class="container mx-auto px-4">
         <div class="mb-9 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -365,8 +366,8 @@
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             @foreach($realizations as $realization)
-                <article class="group relative overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)]"
-                         style="min-height: 330px; background: linear-gradient(180deg, rgba(23, 20, 17, 0.02), rgba(23, 20, 17, 0.68)), url('{{ asset($realization['image']) }}') center / cover no-repeat;">
+                <a href="{{ $realization['url'] }}" class="group relative overflow-hidden rounded-[34px] bg-[#171411] p-6 text-white shadow-[0_20px_55px_rgba(23,20,17,0.10)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.18)]"
+                         style="min-height: 330px; background: linear-gradient(180deg, rgba(23, 20, 17, 0.02), rgba(23, 20, 17, 0.68)), url('{{ $realization['image'] }}') center / cover no-repeat;">
                     <div class="relative z-10 flex h-full flex-col justify-between">
                         <div class="inline-flex w-max rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-bold text-[#e7c98d]">{{ $realization['place'] }}</div>
                         <div>
@@ -374,11 +375,12 @@
                             <p class="mt-2 text-sm text-white/72">{{ $realization['note'] }}</p>
                         </div>
                     </div>
-                </article>
+                </a>
             @endforeach
         </div>
     </div>
 </section>
+@endif
 
 <section class="bg-[#fbf7f0] py-16 lg:py-20">
     <div class="container mx-auto px-4">
