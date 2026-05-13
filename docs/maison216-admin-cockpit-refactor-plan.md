@@ -1354,7 +1354,12 @@ Verification locale:
 - `git diff --check -- resources/css/custom.css docs/maison216-admin-cockpit-refactor-plan.md`
 
 Verification production:
-- a effectuer apres push et deploiement Plesk
+- commit deploye: `accdd4f9 Fix lazy image opacity`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- HTTP smoke: `https://maison216.tn/realisations` retourne `200`
+- verification HTML public: la page reference le nouveau build CSS `app-Czmsvrvw.css`
+- verification CSS compile: `img[loading=lazy],img[loading=lazy].loaded{opacity:1}`
 
 Prochaine action recommandee:
 - deployer, verifier `/realisations` sans cache navigateur, puis reprendre Sprint 5 du cockpit admin.
