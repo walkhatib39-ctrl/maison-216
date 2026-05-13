@@ -1262,7 +1262,12 @@ Verification locale:
 - `npm run build`
 
 Verification production:
-- a effectuer apres push et deploiement Plesk
+- commit deploye: `a37b9ca1 Refine realizations mobile portfolio UI`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- HTTP smoke: `https://maison216.tn/realisations` retourne `200`
+- verification HTML public: `overflow-x-auto`, `flex-nowrap`, `whitespace-nowrap` et les CTA `Voir le projet` sont presents
+- verification serveur: la vue deployee contient bien `flex-nowrap`, `Voir le projet` et le nouvel etat vide public `Changez de filtre`
 
 Remarques:
 - le filtre desktop peut toujours se mettre sur plusieurs lignes si beaucoup de silos sont ajoutes plus tard; le probleme critique corrige ici est le rendu mobile
