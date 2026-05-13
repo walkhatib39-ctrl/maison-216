@@ -1126,6 +1126,11 @@ Verification production:
 - homepage verifiee: les cartes pointent vers `/realisations/cuisine-sur-mesure`, `/realisations/dressing-sur-mesure`, `/realisations/volet-roulant-aluminium`, etc.
 - resolver serveur verifie: `/aluminium/porte-aluminium` retourne `0` realisation assignee
 - correction supplementaire ajoutee apres smoke test: les boutons hero vers `#realisations-*` disparaissent aussi quand la section n'existe pas
+- correctif complementaire deploye: `d6ade0ec Hide realization CTAs when empty`
+- verification serveur: `public/uploads/realizations` existe avec les droits du system user Plesk
+- verification HTTP: `https://maison216.tn/realisations/cuisine-sur-mesure` retourne `200`
+- verification homepage: `6` liens publics vers `/realisations/...` detectes
+- verification page sans realisation: `/aluminium/porte-aluminium` ne contient plus ni lien `#realisations-aluminium`, ni section `id="realisations-aluminium"`
 
 Note de deploiement:
 - copier les fichiers existants de `storage/app/public/realizations` vers `public/uploads/realizations`
