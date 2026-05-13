@@ -1325,7 +1325,12 @@ Verification locale:
 - `npm run build`
 
 Verification production:
-- a effectuer apres push et deploiement Plesk
+- commit deploye: `787d1265 Use explicit realization image cards`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- HTTP smoke: `https://maison216.tn/realisations` retourne `200`
+- verification HTML public: les cartes utilisent `bg-white`, les images ont `block h-64 w-full object-cover`, et `aspect-[1.28]` n'est plus present
+- verification images: les URLs testees repondent en `200` avec `Content-Type` image
 
 Prochaine action recommandee:
 - deployer ce correctif robuste, verifier avec hard refresh navigateur, puis reprendre Sprint 5 du cockpit admin.
