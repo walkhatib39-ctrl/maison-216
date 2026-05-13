@@ -1065,6 +1065,18 @@ Verification locale:
 - `npm run build`
 - `php artisan optimize:clear`
 
+Verification production:
+- commit deploye: `12aac4c2 Build realizations admin module`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan migrate --force`, `php artisan storage:link`, `php artisan site-pages:sync`, `php artisan db:seed --class=RealizationSeeder --force`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- migration serveur: `2026_05_13_000002_create_realizations_tables` en statut `Ran`
+- routes serveur verifiees: `admin/realizations`
+- HTTP smoke: `https://maison216.tn` retourne `200`
+- `/admin/realizations` retourne `302` vers `/login`, comportement attendu hors session admin
+- URLs publiques verifiees en `200`: `/menuiserie-bois`, `/aluminium`, `/projets/agencement-cafe-restaurant`
+- verification contenu homepage: section `Nos dernières réalisations` presente avec `Cuisine sur mesure` et `Dressing sur mesure`
+- verification serveur via Tinker: `6` realisations, `6` publiees, `27` assignations pages
+
 Notes:
 - l'admin ne cree pas encore de pages detail de realisation; les realisations servent d'abord les sections portfolio sur les pages publiques
 - les images seedees restent dans `public/assets/home/realizations`; les nouveaux uploads admin seront stockes dans le disque public Laravel
