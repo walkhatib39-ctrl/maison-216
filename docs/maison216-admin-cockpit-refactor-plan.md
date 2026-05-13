@@ -1334,3 +1334,27 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer ce correctif robuste, verifier avec hard refresh navigateur, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-14 - Correctif global images lazy invisibles
+
+Probleme constate:
+- les images de la page `/realisations` etaient bien presentes dans le HTML et les URLs repondaient en `200`
+- malgre les corrections de carte, le navigateur affichait seulement le fond beige
+- cause racine trouvee dans `resources/css/custom.css`: `img[loading="lazy"] { opacity: 0; }`
+- aucun script global ne rajoutait la classe `.loaded`, donc les images lazy restaient transparentes
+
+Correctifs livres:
+- remplacement de la regle globale par `img[loading="lazy"] { opacity: 1; }`
+- conservation de la transition image sans masquer les photos
+- correction applicable a toutes les images lazy du site, pas seulement `/realisations`
+
+Verification locale:
+- `npm run build`
+- `php artisan view:cache`
+- `git diff --check -- resources/css/custom.css docs/maison216-admin-cockpit-refactor-plan.md`
+
+Verification production:
+- a effectuer apres push et deploiement Plesk
+
+Prochaine action recommandee:
+- deployer, verifier `/realisations` sans cache navigateur, puis reprendre Sprint 5 du cockpit admin.
