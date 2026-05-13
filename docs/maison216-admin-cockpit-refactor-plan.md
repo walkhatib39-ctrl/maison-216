@@ -1012,6 +1012,17 @@ Verification locale:
 - `php artisan migrate:status --path=database\migrations\2026_05_13_000001_create_leads_table.php`
 - `git diff --check` sur les fichiers du sprint
 
+Verification production:
+- commit deploye: `f6a668ef Build leads admin cockpit`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan migrate --force`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- migration serveur: `2026_05_13_000001_create_leads_table` en statut `Ran`
+- routes serveur verifiees: `/devis` et `admin/leads`
+- HTTP smoke: `https://maison216.tn/devis` retourne `200`
+- verification contenu: la page `/devis` contient le formulaire et le bouton `Envoyer ma demande`
+- `/admin/leads` retourne `302` vers `/login`, comportement attendu hors session admin
+- verification serveur via Tinker: `App\Models\Lead::count()` retourne `0` avant les premieres demandes reelles
+
 Notes:
 - la premiere tentative de migration locale a revele une limite MySQL sur les index de chaines longues
 - la migration a ete corrigee en limitant les longueurs des champs indexes (`type`, `status`, `priority`, `source_page_path`)
