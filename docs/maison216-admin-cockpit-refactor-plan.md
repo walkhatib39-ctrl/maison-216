@@ -1191,5 +1191,15 @@ Verification locale:
 - `php artisan site-pages:sync`
 - verification Tinker: page accueil synchronisee, page `/aluminium` remplie avec son vrai meta title et sa vraie meta description, `6` pages realisations synchronisees, `0` meta title manquant
 
+Verification production:
+- commit deploye: `4ed5e209 Populate site page SEO defaults and OG uploads`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: creation de `public/uploads/site-pages/og`, `npm run build`, `php artisan site-pages:sync`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- sync serveur: `10` pages creees, `29` mises a jour, `39` pages au total
+- verification serveur: `/aluminium` contient `Menuiserie aluminium en Tunisie | Atelier alu sur mesure`, sa vraie meta description actuelle et `assets/home/menuiserie-aluminium.jpg`
+- verification serveur: page accueil synchronisee avec silo `site`
+- verification serveur: `6` pages detail realisations synchronisees dans `Pages & SEO`
+- verification serveur: `0` meta title manquant apres sync
+
 Prochaine action recommandee:
 - deployer, executer `php artisan site-pages:sync` en production, verifier `/admin/site-pages/2/edit`, puis reprendre Sprint 5 du cockpit admin.
