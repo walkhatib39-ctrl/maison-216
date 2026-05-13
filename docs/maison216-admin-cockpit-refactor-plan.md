@@ -1363,3 +1363,28 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer, verifier `/realisations` sans cache navigateur, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-14 - Correctif libelles boutons WhatsApp
+
+Probleme constate:
+- plusieurs CTA publics affichaient encore un libelle generique `WhatsApp`, `WhatsApp atelier bois`, `WhatsApp direct` ou `WhatsApp professionnels`
+- l'objectif UX est d'afficher directement le numero configure dans l'admin pour lever la friction et rendre le contact immediatement identifiable
+
+Correctifs livres:
+- remplacement des libelles de boutons WhatsApp par `SiteSettings::phoneDisplay()` sur les pages silos, pages produits, homepage, contact, devis, espace professionnels, header mobile, anciennes vues produit/checkout et CTA home legacy
+- le lien reste toujours le lien WhatsApp dynamique configure dans les parametres site
+- les textes explicatifs et labels de champs `Telephone / WhatsApp` sont conserves quand ils decrivent le canal ou le champ attendu
+
+Verification locale:
+- scan `rg` des anciens libelles de boutons hardcodes: aucun resultat
+- `php -l app/Http/Controllers/SitePageController.php`
+- `php artisan view:cache`
+- `php artisan route:list --path=menuiserie-bois`
+- `npm run build`
+- `git diff --check` sur les fichiers modifies
+
+Verification production:
+- a effectuer apres push et deploiement Plesk
+
+Prochaine action recommandee:
+- deployer, verifier les CTA sur `/menuiserie-bois`, `/aluminium`, `/fer-metal`, `/sur-mesure`, `/devis`, `/contact` et `/partenaires`, puis reprendre Sprint 5 du cockpit admin.

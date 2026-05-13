@@ -252,7 +252,7 @@
                 <p class="mt-5 text-base leading-8 text-[#5f5146]">Envoyez votre demande, vos plans ou votre besoin. Nous vous répondons avec les prochaines étapes.</p>
                 <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="mt-7 inline-flex items-center gap-2 rounded-full border border-[#eadfce] bg-[#fbf7ee] px-5 py-3 text-sm font-extrabold text-[#171411]">
                     <i class="fa-brands fa-whatsapp text-[#a47834]"></i>
-                    WhatsApp professionnels : {{ $phoneDisplay }}
+                    {{ $phoneDisplay }}
                 </a>
             </div>
 
@@ -332,7 +332,7 @@
                 <a href="#contact-professionnel" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-8 py-4 text-sm font-extrabold text-white transition hover:bg-[#a47834]">Prendre contact</a>
                 <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white px-8 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834]">
                     <i class="fa-brands fa-whatsapp"></i>
-                    WhatsApp professionnels
+                    {{ $phoneDisplay }}
                 </a>
             </div>
         </div>

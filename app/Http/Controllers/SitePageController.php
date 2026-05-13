@@ -538,7 +538,7 @@ class SitePageController extends Controller
                     ['q' => 'Peut-on faire portail + pergola + garde-corps dans un seul devis ?', 'a' => 'Oui. C’est même recommandé pour coordonner les finitions et la cohérence esthétique entre les ouvrages.'],
                     ['q' => 'Quel est le délai pour un aménagement extérieur complet ?', 'a' => 'Comptez 3 à 6 semaines selon le volume d’ouvrages. Chaque poste a son délai précisé dans le devis.'],
                 ],
-                'finalCta' => ['h2' => 'Un projet d’aménagement extérieur ?', 'subtitle' => 'Visite gratuite, devis sous 48h.', 'label' => 'Demander un devis', 'secondaryLabel' => 'WhatsApp atelier métal'],
+                'finalCta' => ['h2' => 'Un projet d’aménagement extérieur ?', 'subtitle' => 'Visite gratuite, devis sous 48h.', 'label' => 'Demander un devis', 'secondaryLabel' => 'telephone'],
                 'internalLinks' => [
                     ['title' => 'Portail fer forgé', 'href' => url('/fer-metal/portail-fer-forge'), 'copy' => 'Entrée, clôture, motorisation.'],
                     ['title' => 'Pergola métallique', 'href' => url('/fer-metal/pergola-metallique'), 'copy' => 'Terrasse et jardin.'],

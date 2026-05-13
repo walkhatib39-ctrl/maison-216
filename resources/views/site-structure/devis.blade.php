@@ -49,7 +49,7 @@
 
             <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="mt-8 inline-flex items-center gap-2 rounded-full border border-[#d8c7af] bg-white px-5 py-3 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834]">
                 <i class="fa-brands fa-whatsapp text-[#a47834]"></i>
-                WhatsApp : {{ $phoneDisplay }}
+                {{ $phoneDisplay }}
             </a>
         </div>
 

@@ -637,7 +637,7 @@
             </a>
             <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 px-7 py-4 text-sm font-extrabold text-white">
                 <i class="fa-brands fa-whatsapp"></i>
-                WhatsApp atelier
+                {{ \App\Support\SiteSettings::phoneDisplay() }}
             </a>
         </div>
     </div>

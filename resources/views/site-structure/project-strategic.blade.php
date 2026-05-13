@@ -272,7 +272,7 @@
                 @isset($project['finalCta']['secondaryLabel'])
                     <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-8 py-4 text-sm font-extrabold text-white transition hover:bg-white hover:text-[#171411]">
                         <i class="fa-brands fa-whatsapp"></i>
-                        {{ $project['finalCta']['secondaryLabel'] }}
+                        {{ \App\Support\SiteSettings::phoneDisplay() }}
                     </a>
                 @endisset
             </div>
