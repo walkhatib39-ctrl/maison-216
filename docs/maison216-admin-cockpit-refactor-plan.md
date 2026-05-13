@@ -1275,3 +1275,27 @@ Remarques:
 
 Prochaine action recommandee:
 - deployer ce correctif, verifier `/realisations` sur mobile, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-14 - Correctif lisibilite images page Realisations
+
+Probleme constate:
+- les fichiers images de realisations existaient bien en production et repondaient en `200`
+- le rendu des cartes noyait visuellement les photos dans un traitement sombre, donnant l'impression que les images ne chargeaient pas
+
+Correctifs livres:
+- remplacement des cartes plein fond sombre par une structure plus lisible: image visible en haut, contenu texte separe en bas
+- conservation d'un petit label sur l'image avec voile leger uniquement en haut
+- suppression du grand overlay sombre sur toute la photo
+- maintien du CTA `Voir le projet`, du hover image et du layout mobile/desktop
+
+Verification locale:
+- `php artisan view:cache`
+- `php artisan route:list --path=realisations`
+- `git diff --check -- resources/views/realizations/index.blade.php`
+- `npm run build`
+
+Verification production:
+- a effectuer apres push et deploiement Plesk
+
+Prochaine action recommandee:
+- deployer, verifier visuellement `/realisations` sur mobile et desktop, puis reprendre Sprint 5 du cockpit admin.
