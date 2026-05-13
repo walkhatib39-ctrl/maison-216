@@ -1106,6 +1106,7 @@ Correctifs livres:
 - ajout d'une page publique detail realisation: `/realisations/{slug}`
 - cartes de realisations rendues cliquables sur homepage, silos, pages produits et pages projets
 - sections realisations masquees automatiquement quand aucune realisation n'est assignee a la page
+- boutons hero `Voir nos realisations` masques automatiquement quand la page n'a aucune realisation assignee
 - sitemap enrichi avec les realisations publiees
 
 Verification locale:
@@ -1116,6 +1117,15 @@ Verification locale:
 - verification Tinker: URL detail realisation generee, homepage avec 6 realisations, page non assignee avec 0 realisation
 - `npm run build`
 - `php artisan optimize:clear`
+
+Verification production:
+- commit deploye: `84eb8ff6 Fix realizations UX and public detail pages`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: creation de `public/uploads/realizations`, migration des anciens fichiers si presents, mise a jour DB des chemins legacy, `npm run build`, `php artisan migrate --force`, `php artisan db:seed --class=RealizationSeeder --force`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- URL detail verifiee en `200`: `https://maison216.tn/realisations/cuisine-sur-mesure`
+- homepage verifiee: les cartes pointent vers `/realisations/cuisine-sur-mesure`, `/realisations/dressing-sur-mesure`, `/realisations/volet-roulant-aluminium`, etc.
+- resolver serveur verifie: `/aluminium/porte-aluminium` retourne `0` realisation assignee
+- correction supplementaire ajoutee apres smoke test: les boutons hero vers `#realisations-*` disparaissent aussi quand la section n'existe pas
 
 Note de deploiement:
 - copier les fichiers existants de `storage/app/public/realizations` vers `public/uploads/realizations`

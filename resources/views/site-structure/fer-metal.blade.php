@@ -204,10 +204,12 @@
                     <i class="fa-regular fa-clipboard"></i>
                     Demander un devis métal
                 </a>
-                <a href="#realisations-metal" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
-                    <i class="fa-regular fa-images"></i>
-                    Voir nos réalisations métal
-                </a>
+                @if($metalRealizations->isNotEmpty())
+                    <a href="#realisations-metal" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
+                        <i class="fa-regular fa-images"></i>
+                        Voir nos réalisations métal
+                    </a>
+                @endif
             </div>
 
             <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

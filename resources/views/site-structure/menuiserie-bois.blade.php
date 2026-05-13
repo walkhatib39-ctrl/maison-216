@@ -211,10 +211,12 @@
                     <i class="fa-regular fa-pen-to-square"></i>
                     Demander un devis bois
                 </a>
-                <a href="#realisations-bois" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
-                    <i class="fa-regular fa-images"></i>
-                    Voir nos réalisations bois
-                </a>
+                @if($woodRealizations->isNotEmpty())
+                    <a href="#realisations-bois" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
+                        <i class="fa-regular fa-images"></i>
+                        Voir nos réalisations bois
+                    </a>
+                @endif
             </div>
 
             <div class="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm font-bold text-[#4f4236]">
