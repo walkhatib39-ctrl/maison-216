@@ -4,6 +4,7 @@
     $devisUrl = url('/devis');
     $phoneDisplay = \App\Support\SiteSettings::phoneDisplay();
     $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? $devisUrl;
+    $totalCount = $counts->sum();
 
     $schema = [
         [
@@ -43,15 +44,15 @@
     </div>
 </section>
 
-<section class="relative overflow-hidden bg-[#f7f1e7] py-16 lg:py-24">
+<section class="relative overflow-hidden bg-[#f7f1e7] py-14 lg:py-24">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(184,138,59,0.18),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(23,20,17,0.08),transparent_28%)]"></div>
     <div class="container relative mx-auto px-4">
         <div class="max-w-5xl">
-            <h1 class="font-display text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
+            <h1 class="font-display text-4xl font-extrabold leading-[1.02] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl lg:leading-[0.98]">
                 Réalisations Maison216.
                 <span class="block text-[#a47834]">Bois, aluminium, métal et projets complets.</span>
             </h1>
-            <p class="mt-6 max-w-3xl text-lg leading-9 text-[#5f5146]">
+            <p class="mt-5 max-w-3xl text-base leading-8 text-[#5f5146] sm:text-lg sm:leading-9">
                 Une sélection de projets livrés ou présentés par Maison216 : cuisines, dressings, menuiserie aluminium, portails, pergolas et agencements professionnels.
             </p>
             <div class="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -68,43 +69,60 @@
     </div>
 </section>
 
-<section class="bg-white py-12 lg:py-16">
+<section class="overflow-hidden bg-white py-10 lg:py-16">
     <div class="container mx-auto px-4">
-        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Portfolio</div>
-                <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Tous les projets publiés.</h2>
+        <div class="mb-7 lg:mb-9">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-2xl">
+                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">Portfolio</div>
+                    <h2 class="font-display mt-2 text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[#171411] sm:text-4xl">Tous les projets publiés.</h2>
+                </div>
+                <div class="hidden rounded-full border border-[#eadfce] bg-[#fbf7f0] px-4 py-2 text-sm font-extrabold text-[#5f5146] lg:block">
+                    {{ $totalCount }} projet{{ $totalCount > 1 ? 's' : '' }} publié{{ $totalCount > 1 ? 's' : '' }}
+                </div>
             </div>
 
-            <div class="flex flex-wrap gap-2">
-                <a href="{{ route('realizations.index') }}" class="rounded-full border px-4 py-2 text-sm font-extrabold transition {{ $activeSilo === '' ? 'border-[#171411] bg-[#171411] text-white' : 'border-[#d8c7af] bg-[#fbf7f0] text-[#171411] hover:bg-white' }}">
-                    Tous
-                    <span class="ml-1 text-xs opacity-70">{{ $counts->sum() }}</span>
-                </a>
-                @foreach($siloLabels as $silo => $label)
-                    @if(($counts[$silo] ?? 0) > 0)
-                        <a href="{{ route('realizations.index', ['silo' => $silo]) }}" class="rounded-full border px-4 py-2 text-sm font-extrabold transition {{ $activeSilo === $silo ? 'border-[#171411] bg-[#171411] text-white' : 'border-[#d8c7af] bg-[#fbf7f0] text-[#171411] hover:bg-white' }}">
-                            {{ $label }}
-                            <span class="ml-1 text-xs opacity-70">{{ $counts[$silo] }}</span>
-                        </a>
-                    @endif
-                @endforeach
+            <div class="relative mt-5">
+                <div class="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-white to-transparent lg:hidden"></div>
+                <div class="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent lg:hidden"></div>
+                <nav class="scrollbar-hide -mx-4 flex flex-nowrap gap-2 overflow-x-auto px-4 pb-2 [scroll-snap-type:x_mandatory] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 lg:pb-0" aria-label="Filtrer les réalisations par métier">
+                    <a href="{{ route('realizations.index') }}" class="inline-flex shrink-0 scroll-ml-4 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-[13px] font-extrabold transition [scroll-snap-align:start] sm:px-4 sm:py-2.5 sm:text-sm {{ $activeSilo === '' ? 'border-[#171411] bg-[#171411] text-white shadow-[0_14px_30px_rgba(23,20,17,0.16)]' : 'border-[#d8c7af] bg-[#fbf7f0] text-[#171411] hover:bg-white' }}">
+                        Tous
+                        <span class="rounded-full px-1.5 py-0.5 text-[11px] leading-none {{ $activeSilo === '' ? 'bg-white/16 text-white/80' : 'bg-[#eadfce] text-[#6a4a16]' }}">{{ $totalCount }}</span>
+                    </a>
+                    @foreach($siloLabels as $silo => $label)
+                        @if(($counts[$silo] ?? 0) > 0)
+                            <a href="{{ route('realizations.index', ['silo' => $silo]) }}" class="inline-flex shrink-0 scroll-ml-4 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-[13px] font-extrabold transition [scroll-snap-align:start] sm:px-4 sm:py-2.5 sm:text-sm {{ $activeSilo === $silo ? 'border-[#171411] bg-[#171411] text-white shadow-[0_14px_30px_rgba(23,20,17,0.16)]' : 'border-[#d8c7af] bg-[#fbf7f0] text-[#171411] hover:bg-white' }}">
+                                {{ $label }}
+                                <span class="rounded-full px-1.5 py-0.5 text-[11px] leading-none {{ $activeSilo === $silo ? 'bg-white/16 text-white/80' : 'bg-[#eadfce] text-[#6a4a16]' }}">{{ $counts[$silo] }}</span>
+                            </a>
+                        @endif
+                    @endforeach
+                </nav>
             </div>
         </div>
 
         @if($realizations->isNotEmpty())
-            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:gap-5">
                 @foreach($realizations as $realization)
-                    <a href="{{ route('realizations.show', $realization) }}" class="group overflow-hidden rounded-[34px] border border-[#eadfce] bg-[#171411] shadow-[0_20px_55px_rgba(23,20,17,0.10)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.16)]">
-                        <div class="relative min-h-[330px] bg-cover bg-center" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.04), rgba(23,20,17,0.82)), url('{{ $realization->coverImageUrl() }}');">
-                            <div class="absolute inset-0 flex flex-col justify-between p-6 text-white">
-                                <span class="inline-flex w-max rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">{{ $realization->project_type ?: $realization->siloLabel() }}</span>
+                    <a href="{{ route('realizations.show', $realization) }}" class="group overflow-hidden rounded-[28px] border border-[#eadfce] bg-[#171411] shadow-[0_16px_45px_rgba(23,20,17,0.10)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.16)] sm:rounded-[34px]">
+                        <div class="relative min-h-[360px] overflow-hidden sm:min-h-[380px]">
+                            <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,20,17,0.02),rgba(23,20,17,0.18)_38%,rgba(23,20,17,0.88))]"></div>
+                            <div class="absolute inset-0 flex flex-col justify-between p-5 text-white sm:p-6">
+                                <span class="inline-flex w-max max-w-full rounded-full border border-white/15 bg-white/12 px-3 py-1 text-xs font-bold text-[#e7c98d] backdrop-blur">
+                                    <span class="truncate">{{ $realization->project_type ?: $realization->siloLabel() }}</span>
+                                </span>
                                 <div>
-                                    <div class="text-xs font-bold uppercase tracking-[0.2em] text-[#e7c98d]">{{ $realization->siloLabel() }}</div>
-                                    <h3 class="font-display mt-2 text-2xl font-extrabold">{{ $realization->title }}</h3>
+                                    <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#e7c98d]">{{ $realization->siloLabel() }}</div>
+                                    <h3 class="font-display mt-2 text-2xl font-extrabold leading-tight">{{ $realization->title }}</h3>
                                     @if($realization->short_description)
-                                        <p class="mt-2 text-sm leading-6 text-white/76">{{ $realization->short_description }}</p>
+                                        <p class="mt-2 line-clamp-2 text-sm leading-6 text-white/76">{{ $realization->short_description }}</p>
                                     @endif
+                                    <div class="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-[#e7c98d]">
+                                        Voir le projet
+                                        <i class="fa-solid fa-arrow-right text-xs transition group-hover:translate-x-1"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -118,8 +136,8 @@
         @else
             <div class="rounded-[34px] border border-[#eadfce] bg-[#fbf7ee] p-8 text-center">
                 <h3 class="font-display text-2xl font-extrabold text-[#171411]">Aucune réalisation publiée pour ce filtre.</h3>
-                <p class="mt-3 text-base text-[#5f5146]">Revenez à tous les projets ou ajoutez des réalisations depuis l'admin.</p>
-                <a href="{{ route('realizations.index') }}" class="mt-6 inline-flex rounded-full bg-[#171411] px-6 py-3 text-sm font-extrabold text-white">Voir tous les projets</a>
+                <p class="mt-3 text-base text-[#5f5146]">Changez de filtre ou revenez à l’ensemble des projets.</p>
+                <a href="{{ route('realizations.index') }}" class="mt-6 inline-flex rounded-full bg-[#171411] px-6 py-3 text-sm font-extrabold text-white">Voir toutes les réalisations</a>
             </div>
         @endif
     </div>

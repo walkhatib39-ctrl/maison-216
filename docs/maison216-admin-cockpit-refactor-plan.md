@@ -1240,3 +1240,33 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer, executer `php artisan site-pages:sync` en production, verifier `/realisations`, le footer et `/admin/site-pages`.
+
+### 2026-05-13 - Correctif UI mobile page Realisations
+
+Probleme constate:
+- les filtres de la page `/realisations` se repliaient sur plusieurs lignes sur mobile, ce qui donnait une impression amateur et consommait trop d'espace avant les cartes
+- les cartes portfolio utilisaient une image en `background-image`, moins propre pour l'accessibilite et le SEO image
+- l'etat vide mentionnait l'admin, ce qui n'a pas sa place sur une page publique
+
+Correctifs livres:
+- filtre mobile transforme en rail horizontal sur une seule ligne, avec scroll tactile, chips `whitespace-nowrap` et `shrink-0`
+- filtres plus compacts sur mobile et plus lisibles sur desktop
+- ajout de compteurs en mini badges pour eviter les libelles lourds
+- cartes realisations rendues plus premium: image HTML avec `alt`, hover zoom discret, overlay plus lisible, CTA `Voir le projet`
+- etat vide public nettoye: plus aucune mention de l'admin
+
+Verification locale:
+- `php artisan route:list --path=realisations`
+- `php artisan view:cache`
+- `git diff --check -- resources/views/realizations/index.blade.php`
+- `npm run build`
+
+Verification production:
+- a effectuer apres push et deploiement Plesk
+
+Remarques:
+- le filtre desktop peut toujours se mettre sur plusieurs lignes si beaucoup de silos sont ajoutes plus tard; le probleme critique corrige ici est le rendu mobile
+- la page reste sans JavaScript specifique, donc plus stable et plus rapide
+
+Prochaine action recommandee:
+- deployer ce correctif, verifier `/realisations` sur mobile, puis reprendre Sprint 5 du cockpit admin.
