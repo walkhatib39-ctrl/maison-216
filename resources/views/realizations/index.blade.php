@@ -105,23 +105,23 @@
         @if($realizations->isNotEmpty())
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 xl:gap-5">
                 @foreach($realizations as $realization)
-                    <a href="{{ route('realizations.show', $realization) }}" class="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[#eadfce] bg-[#171411] shadow-[0_16px_45px_rgba(23,20,17,0.10)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.16)] sm:rounded-[34px]">
-                        <div class="relative aspect-[1.28] overflow-hidden bg-[#171411]">
-                            <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
-                            <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#171411]/45 to-transparent"></div>
-                            <span class="absolute left-4 top-4 inline-flex max-w-[calc(100%-2rem)] rounded-full border border-white/20 bg-[#171411]/55 px-3 py-1 text-xs font-bold text-[#f0d49a] shadow-sm backdrop-blur">
+                    <a href="{{ route('realizations.show', $realization) }}" class="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[#eadfce] bg-white shadow-[0_16px_45px_rgba(23,20,17,0.10)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(23,20,17,0.16)] sm:rounded-[34px]">
+                        <div class="relative overflow-hidden bg-[#eadfce]">
+                            <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" loading="lazy" decoding="async" class="block h-64 w-full object-cover transition duration-700 group-hover:scale-105 sm:h-72 lg:h-80">
+                            <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#171411]/42 to-transparent"></div>
+                            <span class="absolute left-4 top-4 inline-flex max-w-[calc(100%-2rem)] rounded-full border border-white/25 bg-[#171411]/62 px-3 py-1 text-xs font-bold text-[#f0d49a] shadow-sm backdrop-blur">
                                 <span class="truncate">{{ $realization->project_type ?: $realization->siloLabel() }}</span>
                             </span>
                         </div>
-                        <div class="flex flex-1 flex-col justify-between p-5 text-white sm:p-6">
+                        <div class="flex flex-1 flex-col justify-between p-5 text-[#171411] sm:p-6">
                             <div>
-                                <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#e7c98d]">{{ $realization->siloLabel() }}</div>
+                                <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#a47834]">{{ $realization->siloLabel() }}</div>
                                 <h3 class="font-display mt-2 text-2xl font-extrabold leading-tight">{{ $realization->title }}</h3>
                                 @if($realization->short_description)
-                                    <p class="mt-2 line-clamp-2 text-sm leading-6 text-white/76">{{ $realization->short_description }}</p>
+                                    <p class="mt-2 line-clamp-2 text-sm leading-6 text-[#5f5146]">{{ $realization->short_description }}</p>
                                 @endif
                             </div>
-                            <div class="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#e7c98d]">
+                            <div class="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#8e6322]">
                                 Voir le projet
                                 <i class="fa-solid fa-arrow-right text-xs transition group-hover:translate-x-1"></i>
                             </div>

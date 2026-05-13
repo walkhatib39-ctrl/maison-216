@@ -1305,3 +1305,27 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer, verifier visuellement `/realisations` sur mobile et desktop, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-14 - Correctif robuste affichage images portfolio
+
+Probleme constate:
+- apres le premier correctif, la page utilisait encore une zone image dependante de `aspect-[1.28]` et `h-full`
+- sur le navigateur du client, les cartes continuaient a apparaitre comme de grands blocs sombres, donc l'image n'etait toujours pas suffisamment garantie visuellement
+
+Correctifs livres:
+- suppression de la dependance a `aspect-[1.28]`
+- image affichee avec hauteur explicite responsive: `h-64`, `sm:h-72`, `lg:h-80`
+- passage du panneau texte en fond blanc pour separer clairement image et contenu
+- conservation du label sur image avec voile tres leger seulement en haut
+
+Verification locale:
+- `php artisan view:cache`
+- `php artisan route:list --path=realisations`
+- `git diff --check -- resources/views/realizations/index.blade.php`
+- `npm run build`
+
+Verification production:
+- a effectuer apres push et deploiement Plesk
+
+Prochaine action recommandee:
+- deployer ce correctif robuste, verifier avec hard refresh navigateur, puis reprendre Sprint 5 du cockpit admin.
