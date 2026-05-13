@@ -1295,7 +1295,13 @@ Verification locale:
 - `npm run build`
 
 Verification production:
-- a effectuer apres push et deploiement Plesk
+- commit deploye: `098bd7fc Make realizations images visible`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- HTTP smoke: `https://maison216.tn/realisations` retourne `200`
+- verification HTML public: chaque carte contient une zone image `aspect-[1.28]` avec `img` en `object-cover`
+- verification HTML public: l'ancien `background-image: linear-gradient` n'est plus present sur les cartes realisations
+- verification images: les 6 URLs de realisations repondent en `200` avec `Content-Type` image
 
 Prochaine action recommandee:
 - deployer, verifier visuellement `/realisations` sur mobile et desktop, puis reprendre Sprint 5 du cockpit admin.
