@@ -35,7 +35,7 @@
     ]);
 
     $resourceLinks = collect([
-        ['title' => 'Réalisations', 'href' => url('/#realisations')],
+        ['title' => 'Réalisations', 'href' => route('realizations.index')],
         ['title' => 'Questions fréquentes', 'href' => url('/#faq')],
         ['title' => 'Espace professionnels', 'href' => url('/partenaires')],
         ['title' => 'Demander un devis', 'href' => url('/devis')],

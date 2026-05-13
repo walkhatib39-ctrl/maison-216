@@ -142,6 +142,14 @@ class SitePageSyncer
                 'type' => 'legal',
                 'silo' => 'legal',
             ],
+            [
+                'title' => 'Réalisations',
+                'path' => 'realisations',
+                'description' => 'Découvrez les réalisations Maison216 en Tunisie : cuisines, dressings, menuiserie aluminium, portails, pergolas et projets d’agencement.',
+                'type' => 'portfolio',
+                'silo' => 'realisations',
+                'og_image' => 'assets/home/realizations/cuisine-sur-mesure.jpg',
+            ],
         ];
     }
 

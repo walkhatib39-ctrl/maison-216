@@ -402,7 +402,7 @@
                 <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Réalisations bois</div>
                 <h2 class="font-display mt-3 text-3xl font-extrabold sm:text-4xl">Quelques projets bois récents.</h2>
             </div>
-            <a href="#realisations-bois" class="text-sm font-extrabold text-[#d5b170]">Voir toutes nos réalisations bois</a>
+            <a href="{{ route('realizations.index', ['silo' => 'menuiserie-bois']) }}" class="text-sm font-extrabold text-[#d5b170]">Voir toutes nos réalisations bois</a>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

@@ -350,6 +350,8 @@
     'eyebrow' => 'Réalisations projet',
     'title' => 'Quelques agencements livrés par Maison216.',
     'description' => 'Cuisine, rangements, menuiseries aluminium et projets coordonnés pour appartements, villas et programmes neufs.',
+    'linkHref' => route('realizations.index', ['silo' => 'projets']),
+    'linkLabel' => 'Voir toutes les réalisations projet',
 ])
 
 <section class="bg-white py-16 lg:py-24">

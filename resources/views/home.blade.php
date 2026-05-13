@@ -361,7 +361,7 @@
                 <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Nos dernières réalisations.</h2>
                 <p class="mt-4 text-lg leading-8 text-[#5f5146]">Des projets concrets livrés en Tunisie. Cuisines, dressings, pergolas, agencements complets.</p>
             </div>
-            <a href="{{ url('/projets') }}" class="text-sm font-extrabold text-[#8e6322]">Voir toutes nos réalisations</a>
+            <a href="{{ route('realizations.index') }}" class="text-sm font-extrabold text-[#8e6322]">Voir toutes nos réalisations</a>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

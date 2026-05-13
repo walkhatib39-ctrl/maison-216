@@ -23,6 +23,7 @@ Route::post('/checkout/{product}', [CheckoutController::class, 'store'])->name('
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::get('/realisations', [RealizationController::class, 'index'])->name('realizations.index');
 Route::get('/realisations/{realization:slug}', [RealizationController::class, 'show'])->name('realizations.show');
 
 Route::get('/menuiserie-bois/{path?}', [SitePageController::class, 'show'])

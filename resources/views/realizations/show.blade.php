@@ -12,7 +12,7 @@
             '@type' => 'BreadcrumbList',
             'itemListElement' => [
                 ['@type' => 'ListItem', 'position' => 1, 'name' => 'Accueil', 'item' => route('home')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Réalisations', 'item' => url('/#realisations')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Réalisations', 'item' => route('realizations.index')],
                 ['@type' => 'ListItem', 'position' => 3, 'name' => $realization->title, 'item' => route('realizations.show', $realization)],
             ],
         ],
@@ -45,7 +45,7 @@
         <nav class="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#6a5a4c]" aria-label="Fil d'Ariane">
             <a href="{{ route('home') }}" class="transition hover:text-[#171411]">Accueil</a>
             <i class="fa-solid fa-angle-right text-[10px] text-[#b88a3b]"></i>
-            <a href="{{ url('/#realisations') }}" class="transition hover:text-[#171411]">Réalisations</a>
+            <a href="{{ route('realizations.index') }}" class="transition hover:text-[#171411]">Réalisations</a>
             <i class="fa-solid fa-angle-right text-[10px] text-[#b88a3b]"></i>
             <span class="text-[#171411]">{{ $realization->title }}</span>
         </nav>

@@ -146,6 +146,11 @@ class SitePageSeoDefaults
                 'description' => 'Contactez-nous par WhatsApp, Messenger ou via le formulaire. Réponse rapide 7j/7.',
                 'og_image' => 'assets/home/amenagement-sur-mesure.jpg',
             ],
+            'realisations' => [
+                'title' => 'Réalisations Maison216 | Cuisines, aluminium, métal et projets',
+                'description' => 'Découvrez les réalisations Maison216 en Tunisie : cuisines, dressings, menuiserie aluminium, portails, pergolas et projets d’agencement.',
+                'og_image' => 'assets/home/realizations/cuisine-sur-mesure.jpg',
+            ],
             'projets/agencement-immobilier-neuf' => [
                 'title' => 'Agencement appartement neuf en Tunisie | Cuisine, dressings, menuiserie',
                 'description' => 'Cuisine équipée, dressings, fenêtres alu pour appartements neufs en Tunisie. Un seul atelier pour tout l’aménagement. Promoteurs et particuliers. Devis sous 48h.',

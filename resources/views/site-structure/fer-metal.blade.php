@@ -405,7 +405,7 @@
                 <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Réalisations métal</div>
                 <h2 class="font-display mt-3 text-3xl font-extrabold sm:text-4xl">Quelques ouvrages métalliques récents.</h2>
             </div>
-            <a href="#realisations-metal" class="text-sm font-extrabold text-[#d5b170]">Voir toutes nos réalisations métal</a>
+            <a href="{{ route('realizations.index', ['silo' => 'fer-metal']) }}" class="text-sm font-extrabold text-[#d5b170]">Voir toutes nos réalisations métal</a>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

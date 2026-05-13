@@ -1203,3 +1203,30 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer, executer `php artisan site-pages:sync` en production, verifier `/admin/site-pages/2/edit`, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-13 - Page publique Réalisations
+
+Livres:
+- ajout de la page portfolio publique `/realisations`
+- ajout de la route `realizations.index`
+- listing des realisations publiees avec filtres par silo et pagination
+- cartes cliquables vers les pages detail `/realisations/{slug}`
+- fil d'Ariane et schema `CollectionPage` pour la page portfolio
+- ajout de `/realisations` dans `Pages & SEO` avec meta title, meta description et OG image par defaut
+- mise a jour du footer: lien `Realisations` vers `/realisations`
+- mise a jour du lien home `Voir toutes nos realisations` vers `/realisations`
+- mise a jour des liens `Voir toutes nos realisations bois/alu/metal` vers `/realisations?silo=...`
+- mise a jour des blocs projets utilisant le partial realisations pour pointer vers `/realisations?silo=projets`
+- mise a jour du breadcrumb des pages detail realisation pour revenir vers `/realisations`
+
+Verification locale:
+- `php -l` sur `RealizationController`, `SitePageSyncer`, `SitePageSeoDefaults`
+- `php artisan route:list --path=realisations`
+- `php artisan view:cache`
+- `php artisan site-pages:sync`
+- verification Tinker: page `/realisations` creee dans `site_pages`, total `40` pages, `6` realisations publiees
+- `npm run build`
+- `git diff --check`
+
+Prochaine action recommandee:
+- deployer, executer `php artisan site-pages:sync` en production, verifier `/realisations`, le footer et `/admin/site-pages`.

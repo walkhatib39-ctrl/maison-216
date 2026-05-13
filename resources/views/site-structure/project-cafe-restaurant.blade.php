@@ -326,6 +326,8 @@
     'eyebrow' => 'Réalisations CHR',
     'title' => 'Quelques projets livrés pour cafés, restaurants et espaces commerciaux.',
     'description' => 'Comptoirs, mobilier, pergolas, façades et agencements coordonnés dans un seul atelier.',
+    'linkHref' => route('realizations.index', ['silo' => 'projets']),
+    'linkLabel' => 'Voir toutes les réalisations projet',
 ])
 
 <section class="bg-white py-16 lg:py-24">
