@@ -1164,3 +1164,32 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer le correctif, verifier mobile sur `/realisations/cuisine-sur-mesure`, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-13 - Correctifs Pages & SEO: metas actuelles et OG upload
+
+Problemes constates:
+- les pages dans `Pages & SEO` etaient synchronisees depuis la structure de navigation, pas depuis les metas SEO reellement utilisees par le front
+- les champs `meta_title` et `meta_description` pouvaient donc apparaitre vides alors que la page publique avait deja des metas codees
+- l'image OG etait un champ URL, trop fragile et mauvais en UX
+- l'accueil, les pages detail de realisation et les pages legales n'etaient pas listees dans `Pages & SEO`
+
+Correctifs livres:
+- ajout du resolver `SitePageSeoDefaults` pour centraliser les metas actuelles par page
+- le sync `site-pages:sync` initialise maintenant `meta_title`, `meta_description` et `og_image` avec les valeurs actuelles du front
+- les metas existantes modifiees par l'admin ne sont pas ecrasees apres revue SEO
+- ajout de la page d'accueil dans `Pages & SEO`
+- ajout des pages detail realisation publiees dans `Pages & SEO`
+- ajout des pages legales dans `Pages & SEO`
+- le layout public lit maintenant aussi les metas admin pour la page d'accueil
+- remplacement du champ URL `Image OG` par un upload image avec preview et option de suppression
+- stockage des uploads OG dans `public/uploads/site-pages/og` pour eviter les problemes Plesk `/storage`
+
+Verification locale:
+- `php -l` sur `SitePageSeoDefaults`, `SitePageSyncer`, `SitePage` et `Admin\SitePageController`
+- `php artisan view:cache`
+- `php artisan route:list --path=admin/site-pages`
+- `php artisan site-pages:sync`
+- verification Tinker: page accueil synchronisee, page `/aluminium` remplie avec son vrai meta title et sa vraie meta description, `6` pages realisations synchronisees, `0` meta title manquant
+
+Prochaine action recommandee:
+- deployer, executer `php artisan site-pages:sync` en production, verifier `/admin/site-pages/2/edit`, puis reprendre Sprint 5 du cockpit admin.

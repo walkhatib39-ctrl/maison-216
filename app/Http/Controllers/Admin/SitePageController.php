@@ -7,6 +7,8 @@ use App\Models\SitePage;
 use App\Support\SitePageSyncer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SitePageController extends Controller
@@ -96,16 +98,28 @@ class SitePageController extends Controller
             'admin_title' => ['required', 'string', 'max:160'],
             'meta_title' => ['nullable', 'string', 'max:160'],
             'meta_description' => ['nullable', 'string', 'max:320'],
-            'og_image' => ['nullable', 'url', 'max:500'],
+            'og_image_upload' => ['nullable', 'image', 'max:4096'],
+            'remove_og_image' => ['nullable', 'boolean'],
             'is_indexable' => ['nullable', 'boolean'],
             'priority' => ['nullable', 'numeric', 'min:0.1', 'max:1.0'],
         ]);
+
+        $ogImage = $sitePage->og_image;
+        if ($request->boolean('remove_og_image')) {
+            $this->deleteUploadedOgImage($ogImage);
+            $ogImage = null;
+        }
+
+        if ($request->hasFile('og_image_upload')) {
+            $this->deleteUploadedOgImage($ogImage);
+            $ogImage = $this->storeOgImage($request->file('og_image_upload'));
+        }
 
         $sitePage->fill([
             'admin_title' => $data['admin_title'],
             'meta_title' => $data['meta_title'] ?? null,
             'meta_description' => $data['meta_description'] ?? null,
-            'og_image' => $data['og_image'] ?? null,
+            'og_image' => $ogImage,
             'is_indexable' => (bool) ($data['is_indexable'] ?? false),
             'priority' => $data['priority'] ?? null,
             'last_seo_reviewed_at' => now(),
@@ -124,5 +138,36 @@ class SitePageController extends Controller
             'status',
             "Synchronisation terminee: {$result['created']} creees, {$result['updated']} mises a jour, {$result['obsolete']} obsoletes."
         );
+    }
+
+    private function storeOgImage(UploadedFile $file): string
+    {
+        $directory = public_path('uploads/site-pages/og');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'jpg');
+        $filename = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME))
+            . '-' . Str::random(10)
+            . '.' . $extension;
+
+        $file->move($directory, $filename);
+
+        return 'uploads/site-pages/og/' . $filename;
+    }
+
+    private function deleteUploadedOgImage(?string $path): void
+    {
+        $path = trim((string) $path);
+
+        if ($path === '' || !str_starts_with($path, 'uploads/site-pages/og/')) {
+            return;
+        }
+
+        $fullPath = public_path($path);
+        if (is_file($fullPath)) {
+            @unlink($fullPath);
+        }
     }
 }

@@ -10,7 +10,7 @@
         $seoPage = null;
 
         try {
-            if ($currentPath !== '' && \Illuminate\Support\Facades\Schema::hasTable('site_pages')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('site_pages')) {
                 $seoPage = \App\Models\SitePage::query()
                     ->where('path', $currentPath)
                     ->where('is_obsolete', false)

@@ -1,6 +1,10 @@
 @extends('layouts.admin')
 
 @section('content')
+@php
+    $ogPreview = \App\Support\SiteSettings::assetUrl($page->og_image);
+@endphp
+
 <div class="mx-auto max-w-4xl space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -19,7 +23,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.site-pages.update', $page) }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.site-pages.update', $page) }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
 
@@ -69,9 +73,26 @@
                 </div>
 
                 <div>
-                    <label for="og_image" class="mb-1 block text-sm font-bold text-[#171411]">Image OG</label>
-                    <input id="og_image" name="og_image" value="{{ old('og_image', $page->og_image) }}" class="w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 focus:ring-4" placeholder="https://...">
-                    @error('og_image')<p class="mt-1 text-sm text-rose-700">{{ $message }}</p>@enderror
+                    <label for="og_image_upload" class="mb-1 block text-sm font-bold text-[#171411]">Image OG</label>
+                    <div class="rounded-2xl border border-[#eadfce] bg-[#fbf7f0] p-4">
+                        @if($ogPreview)
+                            <div class="mb-4 overflow-hidden rounded-xl border border-[#eadfce] bg-white">
+                                <img src="{{ $ogPreview }}" alt="Image OG actuelle" class="h-44 w-full object-cover">
+                            </div>
+                            <label class="mb-4 flex items-center justify-between gap-4 rounded-xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
+                                <span>Supprimer l'image actuelle</span>
+                                <input type="checkbox" name="remove_og_image" value="1" class="h-5 w-5 rounded border-[#d8c7af] text-[#b88a3b] focus:ring-[#b88a3b]">
+                            </label>
+                        @else
+                            <div class="mb-4 rounded-xl border border-dashed border-[#d8c7af] bg-white px-4 py-8 text-center text-sm font-semibold text-[#6a5a4c]">
+                                Aucune image OG definie.
+                            </div>
+                        @endif
+
+                        <input id="og_image_upload" name="og_image_upload" type="file" accept="image/*" class="w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 file:mr-4 file:rounded-lg file:border-0 file:bg-[#171411] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:ring-4">
+                        <p class="mt-2 text-xs text-[#6a5a4c]">Format recommande: JPG ou WebP, 1200x630 px. Le canonical reste genere automatiquement.</p>
+                    </div>
+                    @error('og_image_upload')<p class="mt-1 text-sm text-rose-700">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-2">

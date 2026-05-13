@@ -53,6 +53,10 @@ class SitePage extends Model
 
     public function publicUrl(): string
     {
+        if ($this->path === '') {
+            return url('/');
+        }
+
         return url('/' . ltrim($this->path, '/'));
     }
 
