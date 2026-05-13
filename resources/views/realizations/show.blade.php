@@ -3,7 +3,7 @@
 @php
     $devisUrl = url('/devis');
     $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? $devisUrl;
-    $relatedPages = $realization->pages;
+    $phoneDisplay = \App\Support\SiteSettings::phoneDisplay();
     $gallery = $realization->images;
 
     $schema = [
@@ -55,11 +55,8 @@
 <section class="bg-[#f7f1e7] py-16 lg:py-24">
     <div class="container mx-auto px-4">
         <div class="grid gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
-            <div>
-                <div class="inline-flex rounded-full border border-[#ddcdb8] bg-white/70 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em] text-[#8e6322]">
-                    {{ $realization->siloLabel() }}
-                </div>
-                <h1 class="font-display mt-7 text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
+            <div class="order-2 lg:order-1">
+                <h1 class="font-display text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
                     {{ $realization->title }}
                 </h1>
                 @if($realization->short_description)
@@ -72,12 +69,12 @@
                     </a>
                     <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834]">
                         <i class="fa-brands fa-whatsapp"></i>
-                        WhatsApp
+                        {{ $phoneDisplay }}
                     </a>
                 </div>
             </div>
 
-            <div class="overflow-hidden rounded-[38px] border border-[#eadfce] bg-white p-3 shadow-[0_35px_90px_rgba(23,20,17,0.14)]">
+            <div class="order-1 overflow-hidden rounded-[30px] border border-[#eadfce] bg-white p-2 shadow-[0_24px_70px_rgba(23,20,17,0.14)] sm:rounded-[38px] sm:p-3 lg:order-2">
                 <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" class="h-[320px] w-full rounded-[30px] object-cover sm:h-[520px]">
             </div>
         </div>
@@ -115,26 +112,6 @@
     </section>
 @endif
 
-@if($relatedPages->isNotEmpty())
-    <section class="bg-white py-16 lg:py-20">
-        <div class="container mx-auto px-4">
-            <div class="mb-7 max-w-3xl">
-                <div class="text-xs font-extrabold uppercase tracking-[0.22em] text-[#a47834]">Pages associées</div>
-                <h2 class="font-display mt-3 text-3xl font-extrabold text-[#171411] sm:text-4xl">Voir les services liés à cette réalisation.</h2>
-            </div>
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                @foreach($relatedPages as $page)
-                    <a href="{{ url('/' . $page->path) }}" class="group rounded-[26px] border border-[#eadfce] bg-[#fbf7ee] p-5 transition hover:-translate-y-1 hover:border-[#c7a36a] hover:bg-white">
-                        <div class="text-xs font-extrabold uppercase tracking-[0.18em] text-[#a47834]">{{ $page->silo }}</div>
-                        <h3 class="font-display mt-3 text-xl font-extrabold text-[#171411]">{{ $page->admin_title }}</h3>
-                        <div class="mt-5 text-sm font-extrabold text-[#8e6322]">Voir la page <i class="fa-solid fa-arrow-right ml-1 text-xs transition group-hover:translate-x-1"></i></div>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    </section>
-@endif
-
 <section class="bg-[#fbf7ee] py-16 lg:py-20">
     <div class="container mx-auto px-4 text-center">
         <div class="mx-auto max-w-3xl rounded-[36px] border border-[#eadfce] bg-white p-8 shadow-[0_20px_65px_rgba(23,20,17,0.08)] lg:p-10">
@@ -145,7 +122,8 @@
                     Demander un devis
                 </a>
                 <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] px-8 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834]">
-                    WhatsApp
+                    <i class="fa-brands fa-whatsapp"></i>
+                    {{ $phoneDisplay }}
                 </a>
             </div>
         </div>

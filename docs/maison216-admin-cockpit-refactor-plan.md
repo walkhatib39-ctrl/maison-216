@@ -1139,3 +1139,19 @@ Note de deploiement:
 
 Prochaine action recommandee:
 - deployer ces correctifs, verifier l'image uploadée dans l'admin et l'URL detail `/realisations/cuisine-sur-mesure`, puis reprendre Sprint 5.
+
+### 2026-05-13 - Correctifs UX page detail realisation
+
+Correctifs livres:
+- retrait du eyebrow silo dans le hero des pages detail realisation
+- image a la une affichee avant le titre sur mobile pour donner plus de valeur visuelle a la page
+- maintien du layout desktop texte + image, avec image a droite
+- remplacement du libelle `WhatsApp` par le numero affiche configure dans les parametres site
+- suppression de la section `Voir les services lies a cette realisation`
+
+Verification locale:
+- `php artisan view:cache`
+- `php artisan route:list --path=realisations`
+
+Prochaine action recommandee:
+- deployer le correctif, verifier mobile sur `/realisations/cuisine-sur-mesure`, puis reprendre Sprint 5 du cockpit admin.
