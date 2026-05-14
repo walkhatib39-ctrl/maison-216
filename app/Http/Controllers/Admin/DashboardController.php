@@ -25,13 +25,32 @@ class DashboardController extends Controller
                     ->orWhere('meta_description', '');
             });
 
+        $seoIssuesQuery = SitePage::query()
+            ->active()
+            ->where(function ($q) {
+                $q->where(function ($meta) {
+                    $meta->whereNull('meta_title')
+                        ->orWhere('meta_title', '')
+                        ->orWhereNull('meta_description')
+                        ->orWhere('meta_description', '');
+                })->orWhere('is_indexable', false);
+            });
+
+        $pagesWithoutRealizationsQuery = SitePage::query()
+            ->active()
+            ->where('page_type', 'quote')
+            ->whereIn('silo', ['menuiserie-bois', 'aluminium', 'fer-metal', 'sur-mesure', 'projets'])
+            ->doesntHave('realizations');
+
         return view('admin.dashboard', [
             'stats' => [
                 'new_leads' => Lead::query()->where('status', Lead::STATUS_NEW)->count(),
                 'open_leads' => Lead::query()->open()->count(),
                 'pages' => SitePage::query()->active()->count(),
                 'missing_meta' => (clone $missingMetaQuery)->count(),
+                'seo_issues' => (clone $seoIssuesQuery)->count(),
                 'published_realizations' => Realization::query()->where('status', Realization::STATUS_PUBLISHED)->count(),
+                'pages_without_realizations' => (clone $pagesWithoutRealizationsQuery)->count(),
                 'noindex' => SitePage::query()->active()->where('is_indexable', false)->count(),
                 'obsolete' => SitePage::query()->where('is_obsolete', true)->count(),
             ],
@@ -40,6 +59,10 @@ class DashboardController extends Controller
                 ->limit(6)
                 ->get(),
             'missingMetaPages' => $missingMetaQuery
+                ->orderBy('sort_order')
+                ->limit(8)
+                ->get(),
+            'pagesWithoutRealizations' => $pagesWithoutRealizationsQuery
                 ->orderBy('sort_order')
                 ->limit(8)
                 ->get(),

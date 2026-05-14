@@ -1428,3 +1428,35 @@ Verification production:
 
 Prochaine action recommandee:
 - verifier sur mobile `/fer-metal/escalier-metallique`, `/aluminium/fenetre-aluminium`, `/sur-mesure/cuisine-sur-mesure`, `/projets/agencement-cafe-restaurant`, `/partenaires` et une page detail realisation, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-14 - Sprint 5 livre localement: dashboard cockpit
+
+Diagnostic honnete:
+- une premiere version du dashboard cockpit existait deja avant ce sprint
+- elle n'etait pas e-commerce et affichait deja demandes, pages, metas manquantes et realisations
+- elle restait incomplete par rapport au Sprint 5 du plan: pas assez de raccourcis operationnels, pas de suivi des pages sans realisation, pas de statut de livraison Sprint 5 dans ce document
+
+Livres:
+- dashboard admin finalise autour de 4 KPIs maximum: nouvelles demandes, demandes ouvertes, pages SEO a revoir, realisations publiees
+- ajout d'actions rapides: synchroniser les pages, corriger les metas, creer/assigner une realisation, ouvrir les parametres publics
+- ajout du bloc `Pages sans realisation` pour identifier les pages de service/projet sans preuve portfolio assignee
+- amelioration des demandes recentes: type, statut, date et lien direct vers la fiche demande
+- maintien du bloc `Pages SEO a completer` en table operationnelle
+- maintien du bloc `Dernieres realisations` avec cartes visuelles et lien direct vers edition
+- aucune commande, produit, chiffre d'affaires ou KPI e-commerce visible au premier niveau
+
+Verification locale:
+- `php -l app/Http/Controllers/Admin/DashboardController.php`
+- `php artisan view:cache`
+- `php artisan route:list --path=admin`
+- `git diff --check -- app/Http/Controllers/Admin/DashboardController.php resources/views/admin/dashboard.blade.php`
+
+Verification production:
+- a completer apres push et deploiement Plesk
+
+Remarques:
+- Sprint 5 etait partiellement deja fait; il est maintenant complet selon le scope dashboard du plan
+- le nettoyage des routes, vues, models et tables e-commerce reste hors Sprint 5 et appartient au Sprint 6
+
+Prochaine action recommandee:
+- deployer Sprint 5, verifier `/admin`, puis demarrer Sprint 6 par un audit des routes e-commerce encore actives avant toute suppression.
