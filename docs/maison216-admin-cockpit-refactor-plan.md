@@ -1663,3 +1663,59 @@ Remarques:
 
 Prochaine action recommandee:
 - deployer ce correctif, puis demarrer Sprint Showroom 2: CRUD des activites, formulaire devis produit integre et premiers produits exemples.
+
+### 2026-05-14 - Sprint Showroom 2: seed initial Pharmacies & parapharmacies
+
+Decision proprietaire:
+- ne pas creer de troisieme type "Produit hybride"
+- conserver uniquement deux types visibles et valides dans l'admin:
+  - Produit commandable
+  - Produit sur devis
+- les produits avec prix indicatif et adaptation sur mesure sont traites comme `Produit sur devis` avec affichage `A partir de`
+
+Livres localement:
+- ajout du seeder `ShowroomPharmacyProductSeeder`
+- creation idempotente de 20 produits pour l'activite `Pharmacies & parapharmacies`
+- ordre d'affichage conforme au brief:
+  - comptoir compact
+  - comptoir premium
+  - presentoir mural
+  - gondole centrale
+  - meuble arriere-comptoir
+  - meubles promotion/vitrine/dermocosmetique/caisse
+  - modules de rangement
+  - packs d'ouverture et de renovation
+- assignation secondaire de certains produits aux activites pertinentes:
+  - Salons de beaute & esthetique
+  - Boutiques & magasins
+  - Cabinets medicaux & cliniques
+  - Bureaux professionnels
+- mapping vente:
+  - 16 produits sur devis
+  - 4 produits commandables
+  - 0 produit en mode hybride
+- restriction de validation admin produit:
+  - `sale_mode` accepte maintenant seulement `catalog` ou `sur_mesure`
+  - `bundle` et `configurable` ne sont plus acceptes par les formulaires admin
+
+Verification locale:
+- `php -l database/seeders/ShowroomPharmacyProductSeeder.php`
+- `php -l app/Models/Product.php`
+- `php -l app/Http/Controllers/Admin/ProductController.php`
+- `php artisan db:seed --class=ShowroomPharmacyProductSeeder`
+- verification Tinker:
+  - `pharmacy_products`: 20
+  - `first`: `comptoir-parapharmacie-compact`
+  - `quote_in_pharmacy`: 16
+  - `commandable_in_pharmacy`: 4
+  - `hybrid_mode_in_pharmacy`: 0
+- `php artisan view:cache`
+- `php artisan test`: 25 tests passes
+- `git diff --check`
+
+Remarques:
+- les produits seedes n'ont pas encore d'images dediees; les cartes publiques utilisent donc le placeholder Showroom tant que les visuels ne sont pas ajoutes depuis l'admin
+- le seed supprime la galerie des produits seedes pour rester idempotent et eviter des doublons d'images automatiques
+
+Prochaine action recommandee:
+- ajouter des images par produit ou par famille de produits, puis creer le formulaire devis produit directement dans les fiches Showroom sur devis.
