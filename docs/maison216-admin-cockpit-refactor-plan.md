@@ -1713,6 +1713,22 @@ Verification locale:
 - `php artisan test`: 25 tests passes
 - `git diff --check`
 
+Deploiement:
+- commit: `61327f05 Seed pharmacy showroom products`
+- push GitHub sur `main`
+- deploiement Plesk execute
+- commandes production:
+  - `php artisan migrate --force`
+  - `php artisan db:seed --class=ShowroomPharmacyProductSeeder --force`
+  - `php artisan optimize:clear`
+  - `php artisan config:cache`
+  - `php artisan view:cache`
+- verification production:
+  - `/showroom/pharmacies-parapharmacies`: HTTP `200`
+  - page 1: 18 produits affiches
+  - page 2: 2 produits affiches
+  - `/showroom/produit/comptoir-parapharmacie-compact`: HTTP `200`
+
 Remarques:
 - les produits seedes n'ont pas encore d'images dediees; les cartes publiques utilisent donc le placeholder Showroom tant que les visuels ne sont pas ajoutes depuis l'admin
 - le seed supprime la galerie des produits seedes pour rester idempotent et eviter des doublons d'images automatiques
