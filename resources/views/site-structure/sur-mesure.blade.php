@@ -217,14 +217,9 @@
 
 <section class="relative overflow-hidden border-b border-[#eadfce] bg-[#fbf7ee]">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(184,138,59,0.16),transparent_34%),radial-gradient(circle_at_86%_18%,rgba(23,20,17,0.09),transparent_32%)]"></div>
-    <div class="container relative mx-auto grid gap-10 px-4 py-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
-        <div>
-            <div class="inline-flex items-center gap-2 rounded-full border border-[#d8c7af] bg-white/72 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#8b6426]">
-                <i class="fa-solid fa-ruler-combined"></i>
-                Aménagement sur mesure · Tunisie
-            </div>
-
-            <h1 class="font-display mt-7 max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-[-0.04em] text-[#171411] sm:text-5xl lg:text-6xl">
+    <div class="container relative mx-auto grid gap-0 px-4 pb-12 pt-0 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-10 lg:py-20">
+        <div class="order-2 py-10 lg:order-1 lg:py-0">
+            <h1 class="font-display max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-[-0.04em] text-[#171411] sm:text-5xl lg:text-6xl">
                 Le meuble sur mesure pensé pour votre espace.
                 <span class="block text-[#a47834]">Pas l’inverse.</span>
             </h1>
@@ -233,13 +228,13 @@
                 Cuisine, dressing, placard, meuble TV, bureau : nous fabriquons exactement ce que votre espace exige, aux dimensions exactes, dans les matériaux que vous choisissez. Étude, plans 3D, fabrication en atelier et pose incluses.
             </p>
 
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-7 py-4 text-sm font-extrabold text-white shadow-[0_20px_45px_rgba(23,20,17,0.16)] transition hover:bg-[#a47834]">
+            <div class="mt-8 flex flex-row gap-2 sm:gap-3">
+                <a href="{{ $devisUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-4 py-3 text-xs font-extrabold text-white shadow-[0_20px_45px_rgba(23,20,17,0.16)] transition hover:bg-[#a47834] sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                     <i class="fa-regular fa-pen-to-square"></i>
                     Lancer mon projet sur mesure
                 </a>
                 @if($surMesureRealizations->isNotEmpty())
-                    <a href="#realisations-sur-mesure" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
+                    <a href="#realisations-sur-mesure" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-4 py-3 text-xs font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                         <i class="fa-regular fa-images"></i>
                         Voir nos réalisations
                     </a>
@@ -256,14 +251,9 @@
             </div>
         </div>
 
-        <div class="relative">
-            <div class="rounded-[40px] border border-[#d8c7af] bg-white p-3 shadow-[0_36px_90px_rgba(23,20,17,0.16)]">
-                <div class="relative min-h-[360px] overflow-hidden rounded-[30px] bg-cover bg-center lg:min-h-[540px]" style="background-image: linear-gradient(180deg, rgba(23,20,17,0.02), rgba(23,20,17,0.55)), url('{{ $heroImage }}');">
-                    <div class="absolute bottom-6 left-6 right-6 rounded-[26px] border border-white/18 bg-[#171411]/72 p-5 text-white backdrop-blur">
-                        <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#d5b170]">Sur mesure Maison216</div>
-                        <p class="mt-2 text-sm leading-6 text-white/78">Un meuble conçu autour de vos dimensions, pas autour d’un format imposé par un catalogue.</p>
-                    </div>
-                </div>
+        <div class="order-1 -mx-4 lg:order-2 lg:mx-0">
+            <div class="overflow-hidden bg-white lg:rounded-[40px] lg:border lg:border-[#d8c7af] lg:p-3">
+                <img src="{{ $heroImage }}" alt="Aménagement sur mesure Maison216" class="h-[320px] w-full object-cover sm:h-[420px] lg:h-[540px] lg:rounded-[30px]">
             </div>
         </div>
     </div>

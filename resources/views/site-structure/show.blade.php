@@ -5,6 +5,8 @@
     $isQuote = in_array($page['type'] ?? 'catalog', ['quote'], true);
     $ctaLabel = $isQuote ? 'Demander un devis' : 'Voir les meubles';
     $ctaHref = $isQuote ? url('/devis') : route('categories.index');
+    $phoneDisplay = \App\Support\SiteSettings::phoneDisplay();
+    $whatsappUrl = \App\Support\SiteSettings::whatsappUrl() ?? route('contact');
 @endphp
 
 <section class="border-b border-[#eadfce] bg-[#f6f1e8]">
@@ -20,20 +22,17 @@
         </nav>
 
         <div class="mt-8 max-w-4xl">
-            <div class="text-xs font-bold uppercase tracking-[0.22em] text-[#a47834]">
-                {{ $isQuote ? 'Projet sur mesure' : (($page['type'] ?? 'catalog') === 'guide' ? 'Guide Maison 216' : 'Catalogue Maison 216') }}
-            </div>
-            <h1 class="font-display mt-3 text-3xl font-bold leading-tight text-[#171411] sm:text-4xl lg:text-5xl">{{ $page['title'] }}</h1>
+            <h1 class="font-display text-3xl font-bold leading-tight text-[#171411] sm:text-4xl lg:text-5xl">{{ $page['title'] }}</h1>
             <p class="mt-5 max-w-3xl text-base leading-8 text-[#5f5146] sm:text-lg">{{ $page['description'] }}</p>
 
-            <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-                <a href="{{ $ctaHref }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#b88a3b]">
+            <div class="mt-7 flex flex-row gap-2 sm:gap-3">
+                <a href="{{ $ctaHref }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-4 py-3 text-xs font-semibold text-white transition hover:bg-[#b88a3b] sm:flex-none sm:px-6 sm:py-4 sm:text-sm">
                     <i class="{{ $isQuote ? 'fa-regular fa-pen-to-square' : 'fa-solid fa-border-all' }} text-sm"></i>
                     {{ $ctaLabel }}
                 </a>
-                <a href="{{ route('contact') }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-6 py-4 text-sm font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2]">
+                <a href="{{ $whatsappUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#d8c7af] bg-white px-4 py-3 text-xs font-semibold text-[#171411] transition hover:border-[#c7a36a] hover:bg-[#fffaf2] sm:flex-none sm:px-6 sm:py-4 sm:text-sm">
                     <i class="fa-brands fa-whatsapp text-sm"></i>
-                    Parler a un conseiller
+                    {{ $phoneDisplay }}
                 </a>
             </div>
         </div>

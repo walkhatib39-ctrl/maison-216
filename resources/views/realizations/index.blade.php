@@ -55,12 +55,12 @@
             <p class="mt-5 max-w-3xl text-base leading-8 text-[#5f5146] sm:text-lg sm:leading-9">
                 Une sélection de projets livrés ou présentés par Maison216 : cuisines, dressings, menuiserie aluminium, portails, pergolas et agencements professionnels.
             </p>
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-7 py-4 text-sm font-extrabold text-white transition hover:bg-[#a47834]">
+            <div class="mt-8 flex flex-row gap-2 sm:gap-3">
+                <a href="{{ $devisUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#a47834] sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                     <i class="fa-regular fa-pen-to-square"></i>
                     Demander un devis
                 </a>
-                <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834]">
+                <a href="{{ $whatsappUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white px-4 py-3 text-xs font-extrabold text-[#171411] transition hover:border-[#a47834] sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                     <i class="fa-brands fa-whatsapp"></i>
                     {{ $phoneDisplay }}
                 </a>

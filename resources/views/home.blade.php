@@ -192,12 +192,7 @@
     <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_20%,rgba(184,138,59,0.18),transparent_30%),radial-gradient(circle_at_82%_15%,rgba(23,20,17,0.08),transparent_28%)]"></div>
     <div class="container mx-auto px-4 py-16 lg:py-24">
         <div class="max-w-6xl">
-            <div class="inline-flex items-center gap-2 rounded-full border border-[#d8c7af] bg-white/72 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#8b6426]">
-                <i class="fa-solid fa-industry"></i>
-                Atelier intégré en Tunisie
-            </div>
-
-            <h1 class="font-display mt-7 max-w-5xl text-4xl font-extrabold leading-[0.98] tracking-[-0.04em] text-[#171411] sm:text-5xl lg:text-7xl">
+            <h1 class="font-display max-w-5xl text-4xl font-extrabold leading-[0.98] tracking-[-0.04em] text-[#171411] sm:text-5xl lg:text-7xl">
                 Cuisines, dressings, fenêtres, portails.
                 <span class="block text-[#a47834]">Un seul atelier pour tout votre aménagement.</span>
             </h1>
@@ -206,12 +201,12 @@
                 Bois, aluminium et métal fabriqués sur mesure dans notre atelier en Tunisie. Particuliers, architectes et promoteurs : un seul interlocuteur, du devis à la pose.
             </p>
 
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-7 py-4 text-sm font-extrabold text-white shadow-[0_20px_45px_rgba(23,20,17,0.18)] transition hover:bg-[#a47834]">
+            <div class="mt-8 flex flex-row gap-2 sm:gap-3">
+                <a href="{{ $devisUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-4 py-3 text-xs font-extrabold text-white shadow-[0_20px_45px_rgba(23,20,17,0.18)] transition hover:bg-[#a47834] sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                     <i class="fa-regular fa-pen-to-square"></i>
                     Demander un devis gratuit
                 </a>
-                <a href="#realisations" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/72 px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
+                <a href="#realisations" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/72 px-4 py-3 text-xs font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                     <i class="fa-regular fa-images"></i>
                     Voir nos réalisations
                 </a>

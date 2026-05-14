@@ -1394,3 +1394,29 @@ Verification production:
 
 Prochaine action recommandee:
 - deployer, verifier les CTA sur `/menuiserie-bois`, `/aluminium`, `/fer-metal`, `/sur-mesure`, `/devis`, `/contact` et `/partenaires`, puis reprendre Sprint 5 du cockpit admin.
+
+### 2026-05-14 - Correctif global heroes publics
+
+Probleme constate:
+- les pages publiques affichaient encore des eyebrows dans les heroes (`Metier`, `Projet`, etc.)
+- plusieurs images hero etaient traitees comme des cartes marketing avec textes superposes, voiles, badges ou effets
+- sur mobile, le contenu textuel arrivait avant l'image ou l'image gardait des marges laterales, ce qui donnait une lecture moins premium
+
+Correctifs livres:
+- suppression des eyebrows dans les heroes de la homepage, silos metiers, pages produits aluminium, pages produits metal, pages sur mesure, pages projets, espace professionnels, devis, pages generiques et realisations
+- remplacement des images hero avec background/overlay par de simples balises `img`, sans texte superpose ni badge
+- ordre mobile standardise: image en premier, pleine largeur, sans marge laterale, puis H1, sous-titre, CTA et preuves
+- boutons hero a deux CTA affiches sur une meme ligne en mobile avec tailles adaptees
+- detail realisation ajuste pour valoriser l'image principale en premier sur mobile avec un rendu full width
+
+Verification locale:
+- `php artisan view:cache`
+- `npm run build`
+- `git diff --check` sur les templates modifies
+- scan des restes `Metier ·` et `Projet ·` dans les templates publics: aucun resultat
+
+Verification production:
+- a completer apres push et deploiement Plesk
+
+Prochaine action recommandee:
+- verifier sur mobile `/fer-metal/escalier-metallique`, `/aluminium/fenetre-aluminium`, `/sur-mesure/cuisine-sur-mesure`, `/projets/agencement-cafe-restaurant`, `/partenaires` et une page detail realisation, puis reprendre Sprint 5 du cockpit admin.

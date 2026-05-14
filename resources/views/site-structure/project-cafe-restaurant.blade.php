@@ -171,15 +171,10 @@
 
 <section class="relative overflow-hidden bg-[#f7f1e7]">
     <div class="absolute inset-y-0 right-0 hidden w-[44%] bg-[radial-gradient(circle_at_center,rgba(184,138,59,0.18),transparent_62%)] lg:block"></div>
-    <div class="container relative mx-auto px-4 py-16 lg:py-24">
-        <div class="grid gap-12 lg:grid-cols-[0.96fr_0.84fr] lg:items-center">
-            <div>
-                <div class="inline-flex items-center gap-2 rounded-full border border-[#ddcdb8] bg-white/70 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em] text-[#8e6322]">
-                    <i class="fa-solid fa-utensils"></i>
-                    Projet · Café & restaurant
-                </div>
-
-                <h1 class="font-display mt-7 max-w-4xl text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
+    <div class="container relative mx-auto px-4 pb-12 pt-0 lg:py-24">
+        <div class="grid gap-0 lg:grid-cols-[0.96fr_0.84fr] lg:items-center lg:gap-12">
+            <div class="order-2 py-10 lg:order-1 lg:py-0">
+                <h1 class="font-display max-w-4xl text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
                     Agencement café et restaurant sur mesure en Tunisie.
                 </h1>
 
@@ -187,8 +182,8 @@
                     Comptoir, mobilier, banquettes, vitrines, terrasse couverte : nous concevons et fabriquons l’agencement complet de votre café ou restaurant en Tunisie.
                 </p>
 
-                <div class="mt-9">
-                    <a href="{{ $devisUrl }}" class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#171411] px-8 py-4 text-sm font-extrabold text-white shadow-[0_18px_45px_rgba(23,20,17,0.22)] transition hover:bg-[#a47834] sm:w-auto">
+                <div class="mt-9 flex flex-row gap-2">
+                    <a href="{{ $devisUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-4 py-3 text-xs font-extrabold text-white shadow-[0_18px_45px_rgba(23,20,17,0.22)] transition hover:bg-[#a47834] sm:flex-none sm:px-8 sm:py-4 sm:text-sm">
                         <i class="fa-regular fa-pen-to-square"></i>
                         Demander un devis
                     </a>
@@ -204,13 +199,9 @@
                 </div>
             </div>
 
-            <div class="relative">
-                <div class="absolute -left-7 top-12 hidden h-44 w-44 rounded-full bg-[#c7a36a]/20 blur-2xl lg:block"></div>
-                <div class="relative overflow-hidden rounded-[38px] bg-[#171411] p-3 shadow-[0_35px_90px_rgba(23,20,17,0.18)]">
-                    <div class="relative min-h-[470px] overflow-hidden rounded-[30px]">
-                        <img src="{{ $heroImage }}" alt="Agencement café restaurant réalisé par Maison216" class="absolute inset-0 h-full w-full object-cover">
-                        <div class="absolute inset-0 ring-1 ring-inset ring-white/10"></div>
-                    </div>
+            <div class="order-1 -mx-4 lg:order-2 lg:mx-0">
+                <div class="overflow-hidden bg-white lg:rounded-[38px] lg:border lg:border-[#ddcdb8] lg:p-3">
+                    <img src="{{ $heroImage }}" alt="Agencement café restaurant réalisé par Maison216" class="h-[320px] w-full object-cover sm:h-[430px] lg:h-[520px] lg:rounded-[30px]">
                 </div>
             </div>
         </div>

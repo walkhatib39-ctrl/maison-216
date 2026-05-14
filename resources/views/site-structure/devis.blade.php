@@ -29,10 +29,7 @@
 <section class="bg-[#f7f1e7] py-14 lg:py-20">
     <div class="container mx-auto grid gap-10 px-4 lg:grid-cols-[0.8fr_1.05fr] lg:items-start">
         <div>
-            <div class="inline-flex rounded-full border border-[#d8c7af] bg-white px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em] text-[#a47834]">
-                Demande de devis
-            </div>
-            <h1 class="font-display mt-6 text-4xl font-extrabold leading-tight tracking-[-0.05em] text-[#171411] sm:text-6xl">
+            <h1 class="font-display text-4xl font-extrabold leading-tight tracking-[-0.05em] text-[#171411] sm:text-6xl">
                 Expliquez votre projet. Nous vous répondons avec un cadrage clair.
             </h1>
             <p class="mt-6 max-w-2xl text-lg leading-9 text-[#5f5146]">

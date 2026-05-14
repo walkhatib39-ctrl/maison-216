@@ -140,8 +140,8 @@
 
 <section class="relative overflow-hidden bg-[#f7f1e7]">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(184,138,59,0.16),transparent_34%),radial-gradient(circle_at_86%_14%,rgba(23,20,17,0.08),transparent_32%)]"></div>
-    <div class="container relative mx-auto grid gap-12 px-4 py-16 lg:grid-cols-[0.96fr_0.84fr] lg:items-center lg:py-24">
-        <div>
+    <div class="container relative mx-auto grid gap-0 px-4 pb-12 pt-0 lg:grid-cols-[0.96fr_0.84fr] lg:items-center lg:gap-12 lg:py-24">
+        <div class="order-2 py-10 lg:order-1 lg:py-0">
             <h1 class="font-display max-w-5xl text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
                 L'atelier Maison216 au service des professionnels du bâtiment.
             </h1>
@@ -150,12 +150,12 @@
                 Architectes, maîtres d'œuvre, bureaux d'études, décorateurs, promoteurs et entrepreneurs : Maison216 est votre atelier de fabrication bois, aluminium et métal en Tunisie.
             </p>
 
-            <div class="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a href="#contact-professionnel" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-8 py-4 text-sm font-extrabold text-white shadow-[0_18px_45px_rgba(23,20,17,0.22)] transition hover:bg-[#a47834]">
+            <div class="mt-9 flex flex-row gap-2 sm:gap-3">
+                <a href="#contact-professionnel" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-3 py-3 text-[11px] font-extrabold leading-tight text-white shadow-[0_18px_45px_rgba(23,20,17,0.22)] transition hover:bg-[#a47834] sm:flex-none sm:px-8 sm:py-4 sm:text-sm">
                     <i class="fa-regular fa-calendar-check"></i>
                     Demander une visite de l'atelier
                 </a>
-                <a href="#contact-professionnel" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-8 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834] hover:bg-white">
+                <a href="#contact-professionnel" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white/78 px-3 py-3 text-[11px] font-extrabold leading-tight text-[#171411] transition hover:border-[#a47834] hover:bg-white sm:flex-none sm:px-8 sm:py-4 sm:text-sm">
                     <i class="fa-regular fa-file-lines"></i>
                     Nous transmettre un projet à chiffrer
                 </a>
@@ -171,9 +171,9 @@
             </div>
         </div>
 
-        <div class="relative">
-            <div class="relative overflow-hidden rounded-[42px] border border-[#ddcdb8] bg-white p-3 shadow-[0_35px_90px_rgba(23,20,17,0.16)]">
-                <img src="{{ $heroImage }}" alt="Atelier Maison216 pour professionnels du bâtiment" class="h-[360px] w-full rounded-[32px] object-cover sm:h-[460px] lg:h-[620px]">
+        <div class="order-1 -mx-4 lg:order-2 lg:mx-0">
+            <div class="overflow-hidden bg-white lg:rounded-[42px] lg:border lg:border-[#ddcdb8] lg:p-3">
+                <img src="{{ $heroImage }}" alt="Atelier Maison216 pour professionnels du bâtiment" class="h-[320px] w-full object-cover sm:h-[430px] lg:h-[620px] lg:rounded-[32px]">
             </div>
         </div>
     </div>

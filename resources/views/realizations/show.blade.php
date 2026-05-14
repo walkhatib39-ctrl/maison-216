@@ -52,30 +52,30 @@
     </div>
 </section>
 
-<section class="bg-[#f7f1e7] py-16 lg:py-24">
+<section class="bg-[#f7f1e7] pb-12 pt-0 lg:py-24">
     <div class="container mx-auto px-4">
-        <div class="grid gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
-            <div class="order-2 lg:order-1">
+        <div class="grid gap-0 lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-12">
+            <div class="order-2 py-10 lg:order-1 lg:py-0">
                 <h1 class="font-display text-4xl font-extrabold leading-[0.98] tracking-[-0.06em] text-[#171411] sm:text-5xl lg:text-7xl">
                     {{ $realization->title }}
                 </h1>
                 @if($realization->short_description)
                     <p class="mt-7 max-w-3xl text-lg leading-9 text-[#5f5146]">{{ $realization->short_description }}</p>
                 @endif
-                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <a href="{{ $devisUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#171411] px-7 py-4 text-sm font-extrabold text-white transition hover:bg-[#a47834]">
+                <div class="mt-8 flex flex-row gap-2 sm:gap-3">
+                    <a href="{{ $devisUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#171411] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#a47834] sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                         <i class="fa-regular fa-pen-to-square"></i>
                         Demander un devis similaire
                     </a>
-                    <a href="{{ $whatsappUrl }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white px-7 py-4 text-sm font-extrabold text-[#171411] transition hover:border-[#a47834]">
+                    <a href="{{ $whatsappUrl }}" class="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-[#cdbb9f] bg-white px-4 py-3 text-xs font-extrabold text-[#171411] transition hover:border-[#a47834] sm:flex-none sm:px-7 sm:py-4 sm:text-sm">
                         <i class="fa-brands fa-whatsapp"></i>
                         {{ $phoneDisplay }}
                     </a>
                 </div>
             </div>
 
-            <div class="order-1 overflow-hidden rounded-[30px] border border-[#eadfce] bg-white p-2 shadow-[0_24px_70px_rgba(23,20,17,0.14)] sm:rounded-[38px] sm:p-3 lg:order-2">
-                <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" class="h-[320px] w-full rounded-[30px] object-cover sm:h-[520px]">
+            <div class="order-1 -mx-4 overflow-hidden bg-white lg:order-2 lg:mx-0 lg:rounded-[38px] lg:border lg:border-[#eadfce] lg:p-3">
+                <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" class="h-[320px] w-full object-cover sm:h-[430px] lg:h-[520px] lg:rounded-[30px]">
             </div>
         </div>
     </div>
