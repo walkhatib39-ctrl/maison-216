@@ -1714,6 +1714,22 @@ Verification locale:
 - `git diff --check`
 
 Deploiement:
+- commit: `d81b13f8 Seed restaurant showroom products`
+- push GitHub sur `main`
+- deploiement Plesk execute
+- commandes production:
+  - `php artisan migrate --force`
+  - `php artisan db:seed --class=ShowroomRestaurantProductSeeder --force`
+  - `php artisan optimize:clear`
+  - `php artisan config:cache`
+  - `php artisan view:cache`
+- verification production:
+  - `/showroom/restaurants-cafes-fast-foods`: HTTP `200`
+  - page 1: 18 produits affiches
+  - page 2: 3 produits affiches
+  - `/showroom/produit/comptoir-restaurant-sur-mesure`: HTTP `200`
+
+Deploiement:
 - commit: `61327f05 Seed pharmacy showroom products`
 - push GitHub sur `main`
 - deploiement Plesk execute
