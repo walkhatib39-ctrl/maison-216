@@ -1735,3 +1735,50 @@ Remarques:
 
 Prochaine action recommandee:
 - ajouter des images par produit ou par famille de produits, puis creer le formulaire devis produit directement dans les fiches Showroom sur devis.
+
+### 2026-05-14 - Sprint Showroom 3: seed initial Restaurants, cafes & fast-foods
+
+Decision proprietaire:
+- conserver uniquement deux types de vente:
+  - Produit commandable
+  - Produit sur devis
+- ne creer aucun mode hybride
+
+Livres localement:
+- ajout du seeder `ShowroomRestaurantProductSeeder`
+- creation idempotente de 21 produits pour l'activite `Restaurants, cafes & fast-foods`
+- ordre d'affichage conforme au brief:
+  - comptoir restaurant sur mesure
+  - comptoir fast-food compact
+  - bar cafe sur mesure
+  - meuble arriere-bar
+  - banquette restaurant
+  - mobilier commandable salle/service/menu
+  - packs ouverture et renovation
+- assignation secondaire:
+  - `Presentoir patisserie sec` est aussi assigne a `Patisseries & boulangeries`
+- mapping vente:
+  - 8 produits sur devis
+  - 13 produits commandables
+  - 0 produit en mode hybride
+
+Verification locale:
+- `php -l database/seeders/ShowroomRestaurantProductSeeder.php`
+- `php artisan db:seed --class=ShowroomRestaurantProductSeeder`
+- verification Tinker:
+  - `restaurant_products`: 21
+  - `first`: `comptoir-restaurant-sur-mesure`
+  - `last`: `pack-renovation-restaurant`
+  - `quote`: 8
+  - `commandable`: 13
+  - `hybrid_mode`: 0
+- `php artisan view:cache`
+- `php artisan test`: 25 tests passes
+- `git diff --check`
+
+Remarques:
+- les produits seedes n'ont pas encore d'images dediees; les cartes publiques utilisent le placeholder Showroom tant que les visuels ne sont pas ajoutes depuis l'admin
+- le seed supprime la galerie des produits seedes pour rester idempotent et eviter les doublons
+
+Prochaine action recommandee:
+- deployer le seed restaurant, puis continuer avec l'activite suivante ou creer un workflow d'import/seed admin plus rapide pour les prochains silos Showroom.
