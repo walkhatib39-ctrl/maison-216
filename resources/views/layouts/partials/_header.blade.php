@@ -16,6 +16,12 @@
 
     $serviceNavigation = collect([
         [
+            'title' => 'Showroom',
+            'href' => route('showroom.index'),
+            'description' => 'Produits, modeles et solutions d amenagement pour commerces et espaces professionnels.',
+            'children' => [],
+        ],
+        [
             'title' => 'Menuiserie bois',
             'href' => url('/menuiserie-bois'),
             'description' => $node('menuiserie-bois')['description'] ?? 'Meubles et amenagements bois pour la maison et les espaces professionnels.',

@@ -1552,3 +1552,67 @@ Verification production:
 
 Prochaine action recommandee:
 - definir la nouvelle strategie e-commerce avant de recreer produits/categories/commandes: modele catalogue, niveau de prix, parcours devis/panier, et cockpit admin associe.
+
+### 2026-05-14 - Sprint Showroom 1: fondation e-commerce hybride
+
+Decision proprietaire:
+- conserver le noyau e-commerce Maison216
+- transformer l'ancien catalogue en Showroom digital hybride
+- accepter deux parcours produit: produit commandable avec checkout, produit sur devis sans checkout direct
+- organiser le Showroom par activite professionnelle et non uniquement par categorie produit classique
+
+Livres localement:
+- ajout de la table `showroom_activities` pour les pages activite: pharmacies, CHR, beaute, boutiques, medical, bureaux, boulangeries, hotels
+- ajout du pivot `product_showroom_activity` pour assigner un produit a une ou plusieurs activites
+- extension des produits avec les champs Showroom:
+  - prix nullable pour les produits sur devis
+  - `is_starting_price`
+  - `showroom_badge`
+  - `availability_label`
+  - `delivery_note`
+  - `finish_summary`
+  - `custom_options`
+- ajout du modele `ShowroomActivity`
+- ajout du `ShowroomActivitySeeder`
+- ajout des routes publiques:
+  - `/showroom`
+  - `/showroom/{activite}`
+  - `/showroom/produit/{slug}`
+- ajout des vues publiques Showroom:
+  - page principale Showroom
+  - page activite avec filtre commandable / sur devis
+  - fiche produit hybride
+  - carte produit reutilisable
+- ajout du lien `Showroom` dans le header public et dans le footer
+- ajout du Showroom dans `config/site_structure.php` pour que la page racine soit connue du cockpit SEO
+- ajout des URLs Showroom et produits actifs dans le sitemap
+- adaptation de l'admin produits:
+  - menu principal `Showroom`
+  - assignation des produits aux activites Showroom
+  - type de vente via `quote_only` + `sale_mode=sur_mesure`
+  - prix optionnel si produit sur devis
+  - champs disponibilite, livraison, finitions, badge, options JSON
+  - affichage prix `Sur devis` / `A partir de ...`
+  - lien admin vers la fiche `/showroom/produit/{slug}`
+- blocage des achats directs pour les produits sur devis:
+  - checkout redirige vers `/devis?produit=...`
+  - commande rapide redirige aussi vers le devis
+- correction de robustesse `Setting::get()` pour les environnements sans table `settings` pendant les tests
+
+Verification locale:
+- `php artisan migrate`
+- `php artisan db:seed --class=ShowroomActivitySeeder`
+- `php artisan route:list --path=showroom`
+- `php artisan view:cache`
+- `php artisan test` : 25 tests passes
+- `npm run build`
+- `git diff --check`
+
+Remarques:
+- les activites Showroom sont seedées mais pas encore administrables via une page CRUD dediee
+- les produits ont ete purges en production precedemment; le Showroom sera donc vide jusqu'a creation/import de nouveaux produits
+- le formulaire court produit sur devis n'est pas encore integre dans la fiche produit; le CTA redirige vers la page devis
+- les anciennes routes e-commerce `/categories`, `/c/{slug}` et `/p/{slug}` sont conservees pour compatibilite, mais le nouveau parcours public prioritaire est `/showroom`
+
+Prochaine action recommandee:
+- Sprint Showroom 2: creer l'administration des activites Showroom, ajouter un formulaire de demande de devis directement sur les fiches produits sur devis, puis creer/importer les premiers produits exemples par activite.

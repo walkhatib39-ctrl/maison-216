@@ -9,6 +9,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SitePageController;
 use App\Http\Controllers\RealizationController;
+use App\Http\Controllers\ShowroomController;
 use Illuminate\Support\Facades\Route;
 
 // Front routes
@@ -25,6 +26,9 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 Route::get('/realisations', [RealizationController::class, 'index'])->name('realizations.index');
 Route::get('/realisations/{realization:slug}', [RealizationController::class, 'show'])->name('realizations.show');
+Route::get('/showroom', [ShowroomController::class, 'index'])->name('showroom.index');
+Route::get('/showroom/produit/{slug}', [ShowroomController::class, 'product'])->name('showroom.product.show');
+Route::get('/showroom/{activity:slug}', [ShowroomController::class, 'activity'])->name('showroom.activity.show');
 
 Route::get('/menuiserie-bois/{path?}', [SitePageController::class, 'show'])
     ->where('path', '.*')
@@ -150,6 +154,7 @@ Route::middleware(['auth', 'admin'])
 Route::get('/sitemap.xml', function () {
     $urls = [];
     $urls[] = url('/');
+    $urls[] = route('showroom.index');
 
     if (\Illuminate\Support\Facades\Schema::hasTable('site_pages') && \App\Models\SitePage::query()->exists()) {
         $sitePageUrls = \App\Models\SitePage::query()
@@ -173,7 +178,24 @@ Route::get('/sitemap.xml', function () {
             ->all());
     }
 
-    $products = collect();
+    if (\Illuminate\Support\Facades\Schema::hasTable('showroom_activities')) {
+        $urls = array_merge($urls, \App\Models\ShowroomActivity::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn (\App\Models\ShowroomActivity $activity) => route('showroom.activity.show', $activity))
+            ->all());
+    }
+
+    $products = \Illuminate\Support\Facades\Schema::hasTable('products')
+        ? \App\Models\Product::query()
+            ->where('is_active', true)
+            ->get()
+            ->map(fn (\App\Models\Product $product) => (object) [
+                'url' => route('showroom.product.show', $product->slug),
+                'updated_at' => $product->updated_at,
+            ])
+        : collect();
 
     return response()->view('sitemap', [
         'urls' => $urls,

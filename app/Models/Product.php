@@ -27,19 +27,27 @@ class Product extends Model
         'brand',
         'sale_mode',
         'quote_only',
+        'is_starting_price',
         'is_customizable',
+        'showroom_badge',
         'main_image',
         'material_summary',
         'dimension_summary',
+        'availability_label',
+        'delivery_note',
+        'finish_summary',
         'short_description',
         'long_description',
         'attributes',
+        'custom_options',
         'is_active',
     ];
 
     protected $casts = [
         'attributes' => 'array',
+        'custom_options' => 'array',
         'quote_only' => 'boolean',
+        'is_starting_price' => 'boolean',
         'is_customizable' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -87,6 +95,15 @@ class Product extends Model
             ->orderBy('collection_product.position');
     }
 
+    public function showroomActivities(): BelongsToMany
+    {
+        return $this->belongsToMany(ShowroomActivity::class, 'product_showroom_activity')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('product_showroom_activity.sort_order')
+            ->orderBy('showroom_activities.name');
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('position');
@@ -123,5 +140,52 @@ class Product extends Model
     public function inStock(): bool
     {
         return ($this->stock ?? 0) > 0;
+    }
+
+    public function isQuoteOnly(): bool
+    {
+        return (bool) $this->quote_only || $this->sale_mode === 'sur_mesure';
+    }
+
+    public function isDirectlyOrderable(): bool
+    {
+        return !$this->isQuoteOnly();
+    }
+
+    public function getShowroomPriceLabelAttribute(): string
+    {
+        if ($this->price_millimes === null || $this->price_millimes <= 0) {
+            return $this->isQuoteOnly() ? 'Sur devis' : 'Prix à confirmer';
+        }
+
+        $prefix = $this->is_starting_price || $this->isQuoteOnly() ? 'À partir de ' : '';
+
+        return $prefix . $this->price_display;
+    }
+
+    public function getShowroomBadgeLabelAttribute(): string
+    {
+        if (filled($this->showroom_badge)) {
+            return (string) $this->showroom_badge;
+        }
+
+        if ($this->isQuoteOnly()) {
+            return 'Sur mesure';
+        }
+
+        return 'Standard';
+    }
+
+    public function getMainImageUrlAttribute(): ?string
+    {
+        if (blank($this->main_image)) {
+            return null;
+        }
+
+        if (Str::startsWith($this->main_image, ['http://', 'https://'])) {
+            return $this->main_image;
+        }
+
+        return asset(ltrim($this->main_image, '/'));
     }
 }

@@ -67,14 +67,14 @@ class SearchController extends Controller
             ->get();
 
         $data = $products->map(function (Product $p) {
-            $img = $p->main_image ?: ($p->images->first()->url ?? null);
+            $img = $p->main_image_url ?: ($p->images->first()->url ?? null);
 
             return [
                 'title' => $p->title,
                 'slug'  => $p->slug,
                 'image' => $img,
                 'brand' => $p->brand,
-                'url'   => route('product.show', $p->slug, false),
+                'url'   => route('showroom.product.show', $p->slug, false),
             ];
         });
 

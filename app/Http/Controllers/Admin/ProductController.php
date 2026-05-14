@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductType;
 use App\Models\Room;
+use App\Models\ShowroomActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::query()
-            ->with(['category', 'room', 'productType', 'primaryCollection'])
+            ->with(['category', 'room', 'productType', 'primaryCollection', 'showroomActivities'])
             ->withCount('images');
 
         $filters = [
@@ -79,12 +80,14 @@ class ProductController extends Controller
         $rooms = Room::where('is_active', true)->orderBy('position')->orderBy('name')->get();
         $productTypes = ProductType::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
         $collections = CatalogCollection::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
+        $showroomActivities = ShowroomActivity::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
 
         return view('admin.products.create', [
             'categories' => $categories,
             'rooms' => $rooms,
             'productTypes' => $productTypes,
             'collections' => $collections,
+            'showroomActivities' => $showroomActivities,
             'product' => new Product(),
         ]);
     }
@@ -94,6 +97,8 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $quoteOnly = $request->boolean('quote_only') || $request->input('sale_mode') === 'sur_mesure';
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
@@ -104,20 +109,28 @@ class ProductController extends Controller
             'collection_ids.*' => ['integer', 'exists:collections,id'],
             'sale_mode' => ['required', 'string', 'in:catalog,bundle,configurable,sur_mesure'],
             'quote_only' => ['nullable', 'boolean'],
+            'is_starting_price' => ['nullable', 'boolean'],
             'is_customizable' => ['nullable', 'boolean'],
-            'price' => ['required', 'string', 'max:50'], // e.g. "259" or "259 DT"
+            'price' => [$quoteOnly ? 'nullable' : 'required', 'string', 'max:50'], // e.g. "259" or "259 DT"
             'compare_at' => ['nullable', 'string', 'max:50'],
             'stock' => ['required', 'integer', 'min:0'],
             'sku' => ['nullable', 'string', 'max:100'],
             'brand' => ['nullable', 'string', 'max:150'],
+            'showroom_badge' => ['nullable', 'string', 'max:80'],
             'material_summary' => ['nullable', 'string', 'max:255'],
             'dimension_summary' => ['nullable', 'string', 'max:255'],
+            'availability_label' => ['nullable', 'string', 'max:255'],
+            'delivery_note' => ['nullable', 'string', 'max:255'],
+            'finish_summary' => ['nullable', 'string', 'max:255'],
             'main_image_url' => ['nullable', 'url'],
             'main_image_file' => ['nullable', 'image', 'max:4096'],
             'short_description' => ['nullable', 'string'],
             'long_description' => ['nullable', 'string'],
             'attributes_json' => ['nullable', 'string'],
+            'custom_options_json' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
+            'showroom_activity_ids' => ['nullable', 'array'],
+            'showroom_activity_ids.*' => ['integer', 'exists:showroom_activities,id'],
 
             // gallery as newline-separated URLs
             'gallery_urls' => ['nullable', 'string'],
@@ -133,14 +146,19 @@ class ProductController extends Controller
         $product->primary_collection_id = $data['primary_collection_id'] ?? null;
         $product->sale_mode = $data['sale_mode'];
         $product->quote_only = (bool) ($data['quote_only'] ?? false);
+        $product->is_starting_price = (bool) ($data['is_starting_price'] ?? false);
         $product->is_customizable = (bool) ($data['is_customizable'] ?? false);
-        $product->price_millimes = $this->parsePriceToMillimes((string) $data['price']);
+        $product->price_millimes = filled($data['price'] ?? null) ? $this->parsePriceToMillimes((string) $data['price']) : null;
         $product->compare_at_millimes = isset($data['compare_at']) && $data['compare_at'] !== '' ? $this->parsePriceToMillimes((string) $data['compare_at']) : null;
         $product->stock = (int) $data['stock'];
         $product->sku = $data['sku'] ?? null;
         $product->brand = $data['brand'] ?? null;
+        $product->showroom_badge = $data['showroom_badge'] ?? null;
         $product->material_summary = $data['material_summary'] ?? null;
         $product->dimension_summary = $data['dimension_summary'] ?? null;
+        $product->availability_label = $data['availability_label'] ?? null;
+        $product->delivery_note = $data['delivery_note'] ?? null;
+        $product->finish_summary = $data['finish_summary'] ?? null;
         $product->short_description = $data['short_description'] ?? null;
         $product->long_description = $data['long_description'] ?? null;
         $product->is_active = (bool) ($data['is_active'] ?? false);
@@ -149,6 +167,10 @@ class ProductController extends Controller
         if (!empty($data['attributes_json'])) {
             $decoded = json_decode($data['attributes_json'], true);
             $product->attributes = is_array($decoded) ? $decoded : null;
+        }
+        if (!empty($data['custom_options_json'])) {
+            $decoded = json_decode($data['custom_options_json'], true);
+            $product->custom_options = is_array($decoded) ? $decoded : null;
         }
 
         // Main image from uploaded file or URL
@@ -160,6 +182,7 @@ class ProductController extends Controller
 
         $product->save();
         $this->syncCollections($product, $data['collection_ids'] ?? [], $product->primary_collection_id);
+        $this->syncShowroomActivities($product, $data['showroom_activity_ids'] ?? []);
 
         // Build gallery list: main first then others
         $gallery = [];
@@ -207,17 +230,21 @@ class ProductController extends Controller
         $rooms = Room::where('is_active', true)->orderBy('position')->orderBy('name')->get();
         $productTypes = ProductType::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
         $collections = CatalogCollection::with('room')->where('is_active', true)->orderBy('position')->orderBy('name')->get();
+        $showroomActivities = ShowroomActivity::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
 
         $existingGallery = $product->images()->pluck('url')->toArray();
         $existingGalleryText = implode("\n", array_filter($existingGallery, fn ($u) => $u !== $product->main_image));
+        $selectedShowroomActivityIds = $product->showroomActivities()->pluck('showroom_activities.id')->all();
 
         return view('admin.products.edit', [
             'categories' => $categories,
             'rooms' => $rooms,
             'productTypes' => $productTypes,
             'collections' => $collections,
-            'product' => $product->load(['images', 'collections']),
+            'showroomActivities' => $showroomActivities,
+            'product' => $product->load(['images', 'collections', 'showroomActivities']),
             'existingGalleryText' => $existingGalleryText,
+            'selectedShowroomActivityIds' => $selectedShowroomActivityIds,
         ]);
     }
 
@@ -226,6 +253,8 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        $quoteOnly = $request->boolean('quote_only') || $request->input('sale_mode') === 'sur_mesure';
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
@@ -236,20 +265,28 @@ class ProductController extends Controller
             'collection_ids.*' => ['integer', 'exists:collections,id'],
             'sale_mode' => ['required', 'string', 'in:catalog,bundle,configurable,sur_mesure'],
             'quote_only' => ['nullable', 'boolean'],
+            'is_starting_price' => ['nullable', 'boolean'],
             'is_customizable' => ['nullable', 'boolean'],
-            'price' => ['required', 'string', 'max:50'],
+            'price' => [$quoteOnly ? 'nullable' : 'required', 'string', 'max:50'],
             'compare_at' => ['nullable', 'string', 'max:50'],
             'stock' => ['required', 'integer', 'min:0'],
             'sku' => ['nullable', 'string', 'max:100'],
             'brand' => ['nullable', 'string', 'max:150'],
+            'showroom_badge' => ['nullable', 'string', 'max:80'],
             'material_summary' => ['nullable', 'string', 'max:255'],
             'dimension_summary' => ['nullable', 'string', 'max:255'],
+            'availability_label' => ['nullable', 'string', 'max:255'],
+            'delivery_note' => ['nullable', 'string', 'max:255'],
+            'finish_summary' => ['nullable', 'string', 'max:255'],
             'main_image_url' => ['nullable', 'url'],
             'main_image_file' => ['nullable', 'image', 'max:4096'],
             'short_description' => ['nullable', 'string'],
             'long_description' => ['nullable', 'string'],
             'attributes_json' => ['nullable', 'string'],
+            'custom_options_json' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
+            'showroom_activity_ids' => ['nullable', 'array'],
+            'showroom_activity_ids.*' => ['integer', 'exists:showroom_activities,id'],
 
             'gallery_urls' => ['nullable', 'string'],
             'gallery_files.*' => ['nullable', 'image', 'max:4096'],
@@ -263,14 +300,19 @@ class ProductController extends Controller
         $product->primary_collection_id = $data['primary_collection_id'] ?? null;
         $product->sale_mode = $data['sale_mode'];
         $product->quote_only = (bool) ($data['quote_only'] ?? false);
+        $product->is_starting_price = (bool) ($data['is_starting_price'] ?? false);
         $product->is_customizable = (bool) ($data['is_customizable'] ?? false);
-        $product->price_millimes = $this->parsePriceToMillimes((string) $data['price']);
+        $product->price_millimes = filled($data['price'] ?? null) ? $this->parsePriceToMillimes((string) $data['price']) : null;
         $product->compare_at_millimes = isset($data['compare_at']) && $data['compare_at'] !== '' ? $this->parsePriceToMillimes((string) $data['compare_at']) : null;
         $product->stock = (int) $data['stock'];
         $product->sku = $data['sku'] ?? null;
         $product->brand = $data['brand'] ?? null;
+        $product->showroom_badge = $data['showroom_badge'] ?? null;
         $product->material_summary = $data['material_summary'] ?? null;
         $product->dimension_summary = $data['dimension_summary'] ?? null;
+        $product->availability_label = $data['availability_label'] ?? null;
+        $product->delivery_note = $data['delivery_note'] ?? null;
+        $product->finish_summary = $data['finish_summary'] ?? null;
         $product->short_description = $data['short_description'] ?? null;
         $product->long_description = $data['long_description'] ?? null;
         $product->is_active = (bool) ($data['is_active'] ?? false);
@@ -280,6 +322,12 @@ class ProductController extends Controller
             $product->attributes = is_array($decoded) ? $decoded : null;
         } else {
             $product->attributes = null;
+        }
+        if (!empty($data['custom_options_json'])) {
+            $decoded = json_decode($data['custom_options_json'], true);
+            $product->custom_options = is_array($decoded) ? $decoded : null;
+        } else {
+            $product->custom_options = null;
         }
 
         // Main image
@@ -291,6 +339,7 @@ class ProductController extends Controller
 
         $product->save();
         $this->syncCollections($product, $data['collection_ids'] ?? [], $product->primary_collection_id);
+        $this->syncShowroomActivities($product, $data['showroom_activity_ids'] ?? []);
 
         // Gallery management
         $newGallery = [];
@@ -600,5 +649,18 @@ class ProductController extends Controller
         })->all();
 
         $product->collections()->sync($payload);
+    }
+
+    protected function syncShowroomActivities(Product $product, array $activityIds): void
+    {
+        $payload = collect($activityIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->mapWithKeys(fn (int $id, int $index) => [$id => ['sort_order' => $index]])
+            ->all();
+
+        $product->showroomActivities()->sync($payload);
     }
 }

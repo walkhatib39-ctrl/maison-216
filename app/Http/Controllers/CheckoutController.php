@@ -18,13 +18,19 @@ class CheckoutController extends Controller
     /**
      * Display checkout page for a given product (by id or slug), with optional qty preset.
      */
-    public function create(Request $request, string $product): View
+    public function create(Request $request, string $product): View|RedirectResponse
     {
         $prod = Product::where('slug', $product)
             ->orWhere('id', $product)
             ->where('is_active', true)
             ->with('images', 'category')
             ->firstOrFail();
+
+        if ($prod->isQuoteOnly()) {
+            return redirect()
+                ->to('/devis?produit=' . urlencode($prod->slug))
+                ->with('status', 'Ce produit est disponible sur devis.');
+        }
 
         $qty = (int) $request->integer('qty', 1);
         $qty = max(1, min(20, $qty));
@@ -47,6 +53,12 @@ class CheckoutController extends Controller
             ->orWhere('id', $product)
             ->where('is_active', true)
             ->firstOrFail();
+
+        if ($prod->isQuoteOnly()) {
+            return redirect()
+                ->to('/devis?produit=' . urlencode($prod->slug))
+                ->with('status', 'Ce produit est disponible sur devis.');
+        }
 
         $data = $request->validated();
 

@@ -11,7 +11,7 @@
 
     @foreach($products as $p)
         <url>
-            <loc>{{ url('/p/' . $p->slug) }}</loc>
+            <loc>{{ $p->url ?? url('/p/' . $p->slug) }}</loc>
             @if(!empty($p->updated_at))
                 <lastmod>{{ optional($p->updated_at)->format('Y-m-d') }}</lastmod>
             @endif

@@ -56,6 +56,13 @@ class ProductController extends Controller
         ]);
 
         $product = Product::whereKey($data['product_id'])->where('is_active', true)->firstOrFail();
+
+        if ($product->isQuoteOnly()) {
+            return redirect()
+                ->to('/devis?produit=' . urlencode($product->slug))
+                ->with('status', 'Ce produit est disponible sur devis.');
+        }
+
         $qty = (int) ($data['quantity'] ?? 1);
         $qty = max(1, min(20, $qty));
 

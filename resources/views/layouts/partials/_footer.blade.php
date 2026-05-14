@@ -35,6 +35,7 @@
     ]);
 
     $resourceLinks = collect([
+        ['title' => 'Le Showroom', 'href' => route('showroom.index')],
         ['title' => 'Réalisations', 'href' => route('realizations.index')],
         ['title' => 'Questions fréquentes', 'href' => url('/#faq')],
         ['title' => 'Espace professionnels', 'href' => url('/partenaires')],

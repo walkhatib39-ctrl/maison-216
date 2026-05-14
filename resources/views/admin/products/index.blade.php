@@ -5,8 +5,8 @@
 <div class="mb-8">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-dark-900">Gestion des produits</h1>
-            <p class="text-dark-600 mt-1">{{ $products->total() }} produit{{ $products->total() > 1 ? 's' : '' }} au total</p>
+            <h1 class="text-3xl font-bold text-dark-900">Showroom produits</h1>
+            <p class="text-dark-600 mt-1">{{ $products->total() }} produit{{ $products->total() > 1 ? 's' : '' }} publiable{{ $products->total() > 1 ? 's' : '' }} dans le Showroom</p>
         </div>
         <div class="flex items-center gap-3">
             <a href="{{ route('admin.products.import') }}"
@@ -169,8 +169,8 @@
                         <td class="px-6 py-6">
                             <div class="flex items-center gap-4">
                                 <div class="relative">
-                                    @if($p->main_image)
-                                        <img src="{{ asset($p->main_image) }}" alt="{{ $p->title }}" 
+                                    @if($p->main_image_url)
+                                        <img src="{{ $p->main_image_url }}" alt="{{ $p->title }}"
                                              class="h-16 w-16 object-cover rounded-xl border-2 border-dark-200 group-hover:border-primary-300 transition-colors duration-200">
                                     @else
                                         <div class="h-16 w-16 bg-gradient-to-br from-dark-100 to-dark-200 rounded-xl border-2 border-dark-200 flex items-center justify-center">
@@ -218,9 +218,12 @@
                                             <span class="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">{{ $p->primaryCollection->name }}</span>
                                         @endif
                                         <span class="rounded-full bg-dark-100 px-2 py-1 font-medium text-dark-700">{{ $p->sale_mode ?? 'catalog' }}</span>
-                                        @if($p->quote_only)
+                                        @if($p->isQuoteOnly())
                                             <span class="rounded-full bg-red-100 px-2 py-1 font-medium text-red-700">devis</span>
                                         @endif
+                                        @foreach($p->showroomActivities->take(2) as $activity)
+                                            <span class="rounded-full bg-emerald-100 px-2 py-1 font-medium text-emerald-700">{{ $activity->name }}</span>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -239,9 +242,9 @@
                         </td>
                         <td class="px-6 py-6">
                             <div class="text-2xl font-bold text-primary-600">
-                                {{ (int) floor(($p->price_millimes ?? 0)/1000) }} DT
+                                {{ $p->showroom_price_label }}
                             </div>
-                            @if($p->compare_at_millimes && $p->compare_at_millimes > $p->price_millimes)
+                            @if(!$p->isQuoteOnly() && $p->price_millimes && $p->compare_at_millimes && $p->compare_at_millimes > $p->price_millimes)
                                 <div class="text-sm text-dark-400 line-through">
                                     {{ (int) floor($p->compare_at_millimes/1000) }} DT
                                 </div>
@@ -249,7 +252,10 @@
                         </td>
                         <td class="px-6 py-6">
                             <div class="flex items-center gap-2">
-                                @if($p->stock > 0)
+                                @if($p->isQuoteOnly())
+                                    <div class="w-3 h-3 bg-amber-500 rounded-full"></div>
+                                    <span class="font-semibold text-amber-700">Sur devis</span>
+                                @elseif($p->stock > 0)
                                     <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                                     <span class="font-semibold text-dark-900">{{ $p->stock }}</span>
                                     <span class="text-sm text-dark-600">en stock</span>
@@ -292,7 +298,7 @@
                                 </form>
 
                                 <!-- View Product -->
-                                <a href="{{ route('product.show', $p->slug) }}" target="_blank" title="Voir sur le site"
+                                <a href="{{ route('showroom.product.show', $p->slug) }}" target="_blank" title="Voir sur le site"
                                    class="interactive p-2 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg transition-colors duration-200">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>

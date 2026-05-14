@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
         // Base settings + catégories
         $this->call([
             SettingSeeder::class,
+            ShowroomActivitySeeder::class,
             CategorySeeder::class,
             OrderSeeder::class,
         ]);

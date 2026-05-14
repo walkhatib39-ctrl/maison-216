@@ -34,6 +34,12 @@
             'icon' => 'leads',
         ],
         [
+            'label' => 'Showroom',
+            'route' => 'admin.products.index',
+            'active' => 'admin.products.*',
+            'icon' => 'gallery',
+        ],
+        [
             'label' => 'Realisations',
             'route' => 'admin.realizations.index',
             'active' => 'admin.realizations.*',
@@ -54,7 +60,6 @@
     ];
 
     $archiveNav = [
-        ['label' => 'Produits', 'route' => 'admin.products.index', 'active' => 'admin.products.*'],
         ['label' => 'Commandes', 'route' => 'admin.orders.index', 'active' => 'admin.orders.*'],
         ['label' => 'Categories', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*'],
         ['label' => 'Univers', 'route' => 'admin.rooms.index', 'active' => 'admin.rooms.*'],

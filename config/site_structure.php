@@ -2,6 +2,12 @@
 
 return [
     [
+        'title' => 'Le Showroom',
+        'path' => 'showroom',
+        'description' => 'Produits, modèles et solutions d aménagement en bois, aluminium et métal pour commerces et espaces professionnels.',
+        'type' => 'commerce',
+    ],
+    [
         'title' => 'Menuiserie bois',
         'path' => 'menuiserie-bois',
         'description' => 'Meubles, rangements et agencements bois pour la maison, les commerces et les espaces professionnels.',

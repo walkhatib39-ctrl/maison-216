@@ -1,6 +1,7 @@
 <x-app-layout>
     @php
         $selectedCollectionIds = collect(old('collection_ids', $product->collections->pluck('id')->all()));
+        $selectedShowroomActivityIds = collect(old('showroom_activity_ids', $selectedShowroomActivityIds ?? $product->showroomActivities->pluck('id')->all()));
     @endphp
 
     <x-slot name="header">
@@ -109,11 +110,25 @@
                         <div class="mt-1 text-xs text-gray-500">Ctrl/Cmd pour sélectionner plusieurs collections.</div>
                     </div>
 
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Activités Showroom</label>
+                        <select name="showroom_activity_ids[]" multiple size="8"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            @foreach($showroomActivities as $activity)
+                                <option value="{{ $activity->id }}" @selected($selectedShowroomActivityIds->contains($activity->id))>
+                                    {{ $activity->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="mt-1 text-xs text-gray-500">Assignez le produit aux pages activité du Showroom.</div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Prix (DT)</label>
-                        <input required name="price" type="text" value="{{ old('price', (int) floor(($product->price_millimes ?? 0)/1000)) }}"
+                        <input name="price" type="text" value="{{ old('price', $product->price_millimes !== null ? (int) floor(($product->price_millimes ?? 0)/1000) : '') }}"
                                placeholder="Ex: 259 ou 259 DT"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <div class="mt-1 text-xs text-gray-500">Obligatoire uniquement si le produit est commandable.</div>
                     </div>
 
                     <div>
@@ -154,6 +169,13 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700">Badge Showroom</label>
+                        <input name="showroom_badge" type="text" value="{{ old('showroom_badge', $product->showroom_badge) }}"
+                               placeholder="Standard, Sur mesure, Premium, Pro"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700">Résumé matières</label>
                         <input name="material_summary" type="text" value="{{ old('material_summary', $product->material_summary) }}"
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
@@ -176,8 +198,34 @@
                     </div>
 
                     <div class="flex items-center gap-3">
+                        <input id="is_starting_price" name="is_starting_price" type="checkbox" value="1" @checked(old('is_starting_price', $product->is_starting_price)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="is_starting_price" class="text-sm text-gray-700">Afficher “À partir de”</label>
+                    </div>
+
+                    <div class="flex items-center gap-3">
                         <input id="is_customizable" name="is_customizable" type="checkbox" value="1" @checked(old('is_customizable', $product->is_customizable)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <label for="is_customizable" class="text-sm text-gray-700">Personnalisable</label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Disponibilité</label>
+                        <input name="availability_label" type="text" value="{{ old('availability_label', $product->availability_label) }}"
+                               placeholder="En stock, Sur commande, 2-3 semaines"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Livraison</label>
+                        <input name="delivery_note" type="text" value="{{ old('delivery_note', $product->delivery_note) }}"
+                               placeholder="Livraison Grand Tunis, pose sur devis"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Finitions</label>
+                        <input name="finish_summary" type="text" value="{{ old('finish_summary', $product->finish_summary) }}"
+                               placeholder="RAL au choix, MDF laqué..."
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
 
@@ -191,9 +239,9 @@
                         <input name="main_image_file" type="file" accept="image/*"
                                class="mt-2 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
 
-                        @if($product->main_image)
+                        @if($product->main_image_url)
                             <div class="mt-3">
-                                <img src="{{ asset($product->main_image) }}" alt="{{ $product->title }}" class="h-24 w-24 object-cover rounded">
+                                <img src="{{ $product->main_image_url }}" alt="{{ $product->title }}" class="h-24 w-24 object-cover rounded">
                             </div>
                         @endif
                     </div>
@@ -232,6 +280,13 @@
                     <textarea name="attributes_json" rows="6" placeholder='{"Couleur":"Chêne","Dimensions":"120x60x45"}'
                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('attributes_json', $product->attributes ? json_encode($product->attributes, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) : '') }}</textarea>
                     <div class="mt-1 text-xs text-gray-500">Collez un objet JSON valide.</div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Options personnalisables (JSON)</label>
+                    <textarea name="custom_options_json" rows="6" placeholder='{"Dimensions":["120 cm","160 cm"],"Finition":["Noir mat","Chêne clair"]}'
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">{{ old('custom_options_json', $product->custom_options ? json_encode($product->custom_options, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) : '') }}</textarea>
+                    <div class="mt-1 text-xs text-gray-500">Options affichables pour les produits sur devis ou configurables.</div>
                 </div>
 
                 <div class="pt-4">

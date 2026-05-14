@@ -134,6 +134,19 @@
                             <p class="text-xs text-dark-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs collections.</p>
                         </div>
 
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Activités Showroom</label>
+                            <select name="showroom_activity_ids[]" multiple size="8"
+                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200">
+                                @foreach($showroomActivities as $activity)
+                                    <option value="{{ $activity->id }}" @selected(collect(old('showroom_activity_ids', []))->contains($activity->id))>
+                                        {{ $activity->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-dark-500 mt-1">Les pages activité du Showroom affichent uniquement les produits assignés ici.</p>
+                        </div>
+
                         <div>
                             <label class="block text-sm font-semibold text-dark-700 mb-2">SKU</label>
                             <input name="sku" type="text" value="{{ old('sku') }}"
@@ -163,6 +176,14 @@
                         </div>
 
                         <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Badge Showroom</label>
+                            <input name="showroom_badge" type="text" value="{{ old('showroom_badge') }}"
+                                   class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
+                                   placeholder="Standard, Sur mesure, Premium, Pro">
+                            <p class="text-xs text-dark-500 mt-1">Affiché sur les cartes produit</p>
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-semibold text-dark-700 mb-2">Résumé matières</label>
                             <input name="material_summary" type="text" value="{{ old('material_summary') }}"
                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
@@ -178,7 +199,7 @@
                             <p class="text-xs text-dark-500 mt-1">Résumé rapide affichable partout</p>
                         </div>
 
-                        <div class="md:col-span-2 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                        <div class="md:col-span-2 grid grid-cols-1 gap-4 lg:grid-cols-4">
                             <div class="flex items-center gap-4 rounded-xl border border-green-200 bg-green-50 p-4">
                                 <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', true))
                                        class="w-5 h-5 rounded border-green-300 text-green-600 focus:ring-green-500 transition-colors duration-200">
@@ -194,6 +215,15 @@
                                 <div class="flex-1">
                                     <label for="quote_only" class="font-semibold text-amber-800">Devis uniquement</label>
                                     <p class="text-sm text-amber-600">Pas d’achat direct</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 rounded-xl border border-orange-200 bg-orange-50 p-4">
+                                <input id="is_starting_price" name="is_starting_price" type="checkbox" value="1" @checked(old('is_starting_price'))
+                                       class="w-5 h-5 rounded border-orange-300 text-orange-600 focus:ring-orange-500 transition-colors duration-200">
+                                <div class="flex-1">
+                                    <label for="is_starting_price" class="font-semibold text-orange-800">À partir de</label>
+                                    <p class="text-sm text-orange-600">Préfixe le prix</p>
                                 </div>
                             </div>
 
@@ -228,16 +258,16 @@
                 <div class="p-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label class="block text-sm font-semibold text-dark-700 mb-2">Prix de vente *</label>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Prix de vente</label>
                             <div class="relative">
-                                <input required name="price" type="text" value="{{ old('price') }}"
+                                <input name="price" type="text" value="{{ old('price') }}"
                                        class="w-full pl-4 pr-12 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
                                        placeholder="259">
                                 <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-dark-600 font-semibold">
                                     DT
                                 </div>
                             </div>
-                            <p class="text-xs text-dark-500 mt-1">Ex: 259 ou 259 DT</p>
+                            <p class="text-xs text-dark-500 mt-1">Obligatoire uniquement pour les produits commandables. Vide = Sur devis.</p>
                         </div>
 
                         <div>
@@ -259,6 +289,27 @@
                                    class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200"
                                    placeholder="10">
                             <p class="text-xs text-dark-500 mt-1">Quantité disponible</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Disponibilité</label>
+                            <input name="availability_label" type="text" value="{{ old('availability_label') }}"
+                                   class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0"
+                                   placeholder="En stock, Sur commande, 2-3 semaines">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Livraison</label>
+                            <input name="delivery_note" type="text" value="{{ old('delivery_note') }}"
+                                   class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0"
+                                   placeholder="Livraison Grand Tunis, pose sur devis">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-dark-700 mb-2">Finitions</label>
+                            <input name="finish_summary" type="text" value="{{ old('finish_summary') }}"
+                                   class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0"
+                                   placeholder="RAL au choix, mélaminé, MDF laqué">
                         </div>
                     </div>
                 </div>
@@ -325,6 +376,14 @@
                                 <br><strong>Exemple :</strong> {"Couleur":"Beige","Dimensions":"190x85x90 cm"}
                             </div>
                         </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-dark-700 mb-2">Options personnalisables JSON</label>
+                        <textarea name="custom_options_json" rows="5"
+                                  class="w-full px-4 py-3 border-2 border-dark-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors duration-200 font-mono text-sm"
+                                  placeholder='{"Dimensions":["120 cm","160 cm"],"Finition":["Noir mat","Chêne clair"]}'>{{ old('custom_options_json') }}</textarea>
+                        <p class="text-xs text-dark-500 mt-2">Utilisé pour les produits sur devis ou configurables.</p>
                     </div>
                 </div>
             </div>
