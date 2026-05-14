@@ -88,14 +88,13 @@ Scope de purge autorise:
 - toutes les images produits liees
 - toutes les images categories liees
 - liens pivot `collection_product`
+- commandes e-commerce si le proprietaire demande explicitement une remise a zero complete
 
 Ce qui doit etre conserve:
 - tables e-commerce
 - controllers e-commerce
 - vues e-commerce
 - routes e-commerce
-- historique commandes
-- lignes de commandes, avec `product_id` detache si le produit est supprime
 
 Regle de securite:
 - utiliser une commande Artisan avec `--dry-run` avant toute purge
@@ -869,8 +868,9 @@ Objectifs:
 Validation:
 - `catalog:purge --dry-run` affiche les compteurs sans changer les donnees
 - `catalog:purge --force --backup --delete-files` cree une sauvegarde puis purge le catalogue
+- `catalog:purge --force --backup --delete-orders` purge aussi commandes et lignes de commandes si demande par le proprietaire
 - produits, images produits et categories sont a zero apres execution
-- les commandes restent presentes
+- les commandes sont conservees ou supprimees selon option explicite
 - les images hors catalogue restent presentes
 - le module e-commerce reste disponible pour la future nouvelle strategie
 
@@ -1525,3 +1525,22 @@ Remarques:
 
 Prochaine action recommandee:
 - definir la nouvelle strategie e-commerce avant de recreer produits/categories: modele catalogue, types de produits, relation avec devis, affichage prix ou devis, et parcours admin minimal.
+
+### 2026-05-14 - Correctif Sprint 6: purge commandes e-commerce demandee
+
+Decision proprietaire:
+- supprimer aussi les anciennes commandes e-commerce
+- conserver le module e-commerce, mais repartir avec catalogue et commandes a zero
+
+Livres localement:
+- ajout de l'option `--delete-orders` a `catalog:purge`
+- sauvegarde et purge couvrent maintenant `orders`, `order_items` et `order_status_history`
+- les tables e-commerce restent en place
+
+Verification locale:
+- etat avant purge locale: 89 commandes, 199 lignes de commandes, 0 historique statut
+- `php -l app/Console/Commands/ResetProducts.php`
+- dry-run a verifier avant execution production
+
+Prochaine action recommandee:
+- deployer le correctif, executer `catalog:purge --dry-run --delete-orders`, puis `catalog:purge --force --backup --delete-orders`, verifier commandes et lignes a zero.

@@ -12,14 +12,16 @@ class ResetProducts extends Command
         {--dry-run : Show what will be deleted without changing data or files}
         {--force : Run without interactive confirmation}
         {--backup : Export affected catalog rows before deleting them}
-        {--delete-files : Delete product and category image files}';
+        {--delete-files : Delete product and category image files}
+        {--delete-orders : Delete orders, order items, and order status history}';
 
-    protected $description = 'Purge catalog products, categories, product images, and optional image files while keeping the ecommerce module.';
+    protected $description = 'Purge catalog products, categories, images, and optionally order history while keeping the ecommerce module.';
 
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');
         $deleteFiles = (bool) $this->option('delete-files');
+        $deleteOrders = (bool) $this->option('delete-orders');
         $backup = (bool) $this->option('backup');
 
         $stats = $this->catalogStats();
@@ -34,6 +36,9 @@ class ResetProducts extends Command
                 ['collection_product links', $stats['collection_product']],
                 ['order_items to detach from products', $stats['order_items_with_product']],
                 ['order item images to clear', $stats['order_items_with_image']],
+                ['orders to delete', $deleteOrders ? $stats['orders'] : 0],
+                ['order items to delete', $deleteOrders ? $stats['order_items'] : 0],
+                ['order status history to delete', $deleteOrders ? $stats['order_status_history'] : 0],
                 ['local image files found', count($filePlan['files'])],
                 ['catalog image directories found', count($filePlan['directories'])],
             ]
@@ -42,11 +47,16 @@ class ResetProducts extends Command
         if ($dryRun) {
             $this->warn('Dry run only. No data or files were changed.');
             $this->line('Run with --force --backup --delete-files to purge the current catalog.');
+            $this->line('Add --delete-orders to delete ecommerce order history too.');
 
             return Command::SUCCESS;
         }
 
-        if (! $this->option('force') && ! $this->confirm('Delete all catalog products, categories, and selected images?', false)) {
+        $confirmation = $deleteOrders
+            ? 'Delete all catalog data and ecommerce order history?'
+            : 'Delete all catalog products, categories, and selected images?';
+
+        if (! $this->option('force') && ! $this->confirm($confirmation, false)) {
             $this->warn('Catalog purge cancelled.');
 
             return Command::SUCCESS;
@@ -64,15 +74,31 @@ class ResetProducts extends Command
             [$deletedFiles, $deletedDirectories] = $this->deleteCatalogFiles($filePlan);
         }
 
-        DB::transaction(function () use ($deleteFiles) {
-            DB::table('order_items')
-                ->whereNotNull('product_id')
-                ->update(['product_id' => null]);
+        DB::transaction(function () use ($deleteFiles, $deleteOrders) {
+            if ($deleteOrders) {
+                if ($this->tableExists('order_status_history')) {
+                    DB::table('order_status_history')->delete();
+                }
 
-            if ($deleteFiles) {
+                if ($this->tableExists('order_items')) {
+                    DB::table('order_items')->delete();
+                }
+
+                if ($this->tableExists('orders')) {
+                    DB::table('orders')->delete();
+                }
+            }
+
+            if ($this->tableExists('order_items')) {
                 DB::table('order_items')
-                    ->whereNotNull('product_main_image')
-                    ->update(['product_main_image' => null]);
+                    ->whereNotNull('product_id')
+                    ->update(['product_id' => null]);
+
+                if ($deleteFiles) {
+                    DB::table('order_items')
+                        ->whereNotNull('product_main_image')
+                        ->update(['product_main_image' => null]);
+                }
             }
 
             if ($this->tableExists('collection_product')) {
@@ -86,7 +112,15 @@ class ResetProducts extends Command
             DB::table('categories')->delete();
         });
 
-        $this->resetAutoIncrement(['collection_product', 'product_images', 'products', 'categories']);
+        $this->resetAutoIncrement([
+            'order_status_history',
+            'order_items',
+            'orders',
+            'collection_product',
+            'product_images',
+            'products',
+            'categories',
+        ]);
 
         $this->info('Catalog data purged.');
 
@@ -109,6 +143,9 @@ class ResetProducts extends Command
             'collection_product' => $this->tableExists('collection_product') ? DB::table('collection_product')->count() : 0,
             'order_items_with_product' => $this->tableExists('order_items') ? DB::table('order_items')->whereNotNull('product_id')->count() : 0,
             'order_items_with_image' => $this->tableExists('order_items') ? DB::table('order_items')->whereNotNull('product_main_image')->count() : 0,
+            'orders' => $this->tableExists('orders') ? DB::table('orders')->count() : 0,
+            'order_items' => $this->tableExists('order_items') ? DB::table('order_items')->count() : 0,
+            'order_status_history' => $this->tableExists('order_status_history') ? DB::table('order_status_history')->count() : 0,
         ];
     }
 
@@ -126,6 +163,9 @@ class ResetProducts extends Command
                 'products' => DB::table('products')->get(),
                 'product_images' => DB::table('product_images')->get(),
                 'collection_product' => $this->tableExists('collection_product') ? DB::table('collection_product')->get() : collect(),
+                'orders' => $this->tableExists('orders') ? DB::table('orders')->get() : collect(),
+                'order_items' => $this->tableExists('order_items') ? DB::table('order_items')->get() : collect(),
+                'order_status_history' => $this->tableExists('order_status_history') ? DB::table('order_status_history')->get() : collect(),
                 'order_items_touched' => $this->tableExists('order_items')
                     ? DB::table('order_items')
                         ->whereNotNull('product_id')
