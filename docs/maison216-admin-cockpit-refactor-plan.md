@@ -1502,15 +1502,26 @@ Verification locale:
 - `php -l app/Console/Commands/ResetProducts.php`
 - `php artisan list` confirme la presence de `catalog:purge`
 - `php artisan catalog:purge --dry-run`
-- dry-run local constate: 4236 produits, 28001 images produit, 282 categories, 199 lignes de commande a detacher, 29044 fichiers image locaux trouves, 4210 dossiers image produit trouves
+- dry-run local constate apres correction: 4236 produits, 28001 images produit, 282 categories, 199 lignes de commande a detacher, 29044 fichiers image locaux trouves, 6530 dossiers image catalogue trouves
 - `git diff --check -- app/Console/Commands/ResetProducts.php`
+
+Verification production:
+- commit deploye initial: `aec0ddf3 Add safe catalog purge command`
+- dry-run production avant purge: 4236 produits, 28001 images produit, 282 categories, 199 lignes de commande a detacher, 29044 fichiers image locaux et 4210 dossiers image catalogue
+- purge executee avec `catalog:purge --force --backup --delete-files`
+- sauvegarde creee: `/var/www/vhosts/maison216.tn/httpdocs/storage/app/private/catalog-purge-backups/catalog-purge-20260514-114022.json` (24M)
+- resultat premiere purge: produits 0, images produit 0, categories 0, commandes conservees 89, lignes de commandes conservees 199, liens produits commandes 0, images commandes 0
+- commit correctif deploye: `67c9d984 Include orphan catalog images in purge`
+- second dry-run production: 2318 dossiers catalogue orphelins restants dans `public/images`
+- second passage execute avec `catalog:purge --force --delete-files`
+- verification finale production: `public/images` vide, dossiers storage produits vides, homepage HTTP 200, `/categories` HTTP 200, `/admin` HTTP 302 vers login
 
 Remarques:
 - aucune purge locale definitive n'a ete executee pendant la validation
 - la purge production doit etre executee apres deploiement de la commande, avec `--force --backup --delete-files`
 - les assets publics hors catalogue ne sont pas vises par la commande
 - les realisations, images home, logo et favicon ne doivent pas etre touches
-- apres premiere purge production, 2318 dossiers orphelins restaient dans `public/images`; la commande a ete etendue pour les couvrir au second passage
+- apres premiere purge production, 2318 dossiers orphelins restaient dans `public/images`; la commande a ete etendue et le second passage les a supprimes
 
 Prochaine action recommandee:
-- deployer la commande, lancer un dry-run en production, executer la purge production avec sauvegarde, puis verifier que produits/categories/images catalogue sont a zero sans casser les commandes ni les pages publiques.
+- definir la nouvelle strategie e-commerce avant de recreer produits/categories: modele catalogue, types de produits, relation avec devis, affichage prix ou devis, et parcours admin minimal.
