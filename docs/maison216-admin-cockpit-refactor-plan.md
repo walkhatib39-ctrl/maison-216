@@ -1,6 +1,6 @@
 # Maison216 - Plan refonte admin cockpit, SEO, leads et realisations
 
-Last updated: 2026-05-13
+Last updated: 2026-05-14
 
 Ce document est la reference de travail pour la refonte complete de l'espace admin Maison216.
 
@@ -8,7 +8,7 @@ Objectif:
 - remplacer l'ancien back-office e-commerce par un cockpit de pilotage site vitrine, SEO, leads, pages et realisations
 - garder le site public professionnel, stable et rapide
 - permettre a l'admin de gerer les donnees utiles sans casser les pages publiques
-- nettoyer progressivement l'ancien modele e-commerce devenu hors positionnement
+- conserver le module e-commerce pour une future strategie catalogue, mais purger les anciennes donnees produits/categories devenues obsoletes
 
 ## 1. Decisions verrouillees
 
@@ -75,21 +75,33 @@ L'admin ne gere pas:
 - blocs HTML libres
 - texte complet de toutes les sections publiques
 
-### 1.4 Nettoyage de l'ancien modele e-commerce
+### 1.4 Conservation du module e-commerce, purge du catalogue obsolète
 
-L'ancien modele e-commerce doit etre retire ou archive:
-- produits
-- categories catalogue e-commerce
-- collections catalogue produit
-- univers/types de meuble e-commerce
-- commandes panier/checkout
-- checkout produit
-- quick order produit
+Decision mise a jour le 2026-05-14:
+- le concept e-commerce est conserve
+- les routes, controllers, vues, tables et menus e-commerce ne doivent plus etre supprimes
+- les anciennes donnees catalogue doivent etre videes pour repartir sur une base propre
+
+Scope de purge autorise:
+- tous les produits
+- toutes les categories catalogue
+- toutes les images produits liees
+- toutes les images categories liees
+- liens pivot `collection_product`
+
+Ce qui doit etre conserve:
+- tables e-commerce
+- controllers e-commerce
+- vues e-commerce
+- routes e-commerce
+- historique commandes
+- lignes de commandes, avec `product_id` detache si le produit est supprime
 
 Regle de securite:
-- ne pas supprimer les tables de production sans migration planifiee et sauvegarde
-- retirer d'abord les routes, vues, menus admin et dependances front
-- supprimer les tables seulement quand le nouveau cockpit est operationnel et verifie en production
+- utiliser une commande Artisan avec `--dry-run` avant toute purge
+- creer une sauvegarde applicative des lignes impactees avant suppression
+- ne pas supprimer les images hors catalogue, notamment assets home, realisations, logo, favicon et images de pages publiques
+- ne pas casser le futur redesign e-commerce qui sera defini plus tard
 
 ## 2. Diagnostic actuel
 
@@ -845,19 +857,22 @@ Validation:
 - priorites SEO visibles
 - demandes recentes visibles
 
-### Sprint 6 - Nettoyage ancien e-commerce
+### Sprint 6 - Purge catalogue e-commerce obsolète
 
 Objectifs:
-- retirer menus et routes e-commerce
-- retirer vues/controllers/models inutiles
-- retirer sitemap produits/categories
-- creer migrations de drop tables si valide apres backup
+- garder le module e-commerce en place
+- ajouter une commande de purge controlee du catalogue
+- vider produits, categories, images produits et images categories
+- conserver les commandes en detachement propre des produits supprimes
+- documenter les sauvegardes et la verification production
 
 Validation:
-- site public ne reference plus produits/categories/checkout
-- admin ne montre plus l'ancien modele
-- tests routes OK
-- production OK avant suppression definitive des tables
+- `catalog:purge --dry-run` affiche les compteurs sans changer les donnees
+- `catalog:purge --force --backup --delete-files` cree une sauvegarde puis purge le catalogue
+- produits, images produits et categories sont a zero apres execution
+- les commandes restent presentes
+- les images hors catalogue restent presentes
+- le module e-commerce reste disponible pour la future nouvelle strategie
 
 ## 11. Definition of Done globale
 
@@ -1465,3 +1480,35 @@ Remarques:
 
 Prochaine action recommandee:
 - deployer Sprint 5, verifier `/admin`, puis demarrer Sprint 6 par un audit des routes e-commerce encore actives avant toute suppression.
+
+### 2026-05-14 - Sprint 6 redéfini: conservation e-commerce et purge catalogue
+
+Decision proprietaire:
+- le module e-commerce doit rester dans le projet
+- l'ancien catalogue doit etre vide: produits, categories et images liees
+- la nouvelle logique e-commerce sera definie plus tard
+
+Livres localement:
+- remplacement de l'ancienne commande dangereuse `reset:products` par une commande controlee `catalog:purge`
+- ajout du mode `--dry-run` pour afficher les compteurs sans rien modifier
+- ajout de `--backup` pour exporter les lignes impactees dans `storage/app/private/catalog-purge-backups`
+- ajout de `--delete-files` pour supprimer les images locales de produits/categories uniquement
+- detachement propre des anciennes commandes: `order_items.product_id` est mis a `null`, les commandes restent conservees
+- nettoyage prevu du pivot `collection_product`
+- conservation des tables, routes, controllers, vues et menus e-commerce pour la future strategie
+
+Verification locale:
+- `php -l app/Console/Commands/ResetProducts.php`
+- `php artisan list` confirme la presence de `catalog:purge`
+- `php artisan catalog:purge --dry-run`
+- dry-run local constate: 4236 produits, 28001 images produit, 282 categories, 199 lignes de commande a detacher, 29044 fichiers image locaux trouves, 4210 dossiers image produit trouves
+- `git diff --check -- app/Console/Commands/ResetProducts.php`
+
+Remarques:
+- aucune purge locale definitive n'a ete executee pendant la validation
+- la purge production doit etre executee apres deploiement de la commande, avec `--force --backup --delete-files`
+- les assets publics hors catalogue ne sont pas vises par la commande
+- les realisations, images home, logo et favicon ne doivent pas etre touches
+
+Prochaine action recommandee:
+- deployer la commande, lancer un dry-run en production, executer la purge production avec sauvegarde, puis verifier que produits/categories/images catalogue sont a zero sans casser les commandes ni les pages publiques.
