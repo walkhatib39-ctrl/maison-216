@@ -1416,7 +1416,15 @@ Verification locale:
 - scan des restes `Metier ·` et `Projet ·` dans les templates publics: aucun resultat
 
 Verification production:
-- a completer apres push et deploiement Plesk
+- commit deploye: `f1871471 Simplify public heroes`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- HTTP smoke: `https://maison216.tn/fer-metal/escalier-metallique` retourne `200`
+- verification HTML production:
+  - `/fer-metal/escalier-metallique` affiche une image hero simple avec `order-1 -mx-4`
+  - `/aluminium/fenetre-aluminium` affiche une image hero simple avec `order-1 -mx-4`
+  - `/partenaires` affiche une image hero simple avec `order-1 -mx-4`
+  - anciens textes hero superposes (`Fabrication metallique`, `Fabrication aluminium`) absents des sorties verifiees
 
 Prochaine action recommandee:
 - verifier sur mobile `/fer-metal/escalier-metallique`, `/aluminium/fenetre-aluminium`, `/sur-mesure/cuisine-sur-mesure`, `/projets/agencement-cafe-restaurant`, `/partenaires` et une page detail realisation, puis reprendre Sprint 5 du cockpit admin.
