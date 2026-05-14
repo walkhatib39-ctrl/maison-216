@@ -1714,6 +1714,22 @@ Verification locale:
 - `git diff --check`
 
 Deploiement:
+- commit: `705cc49a Seed beauty showroom products`
+- push GitHub sur `main`
+- deploiement Plesk execute
+- commandes production:
+  - `php artisan migrate --force`
+  - `php artisan db:seed --class=ShowroomBeautyProductSeeder --force`
+  - `php artisan optimize:clear`
+  - `php artisan config:cache`
+  - `php artisan view:cache`
+- verification production:
+  - `/showroom/salons-beaute-esthetique`: HTTP `200`
+  - page 1: 18 produits affiches
+  - page 2: 4 produits affiches
+  - `/showroom/produit/comptoir-accueil-salon-beaute`: HTTP `200`
+
+Deploiement:
 - commit: `d81b13f8 Seed restaurant showroom products`
 - push GitHub sur `main`
 - deploiement Plesk execute
