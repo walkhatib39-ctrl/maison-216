@@ -85,7 +85,7 @@
             <div class="mt-10 rounded-[30px] border border-dashed border-[#d8c3a0] bg-white p-10 text-center">
                 <div class="font-display text-2xl font-extrabold text-[#171411]">Le Showroom est prêt.</div>
                 <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#62564b]">Ajoutez des produits dans l’admin, assignez-les à une activité professionnelle, puis publiez-les ici.</p>
-                <a href="{{ route('admin.products.create') }}" class="mt-6 inline-flex rounded-full bg-[#171411] px-5 py-3 text-sm font-extrabold text-white">Ajouter un produit</a>
+                <a href="{{ url('/devis') }}" class="mt-6 inline-flex rounded-full bg-[#171411] px-5 py-3 text-sm font-extrabold text-white">Demander une solution</a>
             </div>
         @endif
     </div>

@@ -1613,6 +1613,7 @@ Remarques:
 - les produits ont ete purges en production precedemment; le Showroom sera donc vide jusqu'a creation/import de nouveaux produits
 - le formulaire court produit sur devis n'est pas encore integre dans la fiche produit; le CTA redirige vers la page devis
 - les anciennes routes e-commerce `/categories`, `/c/{slug}` et `/p/{slug}` sont conservees pour compatibilite, mais le nouveau parcours public prioritaire est `/showroom`
+- correctif pre-cloture: l'etat vide public du Showroom ne pointe pas vers l'admin; il redirige vers le devis
 
 Prochaine action recommandee:
 - Sprint Showroom 2: creer l'administration des activites Showroom, ajouter un formulaire de demande de devis directement sur les fiches produits sur devis, puis creer/importer les premiers produits exemples par activite.
