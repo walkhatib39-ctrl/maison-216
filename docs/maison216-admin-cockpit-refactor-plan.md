@@ -1540,7 +1540,15 @@ Livres localement:
 Verification locale:
 - etat avant purge locale: 89 commandes, 199 lignes de commandes, 0 historique statut
 - `php -l app/Console/Commands/ResetProducts.php`
-- dry-run a verifier avant execution production
+- `php artisan catalog:purge --dry-run --delete-orders`
+
+Verification production:
+- commit deploye: `a78deb80 Allow purging ecommerce orders`
+- dry-run production avant purge commandes: 89 commandes et 199 lignes de commandes a supprimer
+- purge executee avec `catalog:purge --force --backup --delete-orders`
+- sauvegarde creee: `/var/www/vhosts/maison216.tn/httpdocs/storage/app/private/catalog-purge-backups/catalog-purge-20260514-120240.json` (368K)
+- verification finale production: produits 0, images produit 0, categories 0, commandes 0, lignes commandes 0, historique statut commandes 0
+- HTTP smoke: homepage `200`, `/admin` `302` vers login
 
 Prochaine action recommandee:
-- deployer le correctif, executer `catalog:purge --dry-run --delete-orders`, puis `catalog:purge --force --backup --delete-orders`, verifier commandes et lignes a zero.
+- definir la nouvelle strategie e-commerce avant de recreer produits/categories/commandes: modele catalogue, niveau de prix, parcours devis/panier, et cockpit admin associe.
