@@ -1617,3 +1617,49 @@ Remarques:
 
 Prochaine action recommandee:
 - Sprint Showroom 2: creer l'administration des activites Showroom, ajouter un formulaire de demande de devis directement sur les fiches produits sur devis, puis creer/importer les premiers produits exemples par activite.
+
+### 2026-05-14 - Correctif Sprint Showroom 1: nettoyage UI admin produit
+
+Constat:
+- l'ecran admin produit affichait encore des champs herites de l'ancien modele e-commerce
+- champs visibles non alignes avec le brief Showroom: categorie, univers, type de produit, collection principale, collections associees, marque, SKU, mode de vente technique
+- ces champs restent utiles techniquement pour compatibilite de la base, mais ne doivent pas polluer l'interface de travail
+
+Livres localement:
+- refonte de `admin/products/create` autour des champs Showroom demandes:
+  - nom du produit
+  - slug
+  - type de vente: Produit commandable / Produit sur devis
+  - prix, prix promotionnel, "A partir de"
+  - image principale, galerie
+  - description courte, description longue
+  - activites concernees
+  - materiaux, dimensions, finitions
+  - options personnalisables JSON
+  - disponibilite / stock
+  - livraison
+  - publication
+- refonte de `admin/products/edit` avec la meme logique
+- nettoyage de `admin/products/index`:
+  - filtres limites a recherche, activite Showroom, type de vente, statut
+  - colonne `Activites` au lieu de l'ancienne categorie
+  - suppression visuelle de marque, univers, type, collection et SKU
+  - lien de visualisation vers la fiche Showroom publique
+- adaptation du controller admin:
+  - ajout du slug editable
+  - recherche admin sur titre et description courte
+  - filtres activite Showroom et type de vente
+  - `sale_mode=sur_mesure` mappe proprement vers produit sur devis
+
+Verification locale:
+- `php -l app/Http/Controllers/Admin/ProductController.php`
+- `php artisan view:cache`
+- `php artisan test` : 25 tests passes
+- `git diff --check` sur les fichiers touches
+
+Remarques:
+- les anciennes colonnes BDD ne sont pas supprimees volontairement, pour ne pas casser le noyau e-commerce existant
+- l'interface visible est maintenant alignee sur le module Showroom
+
+Prochaine action recommandee:
+- deployer ce correctif, puis demarrer Sprint Showroom 2: CRUD des activites, formulaire devis produit integre et premiers produits exemples.

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -31,6 +32,8 @@ class ProductController extends Controller
             'category_id' => $request->get('category_id'),
             'room_id' => $request->get('room_id'),
             'product_type_id' => $request->get('product_type_id'),
+            'showroom_activity_id' => $request->get('showroom_activity_id'),
+            'sale_type' => $request->get('sale_type'),
             'active' => $request->get('active'),
             'brand' => trim((string) $request->get('brand', '')),
         ];
@@ -39,7 +42,7 @@ class ProductController extends Controller
             $q = $filters['q'];
             $query->where(function ($qq) use ($q) {
                 $qq->where('title', 'like', "%{$q}%")
-                    ->orWhere('sku', 'like', "%{$q}%");
+                    ->orWhere('short_description', 'like', "%{$q}%");
             });
         }
 
@@ -55,6 +58,22 @@ class ProductController extends Controller
             $query->where('product_type_id', (int) $filters['product_type_id']);
         }
 
+        if (!empty($filters['showroom_activity_id'])) {
+            $query->whereHas('showroomActivities', function ($activityQuery) use ($filters) {
+                $activityQuery->where('showroom_activities.id', (int) $filters['showroom_activity_id']);
+            });
+        }
+
+        if ($filters['sale_type'] === 'commandable') {
+            $query->where('quote_only', false)->where('sale_mode', '!=', 'sur_mesure');
+        }
+
+        if ($filters['sale_type'] === 'sur-devis') {
+            $query->where(function ($saleQuery) {
+                $saleQuery->where('quote_only', true)->orWhere('sale_mode', 'sur_mesure');
+            });
+        }
+
         if ($filters['active'] !== null && $filters['active'] !== '') {
             $query->where('is_active', (int) $filters['active'] === 1);
         }
@@ -67,8 +86,9 @@ class ProductController extends Controller
         $categories = Category::orderBy('name')->get();
         $rooms = Room::orderBy('position')->orderBy('name')->get();
         $productTypes = ProductType::with('room')->orderBy('position')->orderBy('name')->get();
+        $showroomActivities = ShowroomActivity::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'filters', 'categories', 'rooms', 'productTypes'));
+        return view('admin.products.index', compact('products', 'filters', 'categories', 'rooms', 'productTypes', 'showroomActivities'));
     }
 
     /**
@@ -101,6 +121,7 @@ class ProductController extends Controller
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:products,slug'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'room_id' => ['nullable', 'integer', 'exists:rooms,id'],
             'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
@@ -140,14 +161,15 @@ class ProductController extends Controller
 
         $product = new Product();
         $product->title = $data['title'];
+        $product->slug = filled($data['slug'] ?? null) ? Str::slug((string) $data['slug']) : null;
         $product->category_id = $data['category_id'] ?? null;
         $product->room_id = $data['room_id'] ?? null;
         $product->product_type_id = $data['product_type_id'] ?? null;
         $product->primary_collection_id = $data['primary_collection_id'] ?? null;
         $product->sale_mode = $data['sale_mode'];
-        $product->quote_only = (bool) ($data['quote_only'] ?? false);
+        $product->quote_only = $quoteOnly;
         $product->is_starting_price = (bool) ($data['is_starting_price'] ?? false);
-        $product->is_customizable = (bool) ($data['is_customizable'] ?? false);
+        $product->is_customizable = $quoteOnly || (bool) ($data['is_customizable'] ?? false);
         $product->price_millimes = filled($data['price'] ?? null) ? $this->parsePriceToMillimes((string) $data['price']) : null;
         $product->compare_at_millimes = isset($data['compare_at']) && $data['compare_at'] !== '' ? $this->parsePriceToMillimes((string) $data['compare_at']) : null;
         $product->stock = (int) $data['stock'];
@@ -257,6 +279,7 @@ class ProductController extends Controller
 
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product->id)],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'room_id' => ['nullable', 'integer', 'exists:rooms,id'],
             'product_type_id' => ['nullable', 'integer', 'exists:product_types,id'],
@@ -294,14 +317,15 @@ class ProductController extends Controller
         ]);
 
         $product->title = $data['title'];
+        $product->slug = filled($data['slug'] ?? null) ? Str::slug((string) $data['slug']) : null;
         $product->category_id = $data['category_id'] ?? null;
         $product->room_id = $data['room_id'] ?? null;
         $product->product_type_id = $data['product_type_id'] ?? null;
         $product->primary_collection_id = $data['primary_collection_id'] ?? null;
         $product->sale_mode = $data['sale_mode'];
-        $product->quote_only = (bool) ($data['quote_only'] ?? false);
+        $product->quote_only = $quoteOnly;
         $product->is_starting_price = (bool) ($data['is_starting_price'] ?? false);
-        $product->is_customizable = (bool) ($data['is_customizable'] ?? false);
+        $product->is_customizable = $quoteOnly || (bool) ($data['is_customizable'] ?? false);
         $product->price_millimes = filled($data['price'] ?? null) ? $this->parsePriceToMillimes((string) $data['price']) : null;
         $product->compare_at_millimes = isset($data['compare_at']) && $data['compare_at'] !== '' ? $this->parsePriceToMillimes((string) $data['compare_at']) : null;
         $product->stock = (int) $data['stock'];
