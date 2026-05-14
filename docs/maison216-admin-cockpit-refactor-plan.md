@@ -1452,7 +1452,12 @@ Verification locale:
 - `git diff --check -- app/Http/Controllers/Admin/DashboardController.php resources/views/admin/dashboard.blade.php`
 
 Verification production:
-- a completer apres push et deploiement Plesk
+- commit deploye: `f8efaaf9 Finalize admin cockpit dashboard`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- serveur: `npm run build`, `php artisan optimize:clear`, `php artisan config:cache`, `php artisan view:cache`
+- verification route serveur: `admin.dashboard` pointe vers `Admin\DashboardController@index`
+- verification vue deployee: blocs `Realisations publiees`, `Pages SEO a completer` et `Pages sans realisation` presents
+- HTTP smoke: `https://maison216.tn/admin` retourne `302` vers `/login`, comportement attendu hors session admin
 
 Remarques:
 - Sprint 5 etait partiellement deja fait; il est maintenant complet selon le scope dashboard du plan
