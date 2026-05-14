@@ -35,7 +35,7 @@ class ResetProducts extends Command
                 ['order_items to detach from products', $stats['order_items_with_product']],
                 ['order item images to clear', $stats['order_items_with_image']],
                 ['local image files found', count($filePlan['files'])],
-                ['product image directories found', count($filePlan['directories'])],
+                ['catalog image directories found', count($filePlan['directories'])],
             ]
         );
 
@@ -159,6 +159,8 @@ class ResetProducts extends Command
             ->pluck('slug')
             ->map(fn ($slug) => public_path('images/' . $slug))
             ->filter(fn ($path) => is_dir($path) && $this->isInside($path, public_path('images')))
+            ->merge($this->directCatalogImageDirectories())
+            ->map(fn ($path) => realpath($path) ?: $path)
             ->unique()
             ->values()
             ->all();
@@ -193,6 +195,21 @@ class ResetProducts extends Command
         }
 
         return [$deletedFiles, $deletedDirectories];
+    }
+
+    private function directCatalogImageDirectories(): array
+    {
+        $directory = public_path('images');
+
+        if (! is_dir($directory)) {
+            return [];
+        }
+
+        return collect(File::directories($directory))
+            ->filter(fn ($path) => $this->isInside($path, $directory))
+            ->map(fn ($path) => realpath($path) ?: $path)
+            ->values()
+            ->all();
     }
 
     private function resolveLocalPublicFile(string $path): ?string

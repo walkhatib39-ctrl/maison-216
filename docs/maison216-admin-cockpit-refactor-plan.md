@@ -1493,6 +1493,7 @@ Livres localement:
 - ajout du mode `--dry-run` pour afficher les compteurs sans rien modifier
 - ajout de `--backup` pour exporter les lignes impactees dans `storage/app/private/catalog-purge-backups`
 - ajout de `--delete-files` pour supprimer les images locales de produits/categories uniquement
+- couverture des dossiers images catalogue orphelins presents dans `public/images`, meme quand ils ne sont plus relies a une ligne produit
 - detachement propre des anciennes commandes: `order_items.product_id` est mis a `null`, les commandes restent conservees
 - nettoyage prevu du pivot `collection_product`
 - conservation des tables, routes, controllers, vues et menus e-commerce pour la future strategie
@@ -1509,6 +1510,7 @@ Remarques:
 - la purge production doit etre executee apres deploiement de la commande, avec `--force --backup --delete-files`
 - les assets publics hors catalogue ne sont pas vises par la commande
 - les realisations, images home, logo et favicon ne doivent pas etre touches
+- apres premiere purge production, 2318 dossiers orphelins restaient dans `public/images`; la commande a ete etendue pour les couvrir au second passage
 
 Prochaine action recommandee:
 - deployer la commande, lancer un dry-run en production, executer la purge production avec sauvegarde, puis verifier que produits/categories/images catalogue sont a zero sans casser les commandes ni les pages publiques.
