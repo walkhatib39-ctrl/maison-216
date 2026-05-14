@@ -1798,3 +1798,52 @@ Remarques:
 
 Prochaine action recommandee:
 - deployer le seed restaurant, puis continuer avec l'activite suivante ou creer un workflow d'import/seed admin plus rapide pour les prochains silos Showroom.
+
+### 2026-05-14 - Sprint Showroom 4: seed initial Salons de beaute & esthetique
+
+Decision proprietaire:
+- conserver uniquement deux types de vente:
+  - Produit commandable
+  - Produit sur devis
+- ne creer aucun mode hybride
+
+Livres localement:
+- ajout du seeder `ShowroomBeautyProductSeeder`
+- creation idempotente de 18 produits propres au silo `Salons de beaute & esthetique`
+- ordre d'affichage conforme au brief:
+  - comptoir accueil
+  - comptoir compact
+  - postes coiffure
+  - tables manucure
+  - presentoirs, meubles rangement, chariot, mobilier make-up
+  - separations, claustra, banc attente, presentoir accessoires
+- assignations secondaires:
+  - `Meuble produits cosmetiques` aussi assigne a `Pharmacies & parapharmacies`
+  - `Presentoir accessoires cheveux` aussi assigne a `Boutiques & magasins`
+- mapping vente sur les 18 produits seedes:
+  - 6 produits sur devis
+  - 12 produits commandables
+  - 0 produit en mode hybride
+
+Verification locale:
+- `php -l database/seeders/ShowroomBeautyProductSeeder.php`
+- `php artisan db:seed --class=ShowroomBeautyProductSeeder`
+- verification activite:
+  - `beauty_products`: 22 visibles au total
+  - raison: 18 produits du seed beaute + 4 produits deja assignes secondairement depuis les seeds pharmacie
+  - `hybrid_mode`: 0
+- verification du sous-ensemble seede:
+  - `seeded_beauty_products`: 18
+  - `quote`: 6
+  - `commandable`: 12
+  - `hybrid_mode`: 0
+- `php artisan view:cache`
+- `php artisan test`: 25 tests passes
+- `git diff --check`
+
+Remarques:
+- les produits seedes n'ont pas encore d'images dediees; les cartes publiques utilisent le placeholder Showroom tant que les visuels ne sont pas ajoutes depuis l'admin
+- le seed supprime la galerie des produits seedes pour rester idempotent et eviter les doublons
+
+Prochaine action recommandee:
+- deployer le seed beaute, puis continuer avec l'activite suivante ou prioriser l'ajout d'images Showroom pour les trois activites deja seedées.
