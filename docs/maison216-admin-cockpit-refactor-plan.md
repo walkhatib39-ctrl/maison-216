@@ -1968,8 +1968,28 @@ Verification locale:
 - `php artisan test`: 25 tests passes
 - `git diff --check app/Http/Controllers/Admin/ProductController.php`
 
+Verification production:
+- commit deploye: `298ffbb4 Fix showroom product image uploads`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- `php artisan optimize:clear`
+- `php artisan config:cache`
+- `php artisan view:cache`
+- reparation des images deja touchees:
+  - 1 image produit copiee depuis `storage/app/private/public/products` vers `public/uploads/products`
+  - `products.main_image` mis a jour vers `uploads/products/...`
+  - `product_images.url` mis a jour pour le produit concerne
+- synchronisation mediatheque relancee apres reparation
+- verification produit `#42`:
+  - slug: `comptoir-accueil-salon-beaute`
+  - chemin: `uploads/products/yuRGqfqvLIpyDCA9A47Eg4tbTURowIr4WLu5y5C4.png`
+  - fichier public present
+  - URL image HTTP `200`
+  - fiche produit HTTP `200`
+  - page activite contient bien la nouvelle image
+
 Remarques:
 - les images deja cassees en production doivent etre reparees une fois le correctif deploye, en copiant les fichiers presents dans `storage/app/private/public/products` vers `public/uploads/products` puis en mettant a jour `products.main_image` et `product_images.url`
+- le produit impacte par le test admin a ete repare pendant ce hotfix
 
 Prochaine action recommandee:
-- deployer le hotfix, reparer les images produits deja touchees, puis refaire un upload test depuis l'admin produit.
+- refaire un upload test depuis l'admin produit; si l'image s'affiche correctement, continuer l'ajout des visuels Showroom par activite.
