@@ -12,7 +12,6 @@ use App\Models\Room;
 use App\Models\ShowroomActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -635,9 +634,18 @@ class ProductController extends Controller
 
     protected function storeUploadedImage(\Illuminate\Http\UploadedFile $file): string
     {
-        $path = $file->store('public/products');
-        // Convert to public URL
-        return Storage::url($path);
+        $directory = public_path('uploads/products');
+
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
+        $filename = Str::random(40) . '.' . $extension;
+
+        $file->move($directory, $filename);
+
+        return 'uploads/products/' . $filename;
     }
 
     /**

@@ -1944,3 +1944,32 @@ Remarques:
 
 Prochaine action recommandee:
 - ajouter la suppression/edition d'une image directement depuis la mediatheque, puis ajouter les images dediees aux produits Showroom deja seedes.
+
+### 2026-05-15 - Hotfix Showroom: images produits cassees apres upload
+
+Constat:
+- un upload d'image produit depuis l'admin enregistrait en base un chemin `/storage/products/...`
+- en production, le fichier etait stocke dans `storage/app/private/public/products`
+- consequence: l'admin et le front demandaient `/storage/products/...`, mais le fichier n'etait pas servi publiquement
+
+Cause:
+- `UploadedFile::store('public/products')` utilisait le disque par defaut de l'application, qui pointe vers une zone privee sur cette installation
+- pour les images visibles publiquement, le stockage doit etre explicite et stable
+
+Correctif local:
+- modification de `ProductController::storeUploadedImage()`
+- les uploads produits sont maintenant deplaces directement dans `public/uploads/products`
+- le chemin stocke en base devient `uploads/products/{filename}`
+- ce format est compatible avec l'accessor `main_image_url` existant et avec le front Showroom
+
+Verification locale:
+- `php -l app/Http/Controllers/Admin/ProductController.php`
+- `php artisan view:cache`
+- `php artisan test`: 25 tests passes
+- `git diff --check app/Http/Controllers/Admin/ProductController.php`
+
+Remarques:
+- les images deja cassees en production doivent etre reparees une fois le correctif deploye, en copiant les fichiers presents dans `storage/app/private/public/products` vers `public/uploads/products` puis en mettant a jour `products.main_image` et `product_images.url`
+
+Prochaine action recommandee:
+- deployer le hotfix, reparer les images produits deja touchees, puis refaire un upload test depuis l'admin produit.
