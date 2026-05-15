@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedInteger('height')->nullable();
             $table->string('source', 80)->default('upload');
             $table->string('alt_text')->nullable();
-            $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('uploaded_by')->nullable()->index();
             $table->timestamp('last_seen_at')->nullable();
             $table->timestamps();
 

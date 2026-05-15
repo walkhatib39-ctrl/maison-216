@@ -1913,6 +1913,7 @@ Verification locale:
 - `php -l app/Http/Controllers/Admin/SitePageController.php`
 - `php -l app/Models/MediaAsset.php`
 - `php -l app/Support/MediaLibrary.php`
+- `php -l database/migrations/2026_05_15_000001_create_media_assets_table.php`
 - `php artisan migrate`
 - `php artisan route:list --path=admin/media`
 - `php artisan view:cache`
@@ -1925,6 +1926,7 @@ Remarques:
 - le scan complet de `public/images` a ete rendu optionnel pour eviter de bloquer l'admin si un stock massif revient plus tard
 - les images choisies depuis la mediatheque sont stockees comme chemins serveur reutilisables, pas seulement comme URL collee manuellement
 - le picker est volontairement simple: il ne supprime pas encore les fichiers, ne renomme pas les images et ne gere pas encore les alt texts globalement
+- correction pre-deploiement: `uploaded_by` reste indexe sans contrainte FK pour eviter une incompatibilite avec le type exact de `users.id` selon l'historique de production
 
 Prochaine action recommandee:
 - deployer la mediatheque, supprimer aussi le dossier obsolete `public/images` sur le VPS si encore present, puis ajouter la suppression/edition d'une image directement depuis la mediatheque.
