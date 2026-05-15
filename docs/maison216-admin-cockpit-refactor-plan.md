@@ -1921,12 +1921,26 @@ Verification locale:
 - `php artisan tinker --execute='app(\App\Support\MediaLibrary::class)->syncFilesystem(false); dump(\App\Models\MediaAsset::count());'`
 - verification locale apres nettoyage: `public/images` absent, `media_assets` contient 10 images utiles scannees
 
+Verification production:
+- commit deploye: `779be2d1 Add admin media library`
+- correctif deploye: `7d3b15a0 Fix media library migration compatibility`
+- Plesk Git `--fetch`, verification du dernier commit, puis `--deploy`
+- suppression serveur confirmee du dossier obsolete `/var/www/vhosts/maison216.tn/httpdocs/public/images`
+- migration `2026_05_15_000001_create_media_assets_table` executee apres suppression d'une table partielle vide creee par le premier essai echoue
+- `php artisan optimize:clear`
+- `php artisan config:cache`
+- `php artisan view:cache`
+- synchronisation mediatheque production: 22 images utiles indexees
+- HTTP smoke: `https://maison216.tn/admin/media` retourne `302` vers login
+- HTTP smoke: `https://maison216.tn` retourne `200`
+
 Remarques:
 - l'ancien catalogue e-commerce avait encore environ 33 200 images physiques dans `public/images` en local; ce dossier n'etait pas utile au nouveau Showroom et ralentissait fortement les scans
 - le scan complet de `public/images` a ete rendu optionnel pour eviter de bloquer l'admin si un stock massif revient plus tard
 - les images choisies depuis la mediatheque sont stockees comme chemins serveur reutilisables, pas seulement comme URL collee manuellement
 - le picker est volontairement simple: il ne supprime pas encore les fichiers, ne renomme pas les images et ne gere pas encore les alt texts globalement
 - correction pre-deploiement: `uploaded_by` reste indexe sans contrainte FK pour eviter une incompatibilite avec le type exact de `users.id` selon l'historique de production
+- incident deploy corrige: le premier essai de migration production avait laisse une table `media_assets` vide et partielle; elle a ete supprimee avant relance propre de la migration
 
 Prochaine action recommandee:
-- deployer la mediatheque, supprimer aussi le dossier obsolete `public/images` sur le VPS si encore present, puis ajouter la suppression/edition d'une image directement depuis la mediatheque.
+- ajouter la suppression/edition d'une image directement depuis la mediatheque, puis ajouter les images dediees aux produits Showroom deja seedes.
