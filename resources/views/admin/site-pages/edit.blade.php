@@ -75,24 +75,28 @@
                 <div>
                     <label for="og_image_upload" class="mb-1 block text-sm font-bold text-[#171411]">Image OG</label>
                     <div class="rounded-2xl border border-[#eadfce] bg-[#fbf7f0] p-4">
+                        <div id="site-page-og-preview" class="@if(!$ogPreview) hidden @endif mb-4 overflow-hidden rounded-xl border border-[#eadfce] bg-white">
+                            @if($ogPreview)
+                                <img src="{{ $ogPreview }}" alt="Image OG actuelle" class="aspect-[1200/630] w-full object-cover">
+                            @endif
+                        </div>
+
                         @if($ogPreview)
-                            <div class="mb-4 overflow-hidden rounded-xl border border-[#eadfce] bg-white">
-                                <img src="{{ $ogPreview }}" alt="Image OG actuelle" class="h-44 w-full object-cover">
-                            </div>
                             <label class="mb-4 flex items-center justify-between gap-4 rounded-xl border border-[#eadfce] bg-white px-4 py-3 text-sm font-semibold text-[#171411]">
                                 <span>Supprimer l'image actuelle</span>
                                 <input type="checkbox" name="remove_og_image" value="1" class="h-5 w-5 rounded border-[#d8c7af] text-[#b88a3b] focus:ring-[#b88a3b]">
                             </label>
-                        @else
-                            <div class="mb-4 rounded-xl border border-dashed border-[#d8c7af] bg-white px-4 py-8 text-center text-sm font-semibold text-[#6a5a4c]">
-                                Aucune image OG definie.
-                            </div>
                         @endif
 
                         <input id="og_image_upload" name="og_image_upload" type="file" accept="image/*" class="w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 file:mr-4 file:rounded-lg file:border-0 file:bg-[#171411] file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:ring-4">
+                        <input id="site-page-og-media" name="og_image_media" type="hidden" value="{{ old('og_image_media') }}">
+                        <button type="button" data-media-picker data-media-target="#site-page-og-media" data-media-preview="#site-page-og-preview" class="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-[#d8c7af] bg-white px-4 py-2.5 text-sm font-extrabold text-[#171411] transition hover:bg-[#fbf7f0]">
+                            Choisir depuis la mediatheque
+                        </button>
                         <p class="mt-2 text-xs text-[#6a5a4c]">Format recommande: JPG ou WebP, 1200x630 px. Le canonical reste genere automatiquement.</p>
                     </div>
                     @error('og_image_upload')<p class="mt-1 text-sm text-rose-700">{{ $message }}</p>@enderror
+                    @error('og_image_media')<p class="mt-1 text-sm text-rose-700">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-2">

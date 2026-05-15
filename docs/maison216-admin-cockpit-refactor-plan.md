@@ -1,6 +1,6 @@
 # Maison216 - Plan refonte admin cockpit, SEO, leads et realisations
 
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 Ce document est la reference de travail pour la refonte complete de l'espace admin Maison216.
 
@@ -1863,3 +1863,68 @@ Remarques:
 
 Prochaine action recommandee:
 - deployer le seed beaute, puis continuer avec l'activite suivante ou prioriser l'ajout d'images Showroom pour les trois activites deja seedées.
+
+### 2026-05-15 - Sprint Mediatheque 1: fondation et picker image admin
+
+Decision proprietaire:
+- ajouter une mediatheque admin comparable a WordPress
+- afficher les images presentes sur le serveur Maison216
+- permettre de choisir une image existante depuis les formulaires au lieu de re-uploader inutilement
+- integrer la mediatheque aux realisations, produits Showroom, pages SEO et parametres site
+
+Livres localement:
+- ajout de la table `media_assets` pour indexer les images disponibles sur le serveur
+- ajout du modele `MediaAsset`
+- ajout du service `MediaLibrary`
+  - scan de `public/assets`
+  - scan de `public/uploads`
+  - scan de `storage/app/public`
+  - scan optionnel de `public/images` uniquement si demande explicite
+  - stockage des uploads admin dans `public/uploads/media-library/YYYY/MM`
+  - purge des entrees mediatheque dont le fichier n'existe plus
+- ajout du controller admin `MediaController`
+- ajout de la page admin `Mediatheque`
+  - upload multiple
+  - synchronisation serveur
+  - filtres par nom/source
+  - grille visuelle avec chemin copiable
+- ajout d'un picker modal reutilisable dans l'admin
+  - recherche
+  - upload depuis la modale
+  - selection d'image existante
+  - preview immediate dans le formulaire cible
+- integration du picker dans:
+  - formulaire realisations: image principale + galerie
+  - formulaire produits Showroom: image principale + galerie
+  - formulaire Pages & SEO: image OG
+  - parametres site: image OG globale, logo, favicon
+- correction UX realisations:
+  - le champ fichier image principale n'est plus `required` en HTML, afin de permettre une nouvelle realisation avec image choisie depuis la mediatheque
+- correction validation produits:
+  - `main_image_url` accepte maintenant une URL ou un chemin serveur `uploads/...`, `assets/...`, `storage/...`
+- nettoyage local:
+  - suppression du dossier obsolete `public/images` de l'ancien catalogue e-commerce
+  - purge des entrees mediatheque locales issues de ce dossier obsolete
+
+Verification locale:
+- `php -l app/Http/Controllers/Admin/MediaController.php`
+- `php -l app/Http/Controllers/Admin/ProductController.php`
+- `php -l app/Http/Controllers/Admin/RealizationController.php`
+- `php -l app/Http/Controllers/Admin/SitePageController.php`
+- `php -l app/Models/MediaAsset.php`
+- `php -l app/Support/MediaLibrary.php`
+- `php artisan migrate`
+- `php artisan route:list --path=admin/media`
+- `php artisan view:cache`
+- `php artisan test`: 25 tests passes
+- `php artisan tinker --execute='app(\App\Support\MediaLibrary::class)->syncFilesystem(false); dump(\App\Models\MediaAsset::count());'`
+- verification locale apres nettoyage: `public/images` absent, `media_assets` contient 10 images utiles scannees
+
+Remarques:
+- l'ancien catalogue e-commerce avait encore environ 33 200 images physiques dans `public/images` en local; ce dossier n'etait pas utile au nouveau Showroom et ralentissait fortement les scans
+- le scan complet de `public/images` a ete rendu optionnel pour eviter de bloquer l'admin si un stock massif revient plus tard
+- les images choisies depuis la mediatheque sont stockees comme chemins serveur reutilisables, pas seulement comme URL collee manuellement
+- le picker est volontairement simple: il ne supprime pas encore les fichiers, ne renomme pas les images et ne gere pas encore les alt texts globalement
+
+Prochaine action recommandee:
+- deployer la mediatheque, supprimer aussi le dossier obsolete `public/images` sur le VPS si encore present, puis ajouter la suppression/edition d'une image directement depuis la mediatheque.

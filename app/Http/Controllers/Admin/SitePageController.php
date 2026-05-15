@@ -99,6 +99,7 @@ class SitePageController extends Controller
             'meta_title' => ['nullable', 'string', 'max:160'],
             'meta_description' => ['nullable', 'string', 'max:320'],
             'og_image_upload' => ['nullable', 'image', 'max:4096'],
+            'og_image_media' => ['nullable', 'string', 'max:500'],
             'remove_og_image' => ['nullable', 'boolean'],
             'is_indexable' => ['nullable', 'boolean'],
             'priority' => ['nullable', 'numeric', 'min:0.1', 'max:1.0'],
@@ -113,6 +114,11 @@ class SitePageController extends Controller
         if ($request->hasFile('og_image_upload')) {
             $this->deleteUploadedOgImage($ogImage);
             $ogImage = $this->storeOgImage($request->file('og_image_upload'));
+        }
+
+        if (filled($data['og_image_media'] ?? null)) {
+            $this->deleteUploadedOgImage($ogImage);
+            $ogImage = trim((string) $data['og_image_media']);
         }
 
         $sitePage->fill([

@@ -88,15 +88,22 @@
                     <h2 class="text-base font-extrabold text-[#171411]">Images</h2>
                     <div class="mt-5 space-y-5">
                         @if($isEdit && $realization->cover_image)
-                            <div class="overflow-hidden rounded-2xl border border-[#eadfce] bg-[#fbf7f0]">
+                            <div id="realization-cover-preview" class="overflow-hidden rounded-2xl border border-[#eadfce] bg-[#fbf7f0]">
                                 <img src="{{ $realization->coverImageUrl() }}" alt="{{ $realization->cover_alt ?: $realization->title }}" class="h-72 w-full object-cover">
                             </div>
+                        @else
+                            <div id="realization-cover-preview" class="hidden h-72 overflow-hidden rounded-2xl border border-[#eadfce] bg-[#fbf7f0]"></div>
                         @endif
 
                         <label class="block">
                             <span class="text-sm font-bold text-[#171411]">Image principale {{ $isEdit ? '' : '*' }}</span>
-                            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" @required(!$isEdit) class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 focus:ring-4">
+                            <input type="file" name="cover_image" accept="image/jpeg,image/png,image/webp" class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 focus:ring-4">
+                            <input id="cover_image_media" type="hidden" name="cover_image_media" value="{{ old('cover_image_media') }}">
+                            <button type="button" data-media-picker data-media-target="#cover_image_media" data-media-preview="#realization-cover-preview" class="mt-3 inline-flex items-center justify-center rounded-xl border border-[#d8c7af] bg-[#fbf7f0] px-4 py-2.5 text-sm font-extrabold text-[#171411] transition hover:bg-white">
+                                Choisir depuis la mediatheque
+                            </button>
                             @error('cover_image')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
+                            @error('cover_image_media')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
                         </label>
 
                         <label class="block">
@@ -108,7 +115,12 @@
                         <label class="block">
                             <span class="text-sm font-bold text-[#171411]">Ajouter des images galerie</span>
                             <input type="file" name="gallery_images[]" accept="image/jpeg,image/png,image/webp" multiple class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-sm outline-none ring-[#b88a3b]/20 focus:ring-4">
+                            <textarea id="gallery_media_paths" name="gallery_media_paths" rows="3" class="mt-3 w-full rounded-xl border border-[#d8c7af] bg-white px-3 py-2.5 text-xs outline-none ring-[#b88a3b]/20 focus:ring-4" placeholder="Images choisies depuis la mediatheque">{{ old('gallery_media_paths') }}</textarea>
+                            <button type="button" data-media-picker data-media-target="#gallery_media_paths" data-media-mode="append" class="mt-3 inline-flex items-center justify-center rounded-xl border border-[#d8c7af] bg-[#fbf7f0] px-4 py-2.5 text-sm font-extrabold text-[#171411] transition hover:bg-white">
+                                Ajouter depuis la mediatheque
+                            </button>
                             @error('gallery_images.*')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
+                            @error('gallery_media_paths')<span class="mt-1 block text-sm text-rose-700">{{ $message }}</span>@enderror
                         </label>
 
                         @if($isEdit && $realization->images->isNotEmpty())

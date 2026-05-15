@@ -89,7 +89,8 @@ class RealizationController extends Controller
     {
         $data = $this->validatedData($request);
 
-        $data['cover_image'] = $this->storeImage($request->file('cover_image'));
+        $data['cover_image'] = $data['cover_image_media'] ?: $this->storeImage($request->file('cover_image'));
+        unset($data['cover_image_media'], $data['gallery_media_paths']);
         $data['is_featured'] = (bool) ($data['is_featured'] ?? false);
 
         $realization = Realization::query()->create($data);
@@ -123,6 +124,12 @@ class RealizationController extends Controller
             $data['cover_image'] = $this->storeImage($request->file('cover_image'));
         }
 
+        if (filled($data['cover_image_media'] ?? null)) {
+            $this->deleteStoredImage($realization->cover_image);
+            $data['cover_image'] = $data['cover_image_media'];
+        }
+
+        unset($data['cover_image_media'], $data['gallery_media_paths']);
         $data['is_featured'] = (bool) ($data['is_featured'] ?? false);
 
         $realization->fill($data)->save();
@@ -169,8 +176,15 @@ class RealizationController extends Controller
             'is_featured' => ['nullable', 'boolean'],
             'completed_at' => ['nullable', 'date'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
-            'cover_image' => [$realization ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+            'cover_image' => [
+                $realization || filled($request->input('cover_image_media')) ? 'nullable' : 'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:6144',
+            ],
+            'cover_image_media' => ['nullable', 'string', 'max:500'],
             'gallery_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+            'gallery_media_paths' => ['nullable', 'string', 'max:8000'],
             'page_ids' => ['nullable', 'array'],
             'page_ids.*' => ['integer', 'exists:site_pages,id'],
             'delete_image_ids' => ['nullable', 'array'],
@@ -204,6 +218,20 @@ class RealizationController extends Controller
 
     private function storeGalleryImages(Realization $realization, Request $request): void
     {
+        $mediaPaths = collect(preg_split('/\r\n|\r|\n/', (string) $request->input('gallery_media_paths', '')) ?: [])
+            ->map(fn ($path) => trim((string) $path))
+            ->filter()
+            ->unique()
+            ->values();
+
+        foreach ($mediaPaths as $index => $path) {
+            $realization->images()->create([
+                'image_path' => $path,
+                'alt_text' => $realization->cover_alt ?: $realization->title,
+                'sort_order' => $realization->images()->count() + $index + 1,
+            ]);
+        }
+
         $files = $request->file('gallery_images', []);
 
         foreach ($files as $index => $file) {
@@ -257,17 +285,14 @@ class RealizationController extends Controller
     {
         $path = trim((string) $path);
 
-        if ($path === '' || str_starts_with($path, 'assets/') || str_starts_with($path, 'http')) {
-            return;
-        }
-
-        if (str_starts_with($path, 'uploads/')) {
-            $fullPath = public_path($path);
-
-            if (is_file($fullPath)) {
-                @unlink($fullPath);
-            }
-
+        if (
+            $path === ''
+            || str_starts_with($path, 'http')
+            || str_starts_with($path, 'assets/')
+            || str_starts_with($path, 'images/')
+            || str_starts_with($path, 'storage/')
+            || str_starts_with($path, 'uploads/')
+        ) {
             return;
         }
 

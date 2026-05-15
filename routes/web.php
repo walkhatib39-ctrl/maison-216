@@ -112,6 +112,12 @@ Route::middleware(['auth', 'admin'])
         Route::resource('realizations', \App\Http\Controllers\Admin\RealizationController::class)
             ->except(['show']);
 
+        // Media library
+        Route::get('media', [\App\Http\Controllers\Admin\MediaController::class, 'index'])->name('media.index');
+        Route::post('media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('media.upload');
+        Route::post('media/sync', [\App\Http\Controllers\Admin\MediaController::class, 'sync'])->name('media.sync');
+        Route::get('media/picker', [\App\Http\Controllers\Admin\MediaController::class, 'picker'])->name('media.picker');
+
         // Products - Import via UI
         Route::get('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'importForm'])->name('products.import');
         Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import.store');

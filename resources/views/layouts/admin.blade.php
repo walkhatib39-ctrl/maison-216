@@ -46,6 +46,12 @@
             'icon' => 'gallery',
         ],
         [
+            'label' => 'Mediatheque',
+            'route' => 'admin.media.index',
+            'active' => 'admin.media.*',
+            'icon' => 'gallery',
+        ],
+        [
             'label' => 'Parametres site',
             'route' => 'admin.settings.index',
             'active' => 'admin.settings.*',
@@ -175,6 +181,8 @@
         </main>
     </div>
 </div>
+
+@include('admin.media._picker')
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

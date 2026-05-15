@@ -141,7 +141,17 @@
             </label>
             <label class="{{ $label }}">
                 Image OG globale par URL
-                <input name="seo_og_image_url" type="text" value="{{ old('seo_og_image_url', $s['seo_og_image']) }}" class="{{ $input }}">
+                @if($s['seo_og_image'])
+                    <span id="settings-og-preview" class="mt-2 block overflow-hidden rounded-2xl border border-[#e8ddce] bg-[#fbf7f0]">
+                        <img src="{{ \App\Support\SiteSettings::assetUrl($s['seo_og_image']) }}" alt="Image OG actuelle" class="aspect-[1200/630] w-full object-cover">
+                    </span>
+                @else
+                    <span id="settings-og-preview" class="hidden mt-2 overflow-hidden rounded-2xl border border-[#e8ddce] bg-[#fbf7f0]"></span>
+                @endif
+                <input id="settings-og-image" name="seo_og_image_url" type="text" value="{{ old('seo_og_image_url', $s['seo_og_image']) }}" class="{{ $input }}">
+                <button type="button" data-media-picker data-media-target="#settings-og-image" data-media-preview="#settings-og-preview" class="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-[#d8c7ad] bg-[#fbf7f0] px-4 py-3 text-sm font-extrabold text-[#171411] transition hover:bg-white">
+                    Choisir depuis la mediatheque
+                </button>
             </label>
             <label class="{{ $label }}">
                 Image OG globale par fichier
@@ -159,17 +169,31 @@
             <div class="rounded-3xl border border-[#e8ddce] bg-[#fbf7f0] p-5">
                 <div class="mb-4 text-sm font-extrabold text-[#171411]">Logo</div>
                 @if($s['ui_logo'])
-                    <img src="{{ \App\Support\SiteSettings::assetUrl($s['ui_logo']) }}" alt="Logo actuel" class="mb-4 h-12 w-auto object-contain">
+                    <div id="settings-logo-preview" class="mb-4 flex h-24 items-center justify-center overflow-hidden rounded-2xl border border-[#e8ddce] bg-white p-4">
+                        <img src="{{ \App\Support\SiteSettings::assetUrl($s['ui_logo']) }}" alt="Logo actuel" class="max-h-full w-auto object-contain">
+                    </div>
+                @else
+                    <div id="settings-logo-preview" class="hidden mb-4 h-24 overflow-hidden rounded-2xl border border-[#e8ddce] bg-white"></div>
                 @endif
-                <label class="{{ $label }}">URL logo<input name="ui_logo_url" type="text" value="{{ old('ui_logo_url', $s['ui_logo']) }}" class="{{ $input }}"></label>
+                <label class="{{ $label }}">URL logo<input id="settings-logo-image" name="ui_logo_url" type="text" value="{{ old('ui_logo_url', $s['ui_logo']) }}" class="{{ $input }}"></label>
+                <button type="button" data-media-picker data-media-target="#settings-logo-image" data-media-preview="#settings-logo-preview" class="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-[#d8c7ad] bg-white px-4 py-3 text-sm font-extrabold text-[#171411] transition hover:bg-[#fbf7f0]">
+                    Choisir depuis la mediatheque
+                </button>
                 <label class="{{ $label }} mt-4">Fichier logo<input name="ui_logo_file" type="file" accept="image/*" class="{{ $input }}"></label>
             </div>
             <div class="rounded-3xl border border-[#e8ddce] bg-[#fbf7f0] p-5">
                 <div class="mb-4 text-sm font-extrabold text-[#171411]">Favicon</div>
                 @if($s['ui_favicon'])
-                    <img src="{{ \App\Support\SiteSettings::assetUrl($s['ui_favicon']) }}" alt="Favicon actuel" class="mb-4 h-10 w-10 object-contain">
+                    <div id="settings-favicon-preview" class="mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-[#e8ddce] bg-white p-3">
+                        <img src="{{ \App\Support\SiteSettings::assetUrl($s['ui_favicon']) }}" alt="Favicon actuel" class="max-h-full w-auto object-contain">
+                    </div>
+                @else
+                    <div id="settings-favicon-preview" class="hidden mb-4 h-20 w-20 overflow-hidden rounded-2xl border border-[#e8ddce] bg-white"></div>
                 @endif
-                <label class="{{ $label }}">URL favicon<input name="ui_favicon_url" type="text" value="{{ old('ui_favicon_url', $s['ui_favicon']) }}" class="{{ $input }}"></label>
+                <label class="{{ $label }}">URL favicon<input id="settings-favicon-image" name="ui_favicon_url" type="text" value="{{ old('ui_favicon_url', $s['ui_favicon']) }}" class="{{ $input }}"></label>
+                <button type="button" data-media-picker data-media-target="#settings-favicon-image" data-media-preview="#settings-favicon-preview" class="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-[#d8c7ad] bg-white px-4 py-3 text-sm font-extrabold text-[#171411] transition hover:bg-[#fbf7f0]">
+                    Choisir depuis la mediatheque
+                </button>
                 <label class="{{ $label }} mt-4">Fichier favicon<input name="ui_favicon_file" type="file" accept=".ico,.png,.svg" class="{{ $input }}"></label>
             </div>
         </div>

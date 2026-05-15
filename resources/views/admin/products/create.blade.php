@@ -136,21 +136,28 @@
         <section class="rounded-[22px] border border-[#e6dac8] bg-white p-6 shadow-sm">
             <h2 class="text-lg font-extrabold text-[#171411]">Images</h2>
             <div class="mt-5 space-y-5">
+                <div id="product-main-image-preview" class="hidden overflow-hidden rounded-2xl border border-[#eadfce] bg-[#fbf7f0]"></div>
                 <div>
                     <label class="block text-sm font-bold text-[#171411]">Image principale</label>
                     <input name="main_image_file" type="file" accept="image/*" class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-4 py-3 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-[#171411]">Ou URL image</label>
-                    <input name="main_image_url" type="url" value="{{ old('main_image_url') }}" class="mt-2 w-full rounded-xl border-[#d8c7af] px-4 py-3 text-sm focus:border-[#b88a3b] focus:ring-0" placeholder="https://...">
+                    <label class="block text-sm font-bold text-[#171411]">Image depuis la mediatheque ou URL</label>
+                    <input id="product-main-image" name="main_image_url" type="text" value="{{ old('main_image_url') }}" class="mt-2 w-full rounded-xl border-[#d8c7af] px-4 py-3 text-sm focus:border-[#b88a3b] focus:ring-0" placeholder="uploads/... ou https://...">
+                    <button type="button" data-media-picker data-media-target="#product-main-image" data-media-preview="#product-main-image-preview" class="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-[#d8c7af] bg-[#fbf7f0] px-4 py-2.5 text-sm font-extrabold text-[#171411] transition hover:bg-white">
+                        Choisir depuis la mediatheque
+                    </button>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-[#171411]">Galerie</label>
                     <input name="gallery_files[]" type="file" accept="image/*" multiple class="mt-2 w-full rounded-xl border border-[#d8c7af] bg-white px-4 py-3 text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-[#171411]">URLs galerie</label>
-                    <textarea name="gallery_urls" rows="4" class="mt-2 w-full rounded-xl border-[#d8c7af] px-4 py-3 text-sm focus:border-[#b88a3b] focus:ring-0" placeholder="Une URL par ligne">{{ old('gallery_urls') }}</textarea>
+                    <label class="block text-sm font-bold text-[#171411]">Images galerie depuis la mediatheque ou URLs</label>
+                    <textarea id="product-gallery-images" name="gallery_urls" rows="4" class="mt-2 w-full rounded-xl border-[#d8c7af] px-4 py-3 text-sm focus:border-[#b88a3b] focus:ring-0" placeholder="Un chemin ou une URL par ligne">{{ old('gallery_urls') }}</textarea>
+                    <button type="button" data-media-picker data-media-target="#product-gallery-images" data-media-mode="append" class="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-[#d8c7af] bg-[#fbf7f0] px-4 py-2.5 text-sm font-extrabold text-[#171411] transition hover:bg-white">
+                        Ajouter depuis la mediatheque
+                    </button>
                 </div>
             </div>
         </section>
