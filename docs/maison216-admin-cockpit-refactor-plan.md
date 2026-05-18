@@ -2139,3 +2139,50 @@ Verification:
 - `php -l app/Http/Controllers/Admin/WorkshopOrderController.php`
 - `php artisan view:cache`
 - `php artisan test`
+
+### 2026-05-18 - Sprint Carnet atelier: extraction hors admin
+
+Objectif:
+- sortir le carnet clients/commandes du cockpit admin Maison216
+- creer une application interne dediee sous `/gestion-atelier`
+- conserver les donnees `workshop_*` deja creees
+- utiliser un login separe pour l'equipe atelier
+
+Implementation:
+- nouvelle colonne `users.is_workshop_user` pour distinguer les comptes atelier des comptes admin
+- nouveau middleware `workshop.access`
+- nouveau controleur d'authentification atelier:
+  - `App\Http\Controllers\Workshop\AuthController`
+- nouveaux controleurs dedies:
+  - `App\Http\Controllers\Workshop\ClientController`
+  - `App\Http\Controllers\Workshop\OrderController`
+  - `App\Http\Controllers\Workshop\TodayController`
+- nouveau layout dedie:
+  - `resources/views/layouts/workshop.blade.php`
+- nouvel ecran de connexion:
+  - `/gestion-atelier/login`
+- routes principales:
+  - `/gestion-atelier`
+  - `/gestion-atelier/clients`
+  - `/gestion-atelier/commandes`
+  - `/gestion-atelier/commandes/export`
+- redirection des anciennes URLs `/admin/workshop/*` vers `/gestion-atelier`
+- retrait de l'entree `Carnet atelier` du menu admin
+- ajout de `Disallow: /gestion-atelier` dans `robots.txt`
+
+Verification locale:
+- `php -l` sur les nouveaux controleurs et middleware
+- `php artisan route:list --path=gestion-atelier`
+- `php artisan route:list --path=admin/workshop`
+- `php artisan migrate --force`
+- `php artisan view:cache`
+
+Remarques:
+- le mot de passe atelier ne doit pas etre versionne dans Git
+- le compte production sera cree/mis a jour par commande artisan/tinker pendant le deploiement
+- les tables et fichiers `workshop_*` restent inchanges: aucune perte de commandes, clients ou fichiers joints
+
+Prochaine action recommandee:
+- tester en production la connexion `/gestion-atelier/login`
+- creer une commande atelier depuis le nouvel espace
+- si l'ergonomie convient, ajouter ensuite les raccourcis operationnels: changement rapide de statut et actions paiement depuis le tableau

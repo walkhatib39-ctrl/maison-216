@@ -74,6 +74,28 @@ Route::get('/devis', [SitePageController::class, 'show'])
     ->defaults('section', 'devis')
     ->name('devis');
 
+Route::get('/admin/workshop/{path?}', function () {
+    return redirect('/gestion-atelier');
+})->where('path', '.*');
+
+Route::prefix('gestion-atelier')
+    ->as('workshop.')
+    ->group(function () {
+        Route::get('login', [\App\Http\Controllers\Workshop\AuthController::class, 'create'])->name('login');
+        Route::post('login', [\App\Http\Controllers\Workshop\AuthController::class, 'store'])->name('login.store');
+
+        Route::middleware('workshop.access')->group(function () {
+            Route::post('logout', [\App\Http\Controllers\Workshop\AuthController::class, 'destroy'])->name('logout');
+            Route::get('/', \App\Http\Controllers\Workshop\TodayController::class)->name('today');
+            Route::get('commandes/export', [\App\Http\Controllers\Workshop\OrderController::class, 'export'])->name('orders.export');
+            Route::delete('commandes/{order}/files/{file}', [\App\Http\Controllers\Workshop\OrderController::class, 'destroyFile'])->name('orders.files.destroy');
+            Route::resource('clients', \App\Http\Controllers\Workshop\ClientController::class);
+            Route::resource('commandes', \App\Http\Controllers\Workshop\OrderController::class)
+                ->names('orders')
+                ->parameters(['commandes' => 'order']);
+        });
+    });
+
 // Quick order (guest checkout only)
 Route::post('/order/quick', [ProductController::class, 'quickOrder'])->name('order.quick');
 
@@ -117,17 +139,6 @@ Route::middleware(['auth', 'admin'])
         Route::post('media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('media.upload');
         Route::post('media/sync', [\App\Http\Controllers\Admin\MediaController::class, 'sync'])->name('media.sync');
         Route::get('media/picker', [\App\Http\Controllers\Admin\MediaController::class, 'picker'])->name('media.picker');
-
-        // Internal workshop order book. Isolated from public leads and ecommerce orders.
-        Route::prefix('workshop')
-            ->as('workshop.')
-            ->group(function () {
-                Route::get('today', \App\Http\Controllers\Admin\WorkshopTodayController::class)->name('today');
-                Route::get('orders/export', [\App\Http\Controllers\Admin\WorkshopOrderController::class, 'export'])->name('orders.export');
-                Route::delete('orders/{order}/files/{file}', [\App\Http\Controllers\Admin\WorkshopOrderController::class, 'destroyFile'])->name('orders.files.destroy');
-                Route::resource('clients', \App\Http\Controllers\Admin\WorkshopClientController::class);
-                Route::resource('orders', \App\Http\Controllers\Admin\WorkshopOrderController::class);
-            });
 
         // Products - Import via UI
         Route::get('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'importForm'])->name('products.import');
@@ -225,6 +236,7 @@ Route::get('/robots.txt', function () {
         'User-agent: *',
         'Allow: /',
         'Disallow: /admin',
+        'Disallow: /gestion-atelier',
         'Sitemap: ' . url('/sitemap.xml'),
     ];
     return response(implode(PHP_EOL, $lines), 200)->header('Content-Type', 'text/plain');

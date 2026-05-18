@@ -34,12 +34,6 @@
             'icon' => 'leads',
         ],
         [
-            'label' => 'Carnet atelier',
-            'route' => 'admin.workshop.today',
-            'active' => 'admin.workshop.*',
-            'icon' => 'workshop',
-        ],
-        [
             'label' => 'Showroom',
             'route' => 'admin.products.index',
             'active' => 'admin.products.*',
