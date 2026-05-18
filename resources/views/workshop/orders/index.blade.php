@@ -92,6 +92,7 @@
             <table class="min-w-full divide-y divide-[#eadfce] text-sm">
                 <thead class="bg-[#f7f4ee] text-left text-xs font-bold uppercase tracking-wide text-[#6a5a4c]">
                     <tr>
+                        <th class="px-5 py-3">Image</th>
                         <th class="px-5 py-3">Client</th>
                         <th class="px-5 py-3">Commande</th>
                         <th class="px-5 py-3">Catégorie</th>
@@ -106,6 +107,17 @@
                 <tbody class="divide-y divide-[#f0e7da]">
                     @forelse($orders as $order)
                         <tr class="transition hover:bg-[#fbf7f0]">
+                            <td class="px-5 py-4">
+                                @if($order->coverFile)
+                                    <a href="{{ $order->coverFile->fileUrl() }}" target="_blank" class="block h-16 w-20 overflow-hidden rounded-2xl border border-[#eadfce] bg-[#f4ead8] shadow-sm">
+                                        <img src="{{ $order->coverFile->fileUrl() }}" alt="{{ $order->coverFile->original_name }}" class="h-full w-full object-cover">
+                                    </a>
+                                @else
+                                    <div class="flex h-16 w-20 items-center justify-center rounded-2xl border border-dashed border-[#d8c7af] bg-[#fbf7f0] text-[10px] font-bold uppercase tracking-wide text-[#9a8a78]">
+                                        Sans image
+                                    </div>
+                                @endif
+                            </td>
                             <td class="px-5 py-4">
                                 <div class="font-bold text-[#171411]">{{ $order->client?->name ?: 'Client supprimé' }}</div>
                                 <div class="mt-1 text-xs text-[#6a5a4c]">{{ $order->client?->phone ?: $order->client?->whatsapp ?: '-' }}</div>
@@ -136,7 +148,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-5 py-10 text-center text-sm font-semibold text-[#6a5a4c]">Aucune commande pour ce filtre.</td>
+                            <td colspan="10" class="px-5 py-10 text-center text-sm font-semibold text-[#6a5a4c]">Aucune commande pour ce filtre.</td>
                         </tr>
                     @endforelse
                 </tbody>

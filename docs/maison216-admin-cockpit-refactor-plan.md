@@ -2186,3 +2186,24 @@ Prochaine action recommandee:
 - tester en production la connexion `/gestion-atelier/login`
 - creer une commande atelier depuis le nouvel espace
 - si l'ergonomie convient, ajouter ensuite les raccourcis operationnels: changement rapide de statut et actions paiement depuis le tableau
+
+### 2026-05-18 - Hotfix Gestion atelier: apercu image dans le tableau commandes
+
+Objectif:
+- afficher un apercu visuel directement dans `/gestion-atelier/commandes`
+- permettre a l'atelier d'identifier une commande avec photo sans ouvrir la fiche detail
+
+Implementation:
+- ajout de la relation `WorkshopOrder::coverFile()` pour recuperer la premiere image jointe a une commande
+- chargement eager-load de `coverFile` dans la liste commandes atelier
+- ajout d'une colonne `Image` dans le tableau commandes
+- affichage d'une miniature cliquable vers l'image originale
+- affichage d'un placeholder `Sans image` quand la commande n'a aucune image jointe
+
+Verification locale:
+- `php -l app/Models/WorkshopOrder.php`
+- `php -l app/Http/Controllers/Workshop/OrderController.php`
+- `php artisan view:cache`
+
+Remarque:
+- les fichiers non-image restent visibles dans la fiche commande, mais ne sont pas utilises comme apercu du tableau

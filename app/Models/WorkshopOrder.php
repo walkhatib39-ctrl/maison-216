@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WorkshopOrder extends Model
@@ -60,6 +61,13 @@ class WorkshopOrder extends Model
     public function files(): HasMany
     {
         return $this->hasMany(WorkshopOrderFile::class);
+    }
+
+    public function coverFile(): HasOne
+    {
+        return $this->hasOne(WorkshopOrderFile::class)
+            ->where('mime_type', 'like', 'image/%')
+            ->oldestOfMany();
     }
 
     public function getRemainingAmountAttribute(): float

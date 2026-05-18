@@ -21,7 +21,7 @@ class OrderController extends Controller
         [$query, $filters] = $this->buildQuery($request);
 
         $orders = $query
-            ->with('client')
+            ->with(['client', 'coverFile'])
             ->withCount('files')
             ->latest('delivery_due_at')
             ->latest()
