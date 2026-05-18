@@ -118,6 +118,17 @@ Route::middleware(['auth', 'admin'])
         Route::post('media/sync', [\App\Http\Controllers\Admin\MediaController::class, 'sync'])->name('media.sync');
         Route::get('media/picker', [\App\Http\Controllers\Admin\MediaController::class, 'picker'])->name('media.picker');
 
+        // Internal workshop order book. Isolated from public leads and ecommerce orders.
+        Route::prefix('workshop')
+            ->as('workshop.')
+            ->group(function () {
+                Route::get('today', \App\Http\Controllers\Admin\WorkshopTodayController::class)->name('today');
+                Route::get('orders/export', [\App\Http\Controllers\Admin\WorkshopOrderController::class, 'export'])->name('orders.export');
+                Route::delete('orders/{order}/files/{file}', [\App\Http\Controllers\Admin\WorkshopOrderController::class, 'destroyFile'])->name('orders.files.destroy');
+                Route::resource('clients', \App\Http\Controllers\Admin\WorkshopClientController::class);
+                Route::resource('orders', \App\Http\Controllers\Admin\WorkshopOrderController::class);
+            });
+
         // Products - Import via UI
         Route::get('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'importForm'])->name('products.import');
         Route::post('products/import', [\App\Http\Controllers\Admin\ProductController::class, 'import'])->name('products.import.store');

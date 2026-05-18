@@ -1993,3 +1993,129 @@ Remarques:
 
 Prochaine action recommandee:
 - refaire un upload test depuis l'admin produit; si l'image s'affiche correctement, continuer l'ajout des visuels Showroom par activite.
+
+### 2026-05-16 - Audit SEO pre-indexation
+
+Constat:
+- le site est globalement crawlable, les pages principales repondent en HTTP 200 et les canonical des URLs uniques du sitemap sont coherents
+- aucun H1 manquant ou multiple detecte sur les URLs uniques du sitemap
+- le fichier statique `public/robots.txt` prend le dessus sur la route Laravel `/robots.txt` et autorise actuellement tout, y compris les zones qui devraient rester hors index
+- le sitemap contient 116 entrees pour 109 URLs uniques; la home et 6 pages detail de realisations sont dupliquees
+- 59 produits Showroom actifs sont actuellement publies; 57 n'ont pas d'image principale
+- 8 activites Showroom sont actives; certaines sont faibles ou vides, notamment `hotels-maisons-hotes` avec 0 produit
+- 7 realisations sont publiees; une realisation de test `aaaaaaaaaaaa` est publiee et indexable
+- toutes les realisations publiees ont une description courte trop courte pour une meta description solide
+- 21 pages site ont un meta title trop long avant meme l'ajout automatique du suffixe `| Maison216`
+- 8 pages site ont un meta title trop court, notamment `Projets`, `Contact` et plusieurs pages detail realisation
+- plusieurs meta descriptions sont trop courtes ou trop longues, notamment les pages legales, activites Showroom et partenaires
+- `og:image` peut sortir en chemin relatif quand le setting commence par `/`, par exemple `/logo-maison216.png`
+- les pages publiques envoient un cookie/session Laravel et un header `Cache-Control: private, must-revalidate`; ce n'est pas bloquant SEO, mais ce n'est pas optimal pour cache/performance
+- les routes legacy e-commerce/search/auth restent accessibles; les pages checkout sont bien en `noindex,nofollow`, mais `login`, `register`, `categories` et `search` ne declarent pas de robots meta
+- les pages Showroom n'ont pas encore de schema `Product`, `ItemList` ou `CollectionPage`
+
+Priorites avant Search Console:
+- corriger `public/robots.txt` et exclure admin, auth, recherche, checkout, anciennes routes catalogue legacy et stockage brut
+- dedupliquer le sitemap et eviter d'y ajouter deux fois les realisations
+- retirer/depublier la realisation de test `aaaaaaaaaaaa`
+- noindexer ou desactiver temporairement les activites et produits Showroom sans image/contenu suffisant
+- corriger la logique de title final: le champ admin doit correspondre au title reel affiche ou le suffixe marque doit etre gere explicitement
+- rendre les `og:image` absolus
+- ajouter les schemas Showroom apres stabilisation du catalogue
+
+Prochaine action recommandee:
+- lancer un sprint SEO pre-indexation pour appliquer les corrections techniques bloquantes: robots, sitemap, noindex legacy, nettoyage realisation test, OG absolu et filtrage Showroom incomplet.
+
+### 2026-05-18 - Sprint Carnet atelier interne
+
+Objectif:
+- ajouter une mini application interne 100% isolee du site public, des demandes, du checkout et de l'ancien e-commerce
+- permettre a l'atelier d'ajouter manuellement des clients, commandes, paiements, statuts, dates de livraison et fichiers joints
+
+Implementation:
+- nouvelles tables dediees:
+  - `workshop_clients`
+  - `workshop_orders`
+  - `workshop_order_files`
+- nouveaux modeles:
+  - `App\Models\WorkshopClient`
+  - `App\Models\WorkshopOrder`
+  - `App\Models\WorkshopOrderFile`
+- nouveaux controleurs admin:
+  - `WorkshopClientController`
+  - `WorkshopOrderController`
+  - `WorkshopTodayController`
+- nouvelles routes sous namespace isole:
+  - `/admin/workshop/today`
+  - `/admin/workshop/clients`
+  - `/admin/workshop/orders`
+  - `/admin/workshop/orders/export`
+- nouvelle entree sidebar admin: `Carnet atelier`
+
+Fonctionnalites livrees:
+- liste clients avec recherche et filtre type client
+- creation, modification et fiche client
+- affichage des commandes depuis la fiche client
+- liste commandes avec filtres:
+  - recherche
+  - statut
+  - client
+  - categorie
+  - date de livraison
+  - reste a payer
+  - commandes en retard
+- creation, modification, affichage et suppression de commandes atelier
+- statuts atelier complets:
+  - Nouvelle commande
+  - Mesure a faire
+  - Prix a valider
+  - Acompte recu
+  - En production
+  - Pret a livrer
+  - Livre
+  - Installe
+  - Cloture
+  - Annule
+- categories:
+  - Bois
+  - Aluminium
+  - Metal
+  - Mixte
+- calcul automatique du reste a payer
+- upload de fichiers par commande:
+  - photos client
+  - photos de mesure
+  - croquis
+  - plans
+  - inspirations
+  - photos de production
+  - photos finales
+  - autres fichiers
+- suppression de fichiers joints
+- page `A faire aujourd'hui`:
+  - livraisons prevues aujourd'hui
+  - commandes en retard
+  - commandes sans acompte
+  - commandes pretes a livrer
+  - commandes livrees avec reste a payer
+- export CSV compatible Excel des commandes filtrees
+
+Verification locale:
+- `php -l` sur les nouveaux controleurs et modeles
+- `php artisan route:list --name=workshop`
+- `php artisan migrate --pretend` sur les 3 migrations
+- correction d'un index MySQL trop long avant migration reelle
+- `php artisan migrate`
+- `php artisan view:cache`
+- test tinker de creation client + commande + calcul reste a payer
+- `php artisan test`: 25 tests passes
+
+Remarques:
+- le module ne reutilise pas `orders`; il est volontairement separe dans `workshop_orders`
+- les commandes atelier ne sont pas connectees aux leads, formulaires publics, Showroom ou checkout
+- l'export est en CSV UTF-8 avec BOM, ouvrable dans Excel, pour eviter une dependance lourde type Excel package
+- la suppression d'un client ne supprime pas ses commandes: les commandes gardent leur historique avec `client supprime`
+- les fichiers atelier sont stockes dans `public/uploads/workshop-orders` pour eviter les problemes de symlink `storage/public` deja rencontres sur les images Showroom
+
+Prochaine action recommandee:
+- faire un test manuel en admin: creer un client reel, creer une commande, uploader une image et un PDF, changer le statut, verifier l'export.
+- si la V1 convient, ajouter ensuite des raccourcis UX: changement rapide de statut depuis le tableau et impression fiche atelier.
