@@ -260,6 +260,10 @@ class WorkshopOrderController extends Controller
                 continue;
             }
 
+            $originalName = $uploadedFile->getClientOriginalName();
+            $mimeType = $uploadedFile->getMimeType();
+            $size = $uploadedFile->getSize() ?: 0;
+
             $directory = public_path("uploads/workshop-orders/{$order->id}");
             File::ensureDirectoryExists($directory);
 
@@ -270,9 +274,9 @@ class WorkshopOrderController extends Controller
             $order->files()->create([
                 'file_type' => $type,
                 'file_path' => $path,
-                'original_name' => $uploadedFile->getClientOriginalName(),
-                'mime_type' => $uploadedFile->getMimeType(),
-                'size' => $uploadedFile->getSize() ?: 0,
+                'original_name' => $originalName,
+                'mime_type' => $mimeType,
+                'size' => $size,
             ]);
         }
     }

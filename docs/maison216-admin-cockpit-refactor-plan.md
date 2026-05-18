@@ -2119,3 +2119,23 @@ Remarques:
 Prochaine action recommandee:
 - faire un test manuel en admin: creer un client reel, creer une commande, uploader une image et un PDF, changer le statut, verifier l'export.
 - si la V1 convient, ajouter ensuite des raccourcis UX: changement rapide de statut depuis le tableau et impression fiche atelier.
+
+### 2026-05-18 - Hotfix Carnet atelier: upload commande 500
+
+Constat:
+- apres remplissage d'une commande avec fichier joint, l'admin affichait une erreur 500 sur `/admin/workshop/orders`
+- le log production indiquait: le fichier temporaire `/tmp/...` n'existe plus ou n'est plus lisible
+
+Cause:
+- le controleur de commandes atelier deplacait le fichier vers `public/uploads/workshop-orders`
+- puis il appelait `getMimeType()` et `getSize()` sur l'objet upload original
+- apres `move()`, le fichier temporaire PHP n'est plus disponible
+
+Correctif:
+- lire `originalName`, `mimeType` et `size` avant le deplacement du fichier
+- enregistrer ces valeurs capturees apres le deplacement
+
+Verification:
+- `php -l app/Http/Controllers/Admin/WorkshopOrderController.php`
+- `php artisan view:cache`
+- `php artisan test`
