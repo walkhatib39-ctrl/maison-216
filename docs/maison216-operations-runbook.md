@@ -508,3 +508,39 @@ fixture deploy/fixtures/network-pdf-photo.jpg à copier en test-network-photo.jp
  deploy/test-network-pdf.cjs (server, dist-network-pdf-20261025). Sauvegarde serveur
 /home/leadsc/backups/network-pdf-before-20261025.tar.gz ; sauvegardes QuoteRequests/SiteDetail
 supplémentaires network-pdf-*.before.tsx. Captures et PDF synthétique dans D:/Maison216-network-pdf.
+
+
+## Extension réseau Litorra — session du 25/10/2026
+
+Litorra ID b1043142-f5fa-480c-a76e-ba0cf97b341f : sources autorisées TuniBusiness,
+Medina Construction et Maison216. Le même moteur est désormais paramétré par destination,
+sans duplication de leads ni modification du suivi source. Clé unique destination + source
+et validation distincte pour chaque marque ; une validation Maison216 ne vaut pas pour Litorra.
+Aucun compte créé, aucune proposition approuvée ni transmise automatiquement.
+
+Qualification Litorra : peinture intérieure/extérieure, façades, enduits décoratifs, béton ciré,
+stucco, peintures techniques à vérifier. Filtres projets de peinture / lot dans chantier global /
+produits à fournir. Fourniture retenue seulement sur intention explicite liée aux produits ;
+partenariats commerciaux, peinture automobile, négations et simple finition d'un meuble écartés.
+Justification par extraits du texte ; brief proposé limité au volet peinture, révisable par Walid.
+Budget de chantier global non assimilé au budget peinture. Demandes de plus de 30 jours signalées.
+Les fichiers ne sont pas analysés automatiquement. Ce sont des suggestions, jamais une décision
+commerciale autonome. Période initiale 90 jours, historique jusqu'à 730 jours.
+
+Documentation vérifiée : 19 fiches / 21 demandes à valider sur 90 jours lors du contrôle,
+4 de TuniBusiness et 17 de Medina ; aucune demande Maison216 correspondante à cette date mais
+la source est bien incluse. Accès privé aux documents Maison216, y compris JPEG d'aperçu HEIC,
+original conservé dans le ZIP. PDF et message WhatsApp marqués Litorra ; exports de destinations
+mélangées refusés côté navigateur. Maison216 conserve sa liste et ses règles (11 fiches).
+
+Tests : isolation de destination, validation indépendante, accès aux sources configurées,
+documents Maison216 / HEIC, export limité au texte validé, positifs/négatifs de qualification,
+régression Maison216. Tests API en lecture seule : anonyme 401, non validé 409, HEIC Maison216
+converti 200 image/jpeg 122317 octets via Litorra. PDF synthétique 6 pages rendu et contrôlé sous
+la marque Litorra. TypeScript serveur et Vite réussis ; aucun diagnostic sur les composants
+réseau et PDF dans la vérification tsconfig.app.json (autres erreurs préexistantes non modifiées).
+
+Patch reproductible deploy/leadscentral-litorra-network.patch et test
+ deploy/test-litorra-network.cjs (server, dist-litorra-network-20261025).
+Sauvegarde /home/leadsc/backups/litorra-network-before-20261025.tar.gz. Aucun changement de schéma
+ni migration des décisions existantes nécessaires. Preuves locales D:/Litorra-network.
