@@ -1,0 +1,370 @@
+--- a/server/src/routes/dashboard.ts
++++ b/server/src/routes/dashboard.ts
+@@ -1,3 +1,4 @@
++import { registerNetworkOpportunities } from './networkOpportunities'
+ import { registerTunibusinessDocuments } from './tunibusinessDocuments'
+ import { departmentOf } from '../lib/activityMetrics'
+ import type { FastifyInstance } from 'fastify'
+@@ -40,6 +41,7 @@
+     const pathname = (request.url || '').split('?')[0]
+     // Autorisé : lire ses leads + mettre à jour le suivi d'un de ses leads. Rien d'autre.
+     const allowed =
++      /\/site\/[^/]+\/network-opportunities(?:\/.*)?$/.test(pathname) ||
+       /\/site\/[^/]+\/leads$/.test(pathname) ||
+       /\/site\/[^/]+\/lead\/[^/]+\/followup$/.test(pathname)
+     if (!allowed) {
+@@ -48,6 +50,7 @@
+   })
+ 
+   registerTunibusinessDocuments(app)
++  registerNetworkOpportunities(app)
+ 
+   // WeCleaned: the actual sent archive, not old contact forms. PDFs stay authenticated.
+   app.get('/site/:id/sent-quotes', async (request, reply) => {
+--- a/client/src/pages/SiteDetail.tsx
++++ b/client/src/pages/SiteDetail.tsx
+@@ -1,3 +1,4 @@
++import NetworkOpportunities from '../components/NetworkOpportunities'
+ 
+ import { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react'
+ import { useParams, useNavigate, Navigate } from 'react-router-dom'
+@@ -604,6 +605,7 @@
+             </div>
+           </section>
+ 
++          {siteId === 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c' && <NetworkOpportunities/>}
+           {isWeCleaned && <div className="space-y-3">
+             <nav aria-label="Rubriques WeCleaned" className="grid grid-cols-3 sm:grid-cols-5 gap-2 rounded-2xl bg-white dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-700">{workspaceViews.map(([key,label])=><button key={key} aria-current={workspaceView===key?'page':undefined} onClick={()=>setWorkspaceView(key)} className={`min-h-[48px] rounded-xl px-2 text-sm font-semibold transition ${workspaceView===key?'bg-primary-600 text-white':'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{label}</button>)}</nav>
+             <p className="text-sm text-slate-500">{workspaceViews.find(v=>v[0]===workspaceView)?.[2]}</p>
+--- a/client/src/pages/LeadsClient.tsx
++++ b/client/src/pages/LeadsClient.tsx
+@@ -1,3 +1,4 @@
++import NetworkOpportunities from '../components/NetworkOpportunities'
+ import { useEffect, useMemo, useState } from 'react'
+ import { format, parseISO } from 'date-fns'
+ import { fr } from 'date-fns/locale'
+@@ -311,6 +312,7 @@
+         </div>
+       </section>
+ 
++      {siteId === 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c' && <NetworkOpportunities/>}
+       {/* Recherche + filtres de statut */}
+       <div className="space-y-3">
+         <div className="relative">
+--- a/server/prisma/schema.prisma
++++ b/server/prisma/schema.prisma
+@@ -71,6 +71,7 @@
+ /// Sites WordPress clients (source des leads de formulaire)
+ /// Site / projet client (tous pays, tous stacks — anciennement "wp_sites")
+ model WpSite {
++  networkDestinations NetworkOpportunity[]
+   id        String   @id @default(uuid()) @db.Char(36)
+   userId    String   @map("user_id") @db.Char(36)
+   name      String   @db.VarChar(255)
+@@ -238,6 +239,7 @@
+ 
+ /// Leads issus des formulaires WordPress
+ model Lead {
++  networkOpportunities NetworkOpportunity[]
+   id          String   @id @default(uuid()) @db.Char(36)
+   userId      String   @map("user_id") @db.Char(36)
+   wpSiteId    String?  @map("wp_site_id") @db.Char(36)
+@@ -329,3 +331,39 @@
+ 
+   @@map("google_auth")
+ }
++
++
++model NetworkOpportunity {
++  destinationId String @map("destination_id") @db.Char(36)
++  sourceLeadId String @map("source_lead_id") @db.Char(36)
++  ownerId String @map("owner_id") @db.Char(36)
++  status String @default("pending") @db.VarChar(20)
++  sourceRevision String @map("source_revision") @db.Char(64)
++  lot String @db.VarChar(500)
++  reason String @db.Text
++  sharedBrief String? @map("shared_brief") @db.MediumText
++  documentIds Json @map("document_ids")
++  approvedBy String? @map("approved_by") @db.Char(36)
++  approvedAt DateTime? @map("approved_at") @db.DateTime(3)
++  forwardedAt DateTime? @map("forwarded_at") @db.DateTime(3)
++  forwardedBy String? @map("forwarded_by") @db.Char(36)
++  teamStatus String @default("new") @map("team_status") @db.VarChar(20)
++  assignedTo String? @map("assigned_to") @db.Char(36)
++  nextAction String? @map("next_action") @db.VarChar(1000)
++  updatedAt DateTime @default(now()) @map("updated_at") @db.DateTime(3)
++  sourceLead Lead @relation(fields:[sourceLeadId],references:[id],onDelete:Cascade,onUpdate:Restrict,map:"network_lead_fk")
++  destination WpSite @relation(fields:[destinationId],references:[id],onDelete:Cascade,onUpdate:Restrict,map:"network_site_fk")
++  @@id([destinationId,sourceLeadId])
++  @@index([ownerId,destinationId,status],map:"network_owner_status")
++  @@map("network_opportunities")
++}
++model NetworkOpportunityEvent {
++  id String @id @db.Char(36)
++  destinationId String @map("destination_id") @db.Char(36)
++  sourceLeadId String @map("source_lead_id") @db.Char(36)
++  actorId String @map("actor_id") @db.Char(36)
++  action String @db.VarChar(40)
++  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
++  @@index([destinationId,sourceLeadId],map:"network_event_lookup")
++  @@map("network_opportunity_events")
++}
+--- /dev/null
++++ b/server/src/lib/networkPolicy.ts
+@@ -0,0 +1,58 @@
++import { createHash } from 'crypto'
++export const MAISON = 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c'
++export const SOURCES = ['4fa0895f-2f2f-4c1b-aaea-dac2af0a0064','1045c531-5902-4bbc-b6b9-8fbc7fd9d589']
++const plain=(v:any)=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function original(lead:any) {const r=lead.metadata?.raw;return r?.origin==='tunibusiness-v1' ? [r.title,r.description,...(r.items||[]).map((i:any)=>[i.label,i.spec].filter(Boolean).join(' '))].filter(Boolean).join('\n\n') : lead.message||''}
++export function qualify(lead:any) {
++ const text=original(lead), t=plain(text),r=lead.metadata?.raw||{}
++ if (/m216-test|test crm|test technique|ne pas traiter|demande test|ceci est un test|test integration|test automatique/.test(t))return null
++ if (/mon compte ou mon entreprise|trouver de nouveaux clients|developper notre activite/.test(plain(r.title)+' '+t))return null
++ if (/proposer.{0,45}collaboration|explorer.{0,45}collaboration|marketing digital|recherche.{0,20}(stage|emploi)|candidature|fiche de notre entreprise/.test(t))return null
++ const lots:{label:string;evidence:string}[]=[]
++ const add=(label:string,regex:RegExp)=>{
++   for(const match of t.matchAll(new RegExp(regex.source,'g'))){
++     const start=match.index||0,before=t.slice(Math.max(0,start-55),start),near=t.slice(Math.max(0,start-100),start+120)
++     if(/(?:sans|pas de|aucun|aucune|hors)\s+(?:[a-z]+\s+){0,2}$/.test(before))continue
++     if(/banquette/.test(match[0])&&/piscine|bassin|jacuzzi|hydromass/.test(t))continue
++     if(/armoire/.test(match[0])&&/electri|electroni|conditionnement d.air/.test(near))continue
++     if(/menuiser/.test(match[0])&&/joints? d.{0,15}etancheite|infiltration/.test(near))continue
++     lots.push({label,evidence:text.slice(Math.max(0,start-70),Math.min(text.length,start+170)).replace(/\s+/g,' ')});break
++   }
++ }
++ add('Cuisine sur mesure',/cuisin(?:e|es)\s+(?:equipe|sur mesure|amenage)|amenagement.{0,25}cuisine|meubles? de cuisine|مطبخ|مطابخ/)
++ add('Dressing et rangement',/dressing|placards?|armoires?|bibliotheques?|etagere|خزانة/)
++ add('Mobilier et agencement',/\bmeubles?\b|\bmobilier\b|\bbanquette|\bcomptoir|\bagencement\b|\bbureau.{0,35}(?:sur mesure|bois|acier)|نجارة|اثاث/)
++ add(/\bbois\b|\bmdf\b/.test(t)?'Menuiserie bois et portes':/\balu|minium/.test(t)?'Menuiserie aluminium':'Menuiserie — matériau à préciser',/menuiserie|menuisier|portes? (?:d.interieur|en bois)|boiserie|نجار/)
++ add('Ferronnerie et métallerie',/ferronnerie|metallerie|portails?|portillons?|garde.corps|escalier.{0,30}(?:\bmetal\b|\bacier\b|\bfer\b)|حديد/)
++ add('Pergola / structure extérieure — matériau à préciser',/\bpergolas?\b/)
++ if(!lots.length)return null
++ return {lots,warning:r.review_status==='rejected'||r.status==='cancelled'?'Refusée ou annulée à la source : vérifier avant proposition.':r.review_status==='pending'||r.status==='draft'?'Demande non validée à la source : vérifier avant proposition.':null}
++}
++export function documents(lead:any) {
++ const m=lead.metadata||{},raw=m.raw||{}
++ if(raw.origin==='tunibusiness-v1')return (raw.documents||[]).filter((d:any)=>/^[ai]-\d+(?:-\d+)?$/.test(d.id)).map((d:any)=>({id:d.id,name:d.name,mime:d.mime,size:d.size,available:d.available!==false,kind:'source'}))
++ const docs:any[]=[]; const seen=new Set<string>()
++ for(const [i,f] of (m.files||[]).entries()){if(typeof f.url!=='string'||!f.url.startsWith('/uploads/mail/')||seen.has(f.url))continue;seen.add(f.url);docs.push({id:'f-'+i,name:f.nom||'Document',mime:f.type||'application/octet-stream',size:f.taille||0,available:true,kind:'mail',path:f.url})}
++ for(const [i,url] of (m.photos||[]).entries()){if(typeof url!=='string'||!url.startsWith('/uploads/mail/')||seen.has(url))continue;seen.add(url);docs.push({id:'p-'+i,name:decodeURIComponent(url.split('/').pop()||'Photo'),mime:/\.png$/i.test(url)?'image/png':/\.webp$/i.test(url)?'image/webp':'image/jpeg',size:0,available:true,kind:'mail',path:url})}
++ return docs
++}
++export function revision(lead:any) {return createHash('sha256').update(JSON.stringify({name:lead.nom,email:lead.email,phone:lead.telephone,city:lead.ville,message:original(lead),docs:documents(lead),status:lead.metadata?.raw?.status,review:lead.metadata?.raw?.review_status})).digest('hex')}
++export function allowedByScope(lead:any,user:any) {
++ if(user.scopeData==='calls')return false
++ if(user.scopeSince && new Date(lead.date)<new Date(user.scopeSince))return false
++ const ds=Array.isArray(user.scopeDepartements)?user.scopeDepartements:[]
++ if(ds.length&&!ds.includes(String(lead.departement||'').replace(/^.*\(/,'').replace(/\).*$/,'').trim()))return false
++ const ss=Array.isArray(user.scopeServices)?user.scopeServices:[]
++ return !ss.length||ss.includes(lead.service)
++}
++export function maySee(decision:any,lead:any,user:any) {return user.role==='admin'||!!(decision?.status==='approved'&&decision.source_revision===revision(lead)&&allowedByScope(lead,user))}
++export function similar(a:any,b:any) {
++ const phone=(v:any)=>String(v||'').replace(/\D/g,'').replace(/^(?:00216|216)(?=\d{8}$)/,'')
++ const ae=plain(a.email).trim(),be=plain(b.email).trim(),ap=phone(a.telephone),bp=phone(b.telephone)
++ if(ae&&be&&ae!==be||ap&&bp&&ap!==bp||!(ae&&ae===be||ap&&ap===bp))return false
++ if(Math.abs(+new Date(a.date)-+new Date(b.date))>14*86400000)return false
++ const tokens=(l:any)=>new Set(plain(original(l)).replace(/[^\p{L}\p{N}]+/gu,' ').split(' ').filter(w=>w.length>3))
++ const x=tokens(a),y=tokens(b);if(Math.min(x.size,y.size)<8)return plain(original(a)).trim()===plain(original(b)).trim()
++ const shared=[...x].filter(w=>y.has(w)).length
++ return shared/(x.size+y.size-shared)>=0.70
++}
+--- /dev/null
++++ b/server/src/routes/networkOpportunities.ts
+@@ -0,0 +1,117 @@
++import type {FastifyInstance,FastifyReply,FastifyRequest} from 'fastify'
++import {prisma} from '../db'
++import {dataOwnerId} from '../auth/scope'
++import {MAISON,SOURCES,qualify,original,documents,revision,maySee,similar} from '../lib/networkPolicy'
++import {randomUUID} from 'crypto'
++import {z} from 'zod'
++import fs from 'fs/promises'
++import path from 'path'
++import {mailDir} from '../lib/uploads'
++const decisionRows=(owner:string)=>prisma.$queryRaw<any[]>`SELECT n.*, SUBSTRING_INDEX(u.email,'@',1) AS assignee_label FROM network_opportunities n LEFT JOIN users u ON u.id=n.assigned_to WHERE n.destination_id=${MAISON} AND n.owner_id=${owner}`
++const json=(v:any)=>typeof v==='string'?JSON.parse(v):v
++async function context(req:FastifyRequest,reply:FastifyReply) {
++ reply.header('Cache-Control','private, no-store').header('X-Content-Type-Options','nosniff')
++ if((req.params as any).id!==MAISON){reply.code(404).send({error:'Destination introuvable'});return null}
++ const user=await prisma.user.findUnique({where:{id:req.user.sub}})
++ if(!user){reply.code(403).send({error:'Accès indisponible'});return null}
++ const owner=dataOwnerId(req)
++ const scopes=[user.scopeSiteId,...(Array.isArray(user.scopeSiteIds)?user.scopeSiteIds:[])].filter(Boolean)
++ if(user.role!=='admin'&&(!scopes.includes(MAISON)||user.scopeData==='calls')){reply.code(403).send({error:'Accès Maison216 requis'});return null}
++ const target=await prisma.wpSite.findFirst({where:{id:MAISON,userId:owner}})
++ if(!target){reply.code(403).send({error:'Accès indisponible'});return null}
++ return {user,owner}
++}
++async function sourceLead(id:string,owner:string) {return prisma.lead.findFirst({where:{id,userId:owner,wpSiteId:{in:SOURCES}},include:{wpSite:true}})}
++function safeDocuments(lead:any,d:any,admin:boolean) {const approved=json(d?.document_ids||'[]');return documents(lead).filter((x:any)=>admin||approved.includes(x.id)).map(({path,...x}:any)=>x)}
++function serialize(lead:any,d:any,admin:boolean) {
++ const q=qualify(lead),st=d?.status==='approved'&&d.source_revision!==revision(lead)?'pending':d?.status||'pending'
++ return {id:lead.id,sourceSite:lead.wpSite?.name,sourceSiteId:lead.wpSiteId,date:lead.date,name:lead.nom,email:lead.email,phone:lead.telephone,city:lead.ville,
++ title:lead.metadata?.raw?.title||lead.service||'Demande',message:admin?original(lead):(d?.shared_brief||''),sharedBrief:d?.shared_brief||original(lead),reference:lead.metadata?.raw?.reference||lead.externalId,
++ lot:d?.lot||q?.lots.map(l=>l.label).join(' · ')||'Lot à préciser',reason:d?.reason||q?.lots.map(l=>l.evidence).join('\n')||'',
++ warning:admin?q?.warning:null,documents:safeDocuments(lead,d,admin),status:st,revision:revision(lead),teamStatus:d?.team_status||'new',assignedTo:d?.assigned_to||null,assigneeLabel:d?.assignee_label||null,nextAction:d?.next_action||'',approvedAt:d?.approved_at||null,forwardedAt:d?.forwarded_at||null,
++ selectedDocuments:d?json(d.document_ids):documents(lead).map((x:any)=>x.id),sourceAlreadyContacted:!!lead.followup?.contacted,
++ sourceSourceStatus:admin?lead.metadata?.raw?.status:undefined}
++}
++export function registerNetworkOpportunities(app:FastifyInstance) {
++ const prefix='/site/:id/network-opportunities'
++ app.get(prefix,async(req,reply)=>{
++   const c=await context(req,reply);if(!c)return
++   const q=z.object({days:z.coerce.number().int().min(1).max(730).default(90)}).safeParse(req.query)
++   if(!q.success)return reply.code(400).send({error:'Période invalide'})
++   const admin=c.user.role==='admin',decisions=await decisionRows(c.owner),byId=new Map(decisions.map(d=>[d.source_lead_id,d]))
++   const leads=await prisma.lead.findMany({where:{userId:c.owner,wpSiteId:{in:SOURCES},OR:[{date:{gte:new Date(Date.now()-q.data.days*86400000)}},{id:{in:decisions.map(d=>d.source_lead_id)}}]},include:{wpSite:true},orderBy:[{date:'desc'},{id:'desc'}]})
++   const own=await prisma.lead.findMany({where:{userId:c.owner,wpSiteId:MAISON},select:{id:true,nom:true,email:true,telephone:true,date:true,message:true,metadata:true}})
++   const eligible=leads.filter(l=>{
++     const d=byId.get(l.id)
++     if(!admin)return maySee(d,l,c.user)
++     return !!d||!!qualify(l)&&!own.some(x=>similar(l,x))
++   })
++   const groups:any[][]=[]
++   for(const lead of eligible){const d=byId.get(lead.id);const state=d?.status==='approved'&&d.source_revision!==revision(lead)?'pending':d?.status||'pending';const group=groups.find(g=>g.every(x=>similar(x,lead))&&((byId.get(g[0].id)?.status==='approved'&&byId.get(g[0].id)?.source_revision!==revision(g[0]))?'pending':byId.get(g[0].id)?.status||'pending')===state);if(group)group.push(lead);else groups.push([lead])}
++   return {admin,days:q.data.days,groups:groups.map(g=>({id:g[0].id,members:g.map(l=>serialize(l,byId.get(l.id),admin))})),counts:{messages:eligible.length,groups:groups.length}}
++ })
++ app.post(prefix+'/review',async(req,reply)=>{
++   const c=await context(req,reply);if(!c)return
++   if(c.user.role!=='admin')return reply.code(403).send({error:'Validation réservée à l’administrateur'})
++   const parsed=z.object({action:z.enum(['approve','dismiss','revoke']),items:z.array(z.object({id:z.string().uuid(),revision:z.string().length(64),lot:z.string().trim().min(3).max(500),reason:z.string().trim().min(3).max(3000),brief:z.string().trim().min(3).max(20000),documents:z.array(z.string().max(80)).max(100)})).min(1).max(50)}).safeParse(req.body)
++   if(!parsed.success)return reply.code(400).send({error:'Vérifiez le lot, la justification et les messages sélectionnés'})
++   const b=parsed.data,checked:any[]=[]
++   for(const item of b.items){const l=await sourceLead(item.id,c.owner);if(!l)return reply.code(404).send({error:'Dossier source introuvable'});if(revision(l)!==item.revision)return reply.code(409).send({error:'La demande a changé. Actualisez avant de valider.'});const docs=documents(l);if(item.documents.some(id=>!docs.some((d:any)=>d.id===id)))return reply.code(400).send({error:'Document non rattaché à la demande'});checked.push(item)}
++   const status=b.action==='approve'?'approved':b.action==='dismiss'?'dismissed':'pending'
++   await prisma.$transaction(async tx=>{for(const item of checked){
++     await tx.$executeRaw`INSERT INTO network_opportunities(destination_id,source_lead_id,owner_id,status,source_revision,lot,reason,shared_brief,document_ids,approved_by,approved_at) VALUES (${MAISON},${item.id},${c.owner},${status},${item.revision},${item.lot},${item.reason},${item.brief},${JSON.stringify(item.documents)},${b.action==='approve'?c.user.id:null},${b.action==='approve'?new Date():null}) ON DUPLICATE KEY UPDATE forwarded_at=IF(status='approved' AND source_revision=VALUES(source_revision) AND shared_brief<=>VALUES(shared_brief) AND document_ids=VALUES(document_ids) AND lot=VALUES(lot),forwarded_at,NULL),forwarded_by=IF(forwarded_at IS NULL,NULL,forwarded_by),status=VALUES(status),source_revision=VALUES(source_revision),lot=VALUES(lot),reason=VALUES(reason),shared_brief=VALUES(shared_brief),document_ids=VALUES(document_ids),approved_by=VALUES(approved_by),approved_at=VALUES(approved_at),updated_at=CURRENT_TIMESTAMP(3)`
++     await tx.$executeRaw`INSERT INTO network_opportunity_events(id,destination_id,source_lead_id,actor_id,action) VALUES (${randomUUID()},${MAISON},${item.id},${c.user.id},${b.action})`
++   }})
++   return {ok:true,count:checked.length,status}
++ })
++ app.post(prefix+'/delivery',async(req,reply)=>{
++   const c=await context(req,reply);if(!c)return
++   if(c.user.role!=='admin')return reply.code(403).send({error:'Action réservée à l’administrateur'})
++   const b=z.object({items:z.array(z.object({id:z.string().uuid(),revision:z.string().length(64)})).min(1).max(50)}).safeParse(req.body)
++   if(!b.success)return reply.code(400).send({error:'Envois invalides'})
++   const decisions=await decisionRows(c.owner),items=[...new Map(b.data.items.map(i=>[i.id,i])).values()]
++   for(const item of items){const l=await sourceLead(item.id,c.owner),d=decisions.find(d=>d.source_lead_id===item.id);if(!l||d?.status!=='approved'||d.source_revision!==revision(l)||item.revision!==revision(l))return reply.code(409).send({error:'La validation doit être actualisée avant de marquer cet envoi transmis.'})}
++   let count=0
++   await prisma.$transaction(async tx=>{for(const item of items){const changed=await tx.$executeRaw`UPDATE network_opportunities SET forwarded_at=CURRENT_TIMESTAMP(3),forwarded_by=${c.user.id},updated_at=CURRENT_TIMESTAMP(3) WHERE destination_id=${MAISON} AND source_lead_id=${item.id} AND forwarded_at IS NULL AND status='approved' AND source_revision=${item.revision}`;if(changed){count++;await tx.$executeRaw`INSERT INTO network_opportunity_events(id,destination_id,source_lead_id,actor_id,action) VALUES (${randomUUID()},${MAISON},${item.id},${c.user.id},${'whatsapp_confirmed_manually'})`}}})
++   return {ok:true,count}
++ })
++ app.patch(prefix+'/:leadId/followup',async(req,reply)=>{
++   const c=await context(req,reply);if(!c)return
++   const b=z.object({status:z.enum(['taken','declined','new']),nextAction:z.string().trim().max(1000).default('')}).safeParse(req.body)
++   if(!b.success)return reply.code(400).send({error:'Suivi invalide'})
++   const l=await sourceLead((req.params as any).leadId,c.owner),d=(await decisionRows(c.owner)).find(d=>d.source_lead_id===(req.params as any).leadId)
++   if(!l||d?.status!=='approved'||d.source_revision!==revision(l)||!maySee(d,l,c.user))return reply.code(404).send({error:'Opportunité non proposée'})
++   if(d.assigned_to&&d.assigned_to!==c.user.id&&c.user.role!=='admin')return reply.code(409).send({error:'Déjà prise en charge par un autre membre. Contactez l’administrateur.'})
++   const assigned=b.data.status==='taken'?c.user.id:null
++   await prisma.$transaction(async tx=>{
++     const changed=await tx.$executeRaw`UPDATE network_opportunities SET team_status=${b.data.status},assigned_to=${assigned},next_action=${b.data.nextAction},updated_at=CURRENT_TIMESTAMP(3) WHERE destination_id=${MAISON} AND source_lead_id=${l.id} AND status='approved' AND source_revision=${revision(l)} AND (assigned_to IS NULL OR assigned_to=${c.user.id} OR ${c.user.role==='admin'})`
++     if(!changed)throw Error('CONFLICT')
++     await tx.$executeRaw`INSERT INTO network_opportunity_events(id,destination_id,source_lead_id,actor_id,action) VALUES (${randomUUID()},${MAISON},${l.id},${c.user.id},${'team_'+b.data.status})`
++   })
++   return {ok:true}
++ })
++ app.get(prefix+'/:leadId/documents/:documentId',async(req,reply)=>{
++   const c=await context(req,reply);if(!c)return
++   const {leadId,documentId}=req.params as any,l=await sourceLead(leadId,c.owner),d=(await decisionRows(c.owner)).find(d=>d.source_lead_id===leadId)
++   if(!l||!maySee(d,l,c.user))return reply.code(404).send({error:'Document indisponible'})
++   const doc=documents(l).find((x:any)=>x.id===documentId)
++   if(!doc||(c.user.role!=='admin'&&!json(d?.document_ids||'[]').includes(doc.id)))return reply.code(404).send({error:'Document non partagé'})
++   let data:Buffer,mime=doc.mime||'application/octet-stream'
++   try {
++     if(doc.kind==='mail'){
++       const relative=decodeURIComponent(doc.path.slice('/uploads/mail/'.length));if(relative.split('/').includes('..')||relative.includes('\\'))return reply.code(400).send({error:'Chemin invalide'})
++       const base=await fs.realpath(mailDir),file=await fs.realpath(path.resolve(base,relative));if(!file.startsWith(base+path.sep))return reply.code(400).send({error:'Chemin invalide'})
++       if((await fs.stat(file)).size>25*1024*1024)return reply.code(413).send({error:'Fichier trop volumineux'})
++       data=await fs.readFile(file)
++     } else {
++       if(l.wpSiteId!==SOURCES[0]||!l.wpSite?.exportToken)return reply.code(404).send({error:'Source indisponible'})
++       const url=new URL('/api/lead-export/documents/'+encodeURIComponent(doc.id),'https://tunibusiness.com.tn');url.searchParams.set('lead',l.externalId)
++       const r=await fetch(url,{headers:{Authorization:'Bearer '+l.wpSite.exportToken},redirect:'manual',signal:AbortSignal.timeout(25000)})
++       if(!r.ok||!r.body)return reply.code(502).send({error:'Fichier indisponible à la source'})
++       const reader=r.body.getReader(),parts:Buffer[]=[];let n=0;while(true){const v=await reader.read();if(v.done)break;n+=v.value.length;if(n>25*1024*1024){await reader.cancel();return reply.code(413).send({error:'Fichier trop volumineux'})}parts.push(Buffer.from(v.value))}data=Buffer.concat(parts);mime=(r.headers.get('content-type')||mime).split(';')[0]
++     }
++     const inline=['image/jpeg','image/png','image/webp','image/gif','application/pdf'].includes(mime)
++     reply.type(inline?mime:'application/octet-stream').header('Content-Disposition',`${inline?'inline':'attachment'}; filename*=UTF-8''${encodeURIComponent(String(doc.name).replace(/[\r\n\\/]/g,'_'))}`).header('X-Robots-Tag','noindex, nofollow');return reply.send(data)
++   }catch{return reply.code(404).send({error:'Fichier indisponible. Le dossier source reste conservé.'})}
++ })
++}
+--- /dev/null
++++ b/client/src/components/NetworkOpportunities.tsx
+@@ -0,0 +1,55 @@
++import {networkWhatsApp} from '../lib/networkShare'
++import {useEffect,useState} from 'react'
++import {apiClient} from '../lib/apiClient'
++import Modal from './Modal'
++import PrivatePdfPreview from './PrivatePdfPreview'
++const DEST='b4a9bcd7-8813-4206-aa2c-525e3d525b9c'
++const base=`/dashboard/site/${DEST}/network-opportunities`
++const date=(v:string)=>new Date(v).toLocaleDateString('fr-FR')
++const button='rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium dark:border-slate-700 disabled:opacity-40'
++function Attachment({leadId,doc}:{leadId:string;doc:any}) {
++ const [preview,setPreview]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false)
++ useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url)},[preview?.url])
++ async function open(download=false){setBusy(true);setError('');try{const r=await apiClient.get(`${base}/${leadId}/documents/${encodeURIComponent(doc.id)}`,{responseType:'blob'});const mime=(r.headers['content-type']||'').split(';')[0];const url=URL.createObjectURL(new Blob([r.data],{type:mime}));if(!download&&['application/pdf','image/jpeg','image/png','image/webp','image/gif'].includes(mime))setPreview({url,mime});else{const a=document.createElement('a');a.href=url;a.download=doc.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}catch{setError('Document indisponible ou autorisation retirée. Actualisez la fiche.')}finally{setBusy(false)}}
++ return <div className="min-w-0 rounded-lg border border-slate-200 p-3 dark:border-slate-700"><p className="break-words font-medium">{doc.name}</p><div className="mt-2 flex flex-wrap gap-2"><button className={button} disabled={busy||doc.available===false} onClick={()=>open()}>{busy?'Chargement…':'Consulter le document'}</button><button className={button} disabled={busy||doc.available===false} onClick={()=>open(true)}>Télécharger</button></div>{doc.available===false&&<p className="text-amber-600">Fichier manquant à la source</p>}{error&&<p role="alert" className="mt-2 text-red-600">{error}</p>}{preview&&(preview.mime==='application/pdf'?<PrivatePdfPreview url={preview.url} name={doc.name}/>:<img className="mt-3 max-h-96 w-full object-contain" src={preview.url} alt={doc.name}/>)}</div>
++}
++export default function NetworkOpportunities(){
++ const [data,setData]=useState<any>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[days,setDays]=useState(90),[view,setView]=useState('pending'),[search,setSearch]=useState(''),[page,setPage]=useState(1)
++ const [selected,setSelected]=useState<any>(null),[member,setMember]=useState(0),[lot,setLot]=useState(''),[reason,setReason]=useState(''),[briefs,setBriefs]=useState<Record<string,string>>({}),[docs,setDocs]=useState<Record<string,string[]>>({}),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[next,setNext]=useState('')
++ async function load(){try{const r=await apiClient.get(base,{params:{days}});setData(r.data);setError('');if(!r.data.admin){setView('approved');setSelected((prev:any)=>prev && r.data.groups.find((g:any)=>g.members.some((m:any)=>prev.members.some((old:any)=>old.id===m.id))) || null)}}catch{setError('Impossible de charger les opportunités. Réessayez.')}finally{setLoading(false)}}
++ useEffect(()=>{setLoading(true);load();const timer=setInterval(load,60000);return()=>clearInterval(timer)},[days])
++ useEffect(()=>setPage(1),[days,view,search])
++ const groups=data?.groups||[],admin=!!data?.admin
++ const inView=(g:any,v:string)=>v==='sent'?g.members[0].status==='approved'&&g.members.every((m:any)=>m.forwardedAt):v==='approved'?g.members[0].status==='approved'&&(!admin||g.members.some((m:any)=>!m.forwardedAt)):g.members[0].status===v
++ const filtered=groups.filter((g:any)=>inView(g,view)&&(!search||g.members.some((m:any)=>[m.name,m.city,m.lot,m.title,m.sourceSite,m.message].join(' ').toLowerCase().includes(search.toLowerCase()))))
++ const pages=Math.max(1,Math.ceil(filtered.length/12)),current=Math.min(page,pages),shown=filtered.slice((current-1)*12,current*12)
++ function open(g:any){setSelected(g);setMember(0);setLot(g.members[0].lot);setReason(g.members[0].reason);setBriefs(Object.fromEntries(g.members.map((m:any)=>[m.id,m.sharedBrief||m.message])));setDocs(Object.fromEntries(g.members.map((m:any)=>[m.id,m.selectedDocuments])));setNext(g.members[0].nextAction||'');setNotice('')}
++ async function review(action:string){if(!selected||busy)return;setBusy(true);try{await apiClient.post(base+'/review',{action,items:selected.members.map((m:any)=>({id:m.id,revision:m.revision,lot,reason,brief:briefs[m.id]||m.message,documents:docs[m.id]||[]}))});setSelected(null);setNotice(action==='approve'?'Opportunité validée. Vous pouvez maintenant préparer votre message WhatsApp.':action==='dismiss'?'Suggestion écartée. Le dossier source est conservé.':'Validation retirée.');await load()}catch(e:any){setNotice(e.response?.data?.error||'Enregistrement impossible. Réessayez.')}finally{setBusy(false)}}
++ const active=selected?.members[member]
++ const whatsappText=selected?networkWhatsApp(selected.members):''
++ async function copyWhatsApp(){try{await navigator.clipboard.writeText(whatsappText);setNotice('Message copié. Joignez les fichiers téléchargés dans WhatsApp. Aucun envoi automatique.')}catch{setNotice('Copie impossible : sélectionnez le texte du message préparé ci-dessous.')}}
++ async function markDelivered(){setBusy(true);try{await apiClient.post(base+'/delivery',{items:selected.members.map((m:any)=>({id:m.id,revision:m.revision}))});setSelected(null);setNotice('Transmission par WhatsApp enregistrée.');await load()}catch(e:any){setNotice(e.response?.data?.error||'Enregistrement impossible')}finally{setBusy(false)}}
++ async function follow(status:string){if(!active||busy)return;setBusy(true);try{await apiClient.patch(`${base}/${active.id}/followup`,{status,nextAction:next});setSelected(null);setNotice('Suivi de cette opportunité enregistré.');await load()}catch(e:any){setNotice(e.response?.data?.error||'Mise à jour impossible')}finally{setBusy(false)}}
++ return <section className="space-y-4 rounded-2xl border border-primary-200 bg-white p-4 sm:p-6 dark:border-primary-800 dark:bg-slate-900" aria-label="Opportunités du réseau Maison216">
++   <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-xl font-semibold">Opportunités du réseau</h2><p className="mt-1 text-sm text-slate-500">{admin?'Repérées sur TuniBusiness et MedinaConstruction. Vous validez, puis vous transmettez vous-même par WhatsApp.':'Demandes sélectionnées et validées pour Maison216. Les demandes de votre site restent séparées ci-dessous.'}</p></div><button className={button} onClick={load}>Actualiser</button></div>
++   <div className="flex flex-wrap items-center gap-2">{(admin?[['pending','À valider'],['approved','À transmettre'],['sent','Transmises'],['dismissed','Écartées']]:[['approved','Proposées à Maison216']]).map(([v,label])=><button key={v} onClick={()=>setView(v)} aria-pressed={view===v} className={`${button} ${view===v?'bg-primary-600 text-white':''}`}>{label} ({groups.filter((g:any)=>inView(g,v)).length})</button>)}</div>
++   <div className="flex flex-wrap gap-3"><input aria-label="Rechercher une opportunité du réseau" placeholder="Client, lot, ville, site…" value={search} onChange={e=>setSearch(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-transparent p-2 dark:border-slate-700"/><select aria-label="Période des suggestions réseau" value={days} onChange={e=>setDays(Number(e.target.value))} className="rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">{[30,90,365,730].map(d=><option key={d} value={d}>{d} derniers jours</option>)}</select></div>
++   <p className="text-sm font-medium text-primary-700 dark:text-primary-300">{groups.filter((g:any)=>g.members.some((m:any)=>m.status==='approved'&&!m.forwardedAt)).length} opportunité(s) validée(s) à transmettre</p>
++   <p className="text-xs text-slate-500">Les propositions validées restent visibles au-delà de la période. Détection fondée sur le besoin écrit ; le contenu des fichiers n’est pas analysé automatiquement.</p>
++   {notice&&!selected&&<p role="status" className="rounded-lg bg-primary-50 p-3 text-sm text-primary-800 dark:bg-primary-900/20 dark:text-primary-200">{notice}</p>}
++   {error&&<p role="alert" className="text-red-600">{error}</p>}
++   {loading?<p>Chargement des opportunités…</p>:<div className="grid gap-3 lg:grid-cols-2">{shown.map((g:any)=>{const m=g.members[0];return <button key={g.id} onClick={()=>open(g)} className="min-w-0 space-y-2 rounded-xl border border-slate-200 p-4 text-left hover:border-primary-400 dark:border-slate-700"><p className="text-xs text-slate-500">{[...new Set(g.members.map((x:any)=>x.sourceSite))].join(' · ')} · {date(m.date)}</p><h3 className="font-semibold">{m.lot}</h3><p className="text-sm">{m.name||'Client'} · {m.city||'Lieu à préciser'}</p><p className="line-clamp-2 text-sm text-slate-500">{m.message}</p><p className="text-xs text-primary-600">{g.members.length>1?`${g.members.length} envois similaires réunis · `:''}{g.members.reduce((n:number,x:any)=>n+x.documents.length,0)} document(s)</p>{m.warning&&<p className="text-xs text-amber-600">{m.warning}</p>}{g.members.some((x:any)=>x.sourceAlreadyContacted)&&<p className="text-xs text-amber-600">Client déjà contacté côté source : coordonner la relance.</p>}{['approved','sent'].includes(view)&&<p className="text-sm font-medium">{m.forwardedAt?`Transmise par WhatsApp le ${date(m.forwardedAt)}`:m.teamStatus==='taken'?`Pris en charge par ${m.assigneeLabel||'un membre de l’équipe'}`:m.teamStatus==='declined'?'Décliné par l’équipe':'À examiner par l’équipe'}</p>}<span className="block text-sm font-semibold text-primary-600">{admin&&view==='pending'?'Examiner et valider →':'Consulter →'}</span></button>})}{!shown.length&&<p className="col-span-full py-5 text-sm text-slate-500">{view==='approved'?'Aucune opportunité en attente de transmission.':'Aucune suggestion dans cette vue.'}</p>}</div>}
++   {pages>1&&<nav aria-label="Pagination des opportunités" className="flex items-center justify-between gap-2 text-sm"><button className={button} disabled={current===1} onClick={()=>setPage(current-1)}>Précédente</button><span>Page {current}/{pages} · {filtered.length} fiches</span><button className={button} disabled={current===pages} onClick={()=>setPage(current+1)}>Suivante</button></nav>}
++   <Modal open={!!selected} onClose={()=>{if(!busy)setSelected(null)}} maxWidth="max-w-3xl" title="Opportunité pour Maison216" footer={selected&&<div className="flex flex-wrap gap-2">{admin&&<>{selected.members[0].status!=='approved'?<button disabled={busy||lot.trim().length<3||reason.trim().length<3||selected.members.some((m:any)=>(briefs[m.id]||'').trim().length<3)} className={button+' bg-primary-600 text-white'} onClick={()=>review('approve')}>Valider pour Maison216</button>:<button disabled={busy} className={button} onClick={()=>review('revoke')}>Retirer la validation</button>}{selected.members[0].status==='pending'&&<button disabled={busy} className={button} onClick={()=>review('dismiss')}>Écarter</button>}</>}{selected.members[0].status==='approved'&&admin&&<><button disabled={busy} className={button+' bg-primary-600 text-white'} onClick={copyWhatsApp}>Copier pour WhatsApp</button><button disabled={busy||selected.members.every((m:any)=>m.forwardedAt)} className={button+' bg-emerald-600 text-white'} onClick={markDelivered}>Marquer transmis par WhatsApp</button></>}{selected.members[0].status==='approved'&&!admin&&<><button disabled={busy} className={button+' bg-emerald-600 text-white'} onClick={()=>follow('taken')}>Prendre en charge cet envoi</button><button disabled={busy} className={button} onClick={()=>follow('declined')}>Pas pour nous</button></>}</div>}>
++    {active&&<div className="space-y-5 text-sm">{admin&&active.status==='approved'&&<section className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-900/20"><h3 className="font-semibold">Message WhatsApp prêt à transmettre</h3><textarea aria-label="Message WhatsApp préparé" readOnly value={whatsappText} rows={7} className="mt-2 w-full rounded-lg border bg-white p-3 dark:bg-slate-900 dark:border-slate-700"/><p className="mt-2 text-xs text-slate-500">Les fichiers ne sont pas joints automatiquement : téléchargez les documents sélectionnés ci-dessous, puis joignez-les dans WhatsApp. « Marquer transmis » est à utiliser après votre envoi.</p></section>}{notice&&<p role="alert" className="text-amber-700">{notice}</p>}{admin?<><label className="block font-medium">Lot à proposer à Maison216<input disabled={active.status==='approved'} value={lot} onChange={e=>setLot(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><label className="block font-medium">Pourquoi cette demande intéresse Maison216<textarea disabled={active.status==='approved'} rows={3} value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><p className="text-xs text-slate-500">Le lot, le besoin validé et les noms des fichiers cochés composent le message WhatsApp. Aucun message ni document n’est envoyé automatiquement.</p></>:<div><h3 className="text-lg font-semibold">{active.lot}</h3><p className="mt-2 whitespace-pre-wrap">{active.reason}</p></div>}
++      {selected.members.length>1&&<label className="block">Envois regroupés ({selected.members.length})<select aria-label="Envoi source de l’opportunité" value={member} onChange={e=>{const i=Number(e.target.value);setMember(i);setNext(selected.members[i].nextAction||'')}} className="mt-1 w-full rounded-lg border bg-white p-2 dark:bg-slate-900 dark:border-slate-700">{selected.members.map((m:any,i:number)=><option key={m.id} value={i}>{m.sourceSite} · {m.reference} · {date(m.date)}</option>)}</select><span className="mt-1 block text-xs text-slate-500">La validation s’applique aux {selected.members.length} envois de cette fiche. Le suivi équipe concerne l’envoi sélectionné.</span></label>}
++      <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800"><h3 className="font-semibold">{active.name} · {active.city}</h3><p className="mt-1 text-xs text-slate-500">{active.sourceSite} · {active.reference} · {date(active.date)}</p><div className="mt-2 flex flex-wrap gap-3"><a className="text-primary-600" href={`tel:${active.phone||''}`}>{active.phone}</a><a className="break-all text-primary-600" href={`mailto:${active.email||''}`}>{active.email}</a></div>{active.sourceAlreadyContacted&&<p className="mt-2 text-amber-600">Déjà contacté à la source : coordonner avant de rappeler.</p>}</div>
++      {active.warning&&<p className="rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{active.warning}</p>}
++      <section><h3 className="mb-2 font-semibold">Besoin à transmettre à Maison216</h3>{admin?<><textarea aria-label="Besoin visible par l’équipe" disabled={active.status==='approved'} rows={7} value={briefs[active.id]||''} onChange={e=>setBriefs(prev=>({...prev,[active.id]:e.target.value}))} className="w-full rounded-lg border bg-transparent p-3 dark:border-slate-700"/><p className="mt-1 text-xs text-slate-500">Gardez uniquement les informations utiles au lot Maison216. Le message source reste inchangé.</p><details className="mt-2"><summary className="cursor-pointer text-slate-500">Consulter le message source intégral</summary><p className="mt-2 whitespace-pre-wrap break-words">{active.message}</p></details></>:<p className="whitespace-pre-wrap break-words">{active.message}</p>}</section>
++      <section><h3 className="mb-2 font-semibold">Documents de cet envoi ({active.documents.length})</h3><div className="space-y-3">{active.documents.map((d:any)=><div key={active.id+d.id}>{admin&&<label className="mb-1 flex items-center gap-2"><input type="checkbox" disabled={active.status==='approved'} checked={(docs[active.id]||[]).includes(d.id)} onChange={e=>setDocs(prev=>({...prev,[active.id]:e.target.checked?[...(prev[active.id]||[]),d.id]:(prev[active.id]||[]).filter(id=>id!==d.id)}))}/>Partager ce fichier avec l’équipe après validation</label>}<Attachment key={active.id+d.id} leadId={active.id} doc={d}/></div>)}</div>{!active.documents.length&&<p className="text-slate-500">Aucune pièce jointe disponible pour cet envoi.</p>}</section>
++      {active.status==='approved'&&!admin&&<label className="block font-medium">Prochaine action pour cet envoi<textarea value={next} onChange={e=>setNext(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/><span className="text-xs font-normal text-slate-500">Enregistrée avec « Prendre en charge cet envoi » ou « Pas pour nous ».</span></label>}
++      {admin&&<a className="inline-block text-primary-600" href={`/site/${active.sourceSiteId}`} target="_blank" rel="noopener noreferrer">Ouvrir le site d’origine dans Leads Central ↗</a>}
++    </div>}
++   </Modal>
++ </section>
++}
+--- /dev/null
++++ b/client/src/lib/networkShare.ts
+@@ -0,0 +1,17 @@
++export function networkWhatsApp(members:any[]) {
++ const rows=members.filter(m=>m.status==='approved')
++ if(!rows.length)return ''
++ const first=rows[0],briefs=[...new Set(rows.map(m=>m.sharedBrief).filter(Boolean))]
++ const files=[...new Set(rows.flatMap(m=>m.documents.filter((d:any)=>(m.selectedDocuments||[]).includes(d.id)).map((d:any)=>d.name)))]
++ return [
++  'Opportunité pour Maison216',
++  `Lot : ${[...new Set(rows.map(m=>m.lot))].join(' · ')}`,
++  `Client : ${first.name||'À préciser'}`,
++  first.city&&`Lieu : ${first.city}`,first.phone&&`Téléphone : ${first.phone}`,first.email&&`Email : ${first.email}`,
++  '\nBesoin validé :',...briefs,
++  '\nOrigine : '+rows.map(m=>`${m.sourceSite} · réf. ${m.reference}`).join(' / '),
++  files.length?'\nPièces à joindre : '+files.join(', '):'',
++  rows.some(m=>m.sourceAlreadyContacted)?'\nLe client a déjà été contacté côté source : coordonner la relance.':'',
++  '\nMerci de me confirmer si ce projet vous intéresse et qui le prend en charge.'
++ ].filter(Boolean).join('\n')
++}

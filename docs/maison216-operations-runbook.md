@@ -425,3 +425,48 @@ Sauvegardes : `/root/maison216-backups/leads-export-before-20261025.tar.gz` côt
 `maison216-leads-before-20261025.json` (0600) côté CRM.
 Déploiement limité aux fichiers concernés : ne pas rejouer tout le checkout local ancien
 sur la production. Les autres changements locaux préexistants n'ont pas été inclus.
+
+
+## 25/10/2026 — Opportunités réseau et transmission WhatsApp manuelle
+
+Demande de Walid : détecter les besoins pertinents de TuniBusiness et Medina Construction,
+les présenter sur la fiche Maison216, validation obligatoire avant proposition. Clarification
+explicite : aucun compte équipe à créer ; Walid transmet lui-même par WhatsApp.
+Parcours en ligne : À valider / À transmettre / Transmises / Écartées. 11 suggestions sur
+90 jours lors du contrôle (détection à partir du besoin écrit, aucun OCR/analyse de pièces jointe
+prétendu). Le lot et les éléments justificatifs sont modifiables. Texte à transmettre révisable
+avant validation ; original conservé. Documents du client cochés individuellement, devis des
+fournisseurs TuniBusiness exclus. Copier pour WhatsApp produit seulement le texte validé et la
+liste des pièces à joindre ; les fichiers sont à télécharger et à ajouter manuellement par Walid.
+Le bouton Marquer transmis par WhatsApp est une confirmation humaine, pas une preuve technique
+de livraison et n'est jamais déclenché par la copie ou le téléchargement. Aucun envoi automatique.
+
+Deux nouvelles tables de liaison/journal, sans copie ni modification des leads sources :
+network_opportunities (clé unique destination_id + source_lead_id) et network_opportunity_events.
+Source, documents, contact et besoin hachés ; un changement impose une nouvelle validation.
+Suppression d'une source retire la liaison ; historique des actions séparé. Regroupement visuel
+conservateur des messages similaires même contact, y compris intersites, et exclusion d'un même
+besoin déjà présent côté Maison216. Ce n'est pas une fusion/suppression de données.
+Statuts/notes source non partagés ; seul un indicateur déjà contacté aide à coordonner.
+Les données d'identification du client et le besoin sont revus par l'administrateur.
+
+Droits : rôle et périmètre relus en base ; validation/révocation/transmission réservées à l'admin.
+L'accès cible pour un éventuel compte Maison216 n'expose que les propositions approuvées et les
+fichiers cochés, jamais les sites source complets. Aucun compte ni droit nouveau créé ici.
+Route dédiée documents : source TuniBusiness via Bearer privé ; pièces Medina reçues par mail
+lues localement avec realpath sous uploads/mail, sans URL publique renvoyée. Aperçu PDF/image,
+autres formats téléchargeables, limite 25 Mo, no-store/nosniff. Les fichiers ne sont pas publiés.
+
+Validation : compilation TypeScript serveur/client et Vite, schéma Prisma validé ; tests Fastify
+sur base simulée couvrent validation admin, révocation, changement source, données internes
+exclues, fichiers sélectionnés, unicité, attribution et confirmation WhatsApp idempotente. Tests
+production en lecture seule : liste 11 fiches, toutes en attente, accès anonyme 401 ; JPEG
+TuniBusiness 1524927 octets et PDF Medina 767720 octets ouverts via la route privée. Aucun vrai
+lead approuvé, transmis ou contacté pendant les tests.
+
+Reproduction : appliquer deploy/leadscentral-maison216-network.patch au CRM live ; tables dans
+deploy/leadscentral-maison216-network.sql ; tests deploy/test-maison216-network.cjs à exécuter
+à la racine server avec compilation dist-network-20261025. Ne pas rejouer le checkout local
+CRM ancien. Sauvegardes /home/leadsc/backups/maison-network-before-20261025.tar.gz et
+maison-network-schema-before-20261025.prisma. Les tables étaient vides à la livraison, aucune
+validation à annuler. Les accès privés existants et les autres sites sont conservés.
