@@ -470,3 +470,41 @@ deploy/leadscentral-maison216-network.sql ; tests deploy/test-maison216-network.
 CRM ancien. Sauvegardes /home/leadsc/backups/maison-network-before-20261025.tar.gz et
 maison-network-schema-before-20261025.prisma. Les tables étaient vides à la livraison, aucune
 validation à annuler. Les accès privés existants et les autres sites sont conservés.
+
+
+## 25/10/2026 — Dossier PDF / ZIP et navigation réseau dans les filtres
+
+Demandes successives de Walid : télécharger une fiche complète pour WhatsApp puis intégrer
+Opportunités du réseau dans la barre Tous / Non vus / À contacter. Mis en ligne : bouton réseau
+avec compteur, vue remplaçant la liste directe, plus de bloc réseau au-dessus des graphiques.
+Les filtres directs sont conservés au retour et la vue est réinitialisée lors d'un changement de
+site. Le composant réseau reste monté masqué pour son compteur ; il n'y a pas deux listes visibles.
+
+Dans une opportunité validée : Télécharger la fiche PDF ou PDF + originaux (ZIP).
+Synthèse Maison216 : besoin validé, coordonnées, lot, références sources et inventaire des pièces.
+Photos mises à l'échelle sur pages annexes ; PDF sources fusionnés sans modifier leurs pages.
+ZIP = synthèse et annexes lisibles + tous les originaux sélectionnés (dont DWG/tableurs ou PDF
+protégés/illisibles). Le mode PDF refuse les pièces non intégrables en indiquant le ZIP, et tout
+échec de récupération bloque le dossier incomplet. Aucun envoi ni statut transmis automatique.
+
+Contrôle serveur POST network-opportunities/export : uniquement validations actuelles et fichiers
+cochés. Contrôle à nouveau après préparation pour prévenir un export après révocation/changement.
+Création locale dans le navigateur, aucun service tiers ni stockage public. Chargement différé de
+pdf-lib 1.17.1, JSZip 3.10.1, polices libres DejaVu 2.37.3 ; licence publiée sous /licenses/.
+Limites : 50 pièces, 100 Mo téléchargés, 200 pages d'annexes. Images réduites à 2400 px pour le PDF,
+originaux conservés dans le ZIP ; doublons binaires évités. Accents et arabe vérifiés au rendu.
+
+Tests : routes sur base simulée (validation, fichiers autorisés, état périmé, notes internes
+exclues), génération d'une synthèse longue de 6 pages avec photo et PDF de 2 pages, refus d'une
+fiche non validée et d'annexes incompatibles en mode PDF. Rendu Poppler inspecté. En production :
+export anonyme 401, non validé 409, navigation réseau/Tous contrôlée visuellement. Aucune vraie
+opportunité validée pour les tests. Builds Vite et TypeScript serveur réussis. Vérification réelle
+client avec tsconfig.app.json : pas d'erreur sur NetworkOpportunities, QuoteRequests, networkPdf
+et leadGroups ; erreurs préexistantes ailleurs (dont MyNumbers, MaisonDossier, imports inutilisés)
+non traitées dans ce périmètre. Le simple tsc --noEmit du tsconfig racine vide n'est pas probant.
+
+Reproduction : deploy/leadscentral-maison216-pdf-ux.patch, tests deploy/test-pdf-core.cjs (client,
+fixture deploy/fixtures/network-pdf-photo.jpg à copier en test-network-photo.jpg), et
+ deploy/test-network-pdf.cjs (server, dist-network-pdf-20261025). Sauvegarde serveur
+/home/leadsc/backups/network-pdf-before-20261025.tar.gz ; sauvegardes QuoteRequests/SiteDetail
+supplémentaires network-pdf-*.before.tsx. Captures et PDF synthétique dans D:/Maison216-network-pdf.

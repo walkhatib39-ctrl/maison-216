@@ -1,0 +1,779 @@
+--- a/server/src/routes/networkOpportunities.ts
++++ b/server/src/routes/networkOpportunities.ts
+@@ -64,6 +64,18 @@
+    }})
+    return {ok:true,count:checked.length,status}
+  })
++ app.post(prefix+'/export',async(req,reply)=>{
++   const c=await context(req,reply);if(!c)return
++   const b=z.object({items:z.array(z.object({id:z.string().uuid(),revision:z.string().length(64)})).min(1).max(50)}).safeParse(req.body)
++   if(!b.success)return reply.code(400).send({error:'Dossiers invalides'})
++   const decisions=await decisionRows(c.owner),out:any[]=[]
++   for(const item of [...new Map(b.data.items.map(i=>[i.id,i])).values()]){
++     const l=await sourceLead(item.id,c.owner),d=decisions.find(d=>d.source_lead_id===item.id)
++     if(!l||d?.status!=='approved'||d.source_revision!==revision(l)||item.revision!==revision(l)||!maySee(d,l,c.user))return reply.code(409).send({error:'Cette opportunité doit être validée ou actualisée avant son export.'})
++     out.push(serialize(l,d,false))
++   }
++   return {members:out}
++ })
+  app.post(prefix+'/delivery',async(req,reply)=>{
+    const c=await context(req,reply);if(!c)return
+    if(c.user.role!=='admin')return reply.code(403).send({error:'Action réservée à l’administrateur'})
+--- a/client/src/components/NetworkOpportunities.tsx
++++ b/client/src/components/NetworkOpportunities.tsx
+@@ -10,13 +10,13 @@
+ function Attachment({leadId,doc}:{leadId:string;doc:any}) {
+  const [preview,setPreview]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false)
+  useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url)},[preview?.url])
+- async function open(download=false){setBusy(true);setError('');try{const r=await apiClient.get(`${base}/${leadId}/documents/${encodeURIComponent(doc.id)}`,{responseType:'blob'});const mime=(r.headers['content-type']||'').split(';')[0];const url=URL.createObjectURL(new Blob([r.data],{type:mime}));if(!download&&['application/pdf','image/jpeg','image/png','image/webp','image/gif'].includes(mime))setPreview({url,mime});else{const a=document.createElement('a');a.href=url;a.download=doc.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}catch{setError('Document indisponible ou autorisation retirée. Actualisez la fiche.')}finally{setBusy(false)}}
++ async function open(download=false){setBusy(true);setError('');try{const r=await apiClient.get(`${base}/${leadId}/documents/${encodeURIComponent(doc.id)}`,{responseType:'blob'});const mime=String(r.headers['content-type']||'').split(';')[0];const url=URL.createObjectURL(new Blob([r.data],{type:mime}));if(!download&&['application/pdf','image/jpeg','image/png','image/webp','image/gif'].includes(mime))setPreview({url,mime});else{const a=document.createElement('a');a.href=url;a.download=doc.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}catch{setError('Document indisponible ou autorisation retirée. Actualisez la fiche.')}finally{setBusy(false)}}
+  return <div className="min-w-0 rounded-lg border border-slate-200 p-3 dark:border-slate-700"><p className="break-words font-medium">{doc.name}</p><div className="mt-2 flex flex-wrap gap-2"><button className={button} disabled={busy||doc.available===false} onClick={()=>open()}>{busy?'Chargement…':'Consulter le document'}</button><button className={button} disabled={busy||doc.available===false} onClick={()=>open(true)}>Télécharger</button></div>{doc.available===false&&<p className="text-amber-600">Fichier manquant à la source</p>}{error&&<p role="alert" className="mt-2 text-red-600">{error}</p>}{preview&&(preview.mime==='application/pdf'?<PrivatePdfPreview url={preview.url} name={doc.name}/>:<img className="mt-3 max-h-96 w-full object-contain" src={preview.url} alt={doc.name}/>)}</div>
+ }
+-export default function NetworkOpportunities(){
++export default function NetworkOpportunities({embedded=false,onPendingCount}:{embedded?:boolean;onPendingCount?:(count:number)=>void}={}){
+  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[days,setDays]=useState(90),[view,setView]=useState('pending'),[search,setSearch]=useState(''),[page,setPage]=useState(1)
+  const [selected,setSelected]=useState<any>(null),[member,setMember]=useState(0),[lot,setLot]=useState(''),[reason,setReason]=useState(''),[briefs,setBriefs]=useState<Record<string,string>>({}),[docs,setDocs]=useState<Record<string,string[]>>({}),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[next,setNext]=useState('')
+- async function load(){try{const r=await apiClient.get(base,{params:{days}});setData(r.data);setError('');if(!r.data.admin){setView('approved');setSelected((prev:any)=>prev && r.data.groups.find((g:any)=>g.members.some((m:any)=>prev.members.some((old:any)=>old.id===m.id))) || null)}}catch{setError('Impossible de charger les opportunités. Réessayez.')}finally{setLoading(false)}}
++ async function load(){try{const r=await apiClient.get(base,{params:{days}});setData(r.data);onPendingCount?.(r.data.groups.filter((g:any)=>g.members[0].status==='pending').length);setError('');if(!r.data.admin){setView('approved');setSelected((prev:any)=>prev && r.data.groups.find((g:any)=>g.members.some((m:any)=>prev.members.some((old:any)=>old.id===m.id))) || null)}}catch{setError('Impossible de charger les opportunités. Réessayez.')}finally{setLoading(false)}}
+  useEffect(()=>{setLoading(true);load();const timer=setInterval(load,60000);return()=>clearInterval(timer)},[days])
+  useEffect(()=>setPage(1),[days,view,search])
+  const groups=data?.groups||[],admin=!!data?.admin
+@@ -28,10 +28,16 @@
+  const active=selected?.members[member]
+  const whatsappText=selected?networkWhatsApp(selected.members):''
+  async function copyWhatsApp(){try{await navigator.clipboard.writeText(whatsappText);setNotice('Message copié. Joignez les fichiers téléchargés dans WhatsApp. Aucun envoi automatique.')}catch{setNotice('Copie impossible : sélectionnez le texte du message préparé ci-dessous.')}}
++ async function downloadPack(mode:'pdf'|'zip'){
++   if(!selected||busy)return;setBusy(true);setNotice('Préparation du dossier…')
++   try{const {downloadNetworkPack}=await import('../lib/networkPdf');const result=await downloadNetworkPack(selected.members,mode,setNotice);setNotice(`${result.name} prêt : ${result.files} pièce(s) sélectionnée(s). Joignez ce fichier dans WhatsApp. La transmission n’a pas été marquée automatiquement.`)}
++   catch(e:any){setNotice(e.response?.data?.error||e.message||'Création du dossier impossible.')}
++   finally{setBusy(false)}
++ }
+  async function markDelivered(){setBusy(true);try{await apiClient.post(base+'/delivery',{items:selected.members.map((m:any)=>({id:m.id,revision:m.revision}))});setSelected(null);setNotice('Transmission par WhatsApp enregistrée.');await load()}catch(e:any){setNotice(e.response?.data?.error||'Enregistrement impossible')}finally{setBusy(false)}}
+  async function follow(status:string){if(!active||busy)return;setBusy(true);try{await apiClient.patch(`${base}/${active.id}/followup`,{status,nextAction:next});setSelected(null);setNotice('Suivi de cette opportunité enregistré.');await load()}catch(e:any){setNotice(e.response?.data?.error||'Mise à jour impossible')}finally{setBusy(false)}}
+- return <section className="space-y-4 rounded-2xl border border-primary-200 bg-white p-4 sm:p-6 dark:border-primary-800 dark:bg-slate-900" aria-label="Opportunités du réseau Maison216">
+-   <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-xl font-semibold">Opportunités du réseau</h2><p className="mt-1 text-sm text-slate-500">{admin?'Repérées sur TuniBusiness et MedinaConstruction. Vous validez, puis vous transmettez vous-même par WhatsApp.':'Demandes sélectionnées et validées pour Maison216. Les demandes de votre site restent séparées ci-dessous.'}</p></div><button className={button} onClick={load}>Actualiser</button></div>
++ return <section className={embedded?"space-y-4 rounded-xl bg-white p-4 dark:bg-slate-900":"space-y-4 rounded-2xl border border-primary-200 bg-white p-4 sm:p-6 dark:border-primary-800 dark:bg-slate-900"} aria-label="Opportunités du réseau Maison216">
++   <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-xl font-semibold">{embedded?'Opportunités pour Maison216':'Opportunités du réseau'}</h2><p className="mt-1 text-sm text-slate-500">{admin?'Repérées sur TuniBusiness et MedinaConstruction. Vous validez, puis vous transmettez vous-même par WhatsApp.':'Demandes sélectionnées et validées pour Maison216. Les demandes de votre site restent séparées ci-dessous.'}</p></div><button className={button} onClick={load}>Actualiser</button></div>
+    <div className="flex flex-wrap items-center gap-2">{(admin?[['pending','À valider'],['approved','À transmettre'],['sent','Transmises'],['dismissed','Écartées']]:[['approved','Proposées à Maison216']]).map(([v,label])=><button key={v} onClick={()=>setView(v)} aria-pressed={view===v} className={`${button} ${view===v?'bg-primary-600 text-white':''}`}>{label} ({groups.filter((g:any)=>inView(g,v)).length})</button>)}</div>
+    <div className="flex flex-wrap gap-3"><input aria-label="Rechercher une opportunité du réseau" placeholder="Client, lot, ville, site…" value={search} onChange={e=>setSearch(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-transparent p-2 dark:border-slate-700"/><select aria-label="Période des suggestions réseau" value={days} onChange={e=>setDays(Number(e.target.value))} className="rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">{[30,90,365,730].map(d=><option key={d} value={d}>{d} derniers jours</option>)}</select></div>
+    <p className="text-sm font-medium text-primary-700 dark:text-primary-300">{groups.filter((g:any)=>g.members.some((m:any)=>m.status==='approved'&&!m.forwardedAt)).length} opportunité(s) validée(s) à transmettre</p>
+@@ -40,8 +46,8 @@
+    {error&&<p role="alert" className="text-red-600">{error}</p>}
+    {loading?<p>Chargement des opportunités…</p>:<div className="grid gap-3 lg:grid-cols-2">{shown.map((g:any)=>{const m=g.members[0];return <button key={g.id} onClick={()=>open(g)} className="min-w-0 space-y-2 rounded-xl border border-slate-200 p-4 text-left hover:border-primary-400 dark:border-slate-700"><p className="text-xs text-slate-500">{[...new Set(g.members.map((x:any)=>x.sourceSite))].join(' · ')} · {date(m.date)}</p><h3 className="font-semibold">{m.lot}</h3><p className="text-sm">{m.name||'Client'} · {m.city||'Lieu à préciser'}</p><p className="line-clamp-2 text-sm text-slate-500">{m.message}</p><p className="text-xs text-primary-600">{g.members.length>1?`${g.members.length} envois similaires réunis · `:''}{g.members.reduce((n:number,x:any)=>n+x.documents.length,0)} document(s)</p>{m.warning&&<p className="text-xs text-amber-600">{m.warning}</p>}{g.members.some((x:any)=>x.sourceAlreadyContacted)&&<p className="text-xs text-amber-600">Client déjà contacté côté source : coordonner la relance.</p>}{['approved','sent'].includes(view)&&<p className="text-sm font-medium">{m.forwardedAt?`Transmise par WhatsApp le ${date(m.forwardedAt)}`:m.teamStatus==='taken'?`Pris en charge par ${m.assigneeLabel||'un membre de l’équipe'}`:m.teamStatus==='declined'?'Décliné par l’équipe':'À examiner par l’équipe'}</p>}<span className="block text-sm font-semibold text-primary-600">{admin&&view==='pending'?'Examiner et valider →':'Consulter →'}</span></button>})}{!shown.length&&<p className="col-span-full py-5 text-sm text-slate-500">{view==='approved'?'Aucune opportunité en attente de transmission.':'Aucune suggestion dans cette vue.'}</p>}</div>}
+    {pages>1&&<nav aria-label="Pagination des opportunités" className="flex items-center justify-between gap-2 text-sm"><button className={button} disabled={current===1} onClick={()=>setPage(current-1)}>Précédente</button><span>Page {current}/{pages} · {filtered.length} fiches</span><button className={button} disabled={current===pages} onClick={()=>setPage(current+1)}>Suivante</button></nav>}
+-   <Modal open={!!selected} onClose={()=>{if(!busy)setSelected(null)}} maxWidth="max-w-3xl" title="Opportunité pour Maison216" footer={selected&&<div className="flex flex-wrap gap-2">{admin&&<>{selected.members[0].status!=='approved'?<button disabled={busy||lot.trim().length<3||reason.trim().length<3||selected.members.some((m:any)=>(briefs[m.id]||'').trim().length<3)} className={button+' bg-primary-600 text-white'} onClick={()=>review('approve')}>Valider pour Maison216</button>:<button disabled={busy} className={button} onClick={()=>review('revoke')}>Retirer la validation</button>}{selected.members[0].status==='pending'&&<button disabled={busy} className={button} onClick={()=>review('dismiss')}>Écarter</button>}</>}{selected.members[0].status==='approved'&&admin&&<><button disabled={busy} className={button+' bg-primary-600 text-white'} onClick={copyWhatsApp}>Copier pour WhatsApp</button><button disabled={busy||selected.members.every((m:any)=>m.forwardedAt)} className={button+' bg-emerald-600 text-white'} onClick={markDelivered}>Marquer transmis par WhatsApp</button></>}{selected.members[0].status==='approved'&&!admin&&<><button disabled={busy} className={button+' bg-emerald-600 text-white'} onClick={()=>follow('taken')}>Prendre en charge cet envoi</button><button disabled={busy} className={button} onClick={()=>follow('declined')}>Pas pour nous</button></>}</div>}>
+-    {active&&<div className="space-y-5 text-sm">{admin&&active.status==='approved'&&<section className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-900/20"><h3 className="font-semibold">Message WhatsApp prêt à transmettre</h3><textarea aria-label="Message WhatsApp préparé" readOnly value={whatsappText} rows={7} className="mt-2 w-full rounded-lg border bg-white p-3 dark:bg-slate-900 dark:border-slate-700"/><p className="mt-2 text-xs text-slate-500">Les fichiers ne sont pas joints automatiquement : téléchargez les documents sélectionnés ci-dessous, puis joignez-les dans WhatsApp. « Marquer transmis » est à utiliser après votre envoi.</p></section>}{notice&&<p role="alert" className="text-amber-700">{notice}</p>}{admin?<><label className="block font-medium">Lot à proposer à Maison216<input disabled={active.status==='approved'} value={lot} onChange={e=>setLot(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><label className="block font-medium">Pourquoi cette demande intéresse Maison216<textarea disabled={active.status==='approved'} rows={3} value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><p className="text-xs text-slate-500">Le lot, le besoin validé et les noms des fichiers cochés composent le message WhatsApp. Aucun message ni document n’est envoyé automatiquement.</p></>:<div><h3 className="text-lg font-semibold">{active.lot}</h3><p className="mt-2 whitespace-pre-wrap">{active.reason}</p></div>}
++   <Modal open={!!selected} onClose={()=>{if(!busy)setSelected(null)}} maxWidth="max-w-3xl" title="Opportunité pour Maison216" footer={selected&&<div className="flex flex-wrap gap-2">{admin&&<>{selected.members[0].status!=='approved'?<button disabled={busy||lot.trim().length<3||reason.trim().length<3||selected.members.some((m:any)=>(briefs[m.id]||'').trim().length<3)} className={button+' bg-primary-600 text-white'} onClick={()=>review('approve')}>Valider pour Maison216</button>:<button disabled={busy} className={button} onClick={()=>review('revoke')}>Retirer la validation</button>}{selected.members[0].status==='pending'&&<button disabled={busy} className={button} onClick={()=>review('dismiss')}>Écarter</button>}</>}{selected.members[0].status==='approved'&&admin&&<><button disabled={busy} className={button+' bg-primary-600 text-white'} onClick={()=>downloadPack('pdf')}>Télécharger la fiche PDF</button><button disabled={busy} className={button} onClick={()=>downloadPack('zip')}>PDF + originaux (ZIP)</button><button disabled={busy} className={button} onClick={copyWhatsApp}>Copier pour WhatsApp</button><button disabled={busy||selected.members.every((m:any)=>m.forwardedAt)} className={button+' bg-emerald-600 text-white'} onClick={markDelivered}>Marquer transmis par WhatsApp</button></>}{selected.members[0].status==='approved'&&!admin&&<><button disabled={busy} className={button+' bg-emerald-600 text-white'} onClick={()=>follow('taken')}>Prendre en charge cet envoi</button><button disabled={busy} className={button} onClick={()=>follow('declined')}>Pas pour nous</button></>}</div>}>
++    {active&&<div className="space-y-5 text-sm">{admin&&active.status==='approved'&&<section className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-900/20"><h3 className="font-semibold">Message WhatsApp prêt à transmettre</h3><textarea aria-label="Message WhatsApp préparé" readOnly value={whatsappText} rows={7} className="mt-2 w-full rounded-lg border bg-white p-3 dark:bg-slate-900 dark:border-slate-700"/><p className="mt-2 text-xs text-slate-500">La fiche PDF rassemble le besoin validé, les coordonnées, les photos et les PDF sélectionnés. Pour les plans DWG, tableurs ou PDF protégés, utilisez « PDF + originaux (ZIP) ». Joignez le dossier dans WhatsApp, puis cliquez sur « Marquer transmis » après votre envoi.</p></section>}{notice&&<p role="alert" className="text-amber-700">{notice}</p>}{admin?<><label className="block font-medium">Lot à proposer à Maison216<input disabled={active.status==='approved'} value={lot} onChange={e=>setLot(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><label className="block font-medium">Pourquoi cette demande intéresse Maison216<textarea disabled={active.status==='approved'} rows={3} value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><p className="text-xs text-slate-500">Le lot, le besoin validé et les noms des fichiers cochés composent le message WhatsApp. Aucun message ni document n’est envoyé automatiquement.</p></>:<div><h3 className="text-lg font-semibold">{active.lot}</h3><p className="mt-2 whitespace-pre-wrap">{active.reason}</p></div>}
+       {selected.members.length>1&&<label className="block">Envois regroupés ({selected.members.length})<select aria-label="Envoi source de l’opportunité" value={member} onChange={e=>{const i=Number(e.target.value);setMember(i);setNext(selected.members[i].nextAction||'')}} className="mt-1 w-full rounded-lg border bg-white p-2 dark:bg-slate-900 dark:border-slate-700">{selected.members.map((m:any,i:number)=><option key={m.id} value={i}>{m.sourceSite} · {m.reference} · {date(m.date)}</option>)}</select><span className="mt-1 block text-xs text-slate-500">La validation s’applique aux {selected.members.length} envois de cette fiche. Le suivi équipe concerne l’envoi sélectionné.</span></label>}
+       <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800"><h3 className="font-semibold">{active.name} · {active.city}</h3><p className="mt-1 text-xs text-slate-500">{active.sourceSite} · {active.reference} · {date(active.date)}</p><div className="mt-2 flex flex-wrap gap-3"><a className="text-primary-600" href={`tel:${active.phone||''}`}>{active.phone}</a><a className="break-all text-primary-600" href={`mailto:${active.email||''}`}>{active.email}</a></div>{active.sourceAlreadyContacted&&<p className="mt-2 text-amber-600">Déjà contacté à la source : coordonner avant de rappeler.</p>}</div>
+       {active.warning&&<p className="rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{active.warning}</p>}
+--- a/client/src/components/QuoteRequests.tsx
++++ b/client/src/components/QuoteRequests.tsx
+@@ -1,3 +1,4 @@
++import NetworkOpportunities from './NetworkOpportunities'
+ import MaisonDossier, { maisonDraft } from './MaisonDossier'
+ import { contactGroup } from '../lib/contactGroup'
+ import { groupLeads } from '../lib/leadGroups'
+@@ -66,6 +67,7 @@
+ }
+ 
+ interface LeadRow {
++  metadata?: any
+   id: string
+   date: string
+   wp_site?: { id: string; name: string; url?: string } | null
+@@ -537,6 +539,11 @@
+     if (metierControlled) onFilterMetier!(m || undefined)
+     else setLocalMetier(m)
+   }
++  const [networkView, setNetworkView] = useState(false)
++  const [networkPending, setNetworkPending] = useState(0)
++  const networkBar = useRef<HTMLDivElement>(null)
++  const isMaison = siteId === 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c'
++  useEffect(()=>setNetworkView(false),[siteId])
+   const [selected, setSelected] = useState<LeadRow | null>(null)
+   const groupLock = useRef(false)
+   const [groupUpdate, setGroupUpdate] = useState<{ids: string[]; running: boolean; total: number; done: number; failed: string[] } | null>(null)
+@@ -562,7 +569,7 @@
+       const collected = new Map<string, LeadRow>()
+       const cursors = new Set<string>()
+       do {
+-        const r = await apiClient.get<LeadsResponse & { next_cursor?: { date: string; id: string } | null }>(url, {
++        const r: {data: LeadsResponse & {next_cursor?: {date:string;id:string}|null}} = await apiClient.get<LeadsResponse & { next_cursor?: { date: string; id: string } | null }>(url, {
+           signal: controller.signal,
+           params: { from: from.toISOString(), to: to.toISOString(),
+             ...(!allSites ? { page_size: 500, ...(cursor ? { after_date: cursor.date, after_id: cursor.id } : {}) } : {}),
+@@ -812,7 +819,7 @@
+       <div className="flex flex-wrap items-center justify-between gap-2">
+         <div className="flex items-center gap-2">
+           <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+-          <h2 className="font-display text-lg font-medium text-slate-800 dark:text-slate-100">Demandes de devis</h2>
++          <h2 className="font-display text-lg font-medium text-slate-800 dark:text-slate-100">{isMaison?'Demandes et opportunités':'Demandes de devis'}</h2>
+           <span className="text-sm text-slate-400">— {allSites ? 'tous les sites' : 'à rappeler et chiffrer'}</span>
+         </div>
+         {periodLocked ? (
+@@ -836,6 +843,7 @@
+         )}
+       </div>
+ 
++      <div hidden={networkView} className="space-y-4">
+       {(filterGov || metierValue) && (
+         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary-100 bg-primary-50/60 px-3 py-2 text-sm dark:border-primary-900/40 dark:bg-primary-900/20">
+           <span className="text-slate-500 dark:text-slate-400">Filtré sur</span>
+@@ -920,9 +928,10 @@
+         </div>
+       )}
+ 
++      </div>
+       {/* Recherche + filtres de statut */}
+-      <div className="space-y-2.5">
+-        <div className="relative">
++      <div ref={networkBar} className="space-y-2.5 scroll-mt-24">
++        <div hidden={networkView} className="relative">
+           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+           <input
+             value={search}
+@@ -934,7 +943,7 @@
+         <div className="flex flex-wrap items-center gap-2 pb-1">
+           {/* Lot : liste deroulante plutot que des pastilles — il y a une trentaine de
+               corps de metier, les afficher tous ferait plusieurs lignes de bruit. */}
+-          <label className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-1.5 text-sm dark:border-slate-700 dark:bg-slate-900">
++          <label style={networkView?{display:'none'}:undefined} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white py-1.5 pl-3 pr-1.5 text-sm dark:border-slate-700 dark:bg-slate-900">
+             <HardHat className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+             <span className="text-slate-500 dark:text-slate-400">{/tunibusiness/i.test(data?.site?.name || siteName || '') ? 'Circuit' : /delphiprod/i.test(data?.site?.name || siteName || '') ? 'Prestation' : 'Lot'}</span>
+             <select
+@@ -961,9 +970,9 @@
+           {FILTERS.map((f) => (
+             <button
+               key={f.key}
+-              onClick={() => setStatusFilter(f.key)}
++              onClick={() => {setStatusFilter(f.key);setNetworkView(false)}}
+               className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+-                statusFilter === f.key
++                statusFilter === f.key && !networkView
+                   ? 'bg-primary-600 text-white'
+                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+               }`}
+@@ -971,9 +980,11 @@
+               {f.label}
+             </button>
+           ))}
++          {isMaison && <button type="button" aria-pressed={networkView} onClick={()=>{setNetworkView(true);requestAnimationFrame(()=>networkBar.current?.scrollIntoView({block:'start',behavior:'smooth'}))}} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium ${networkView?'border-primary-600 bg-primary-600 text-white':'border-primary-200 bg-white text-primary-700 dark:border-primary-800 dark:bg-slate-900 dark:text-primary-300'}`}>Opportunités du réseau{networkPending>0?` (${networkPending})`:''}</button>}
+         </div>
+       </div>
+-
++      {isMaison && <div hidden={!networkView}><NetworkOpportunities embedded onPendingCount={setNetworkPending}/></div>}
++      <div hidden={networkView} className="space-y-4">
+       {!loading && !error && <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600 dark:text-slate-300">
+         <label className="flex items-center gap-2"><input type="checkbox" checked={groupSimilar} onChange={e=>setGroupSimilar(e.target.checked)} /> Regrouper les messages similaires du même contact</label>
+         <span>{view.leads.length} message{view.leads.length > 1 ? 's' : ''} dans les filtres · {leads.length} fiche{leads.length > 1 ? 's' : ''}</span>
+@@ -1187,6 +1198,7 @@
+ 
+       {!loading && !error && paged.pages > 1 && pagination('bas')}
+ 
++      </div>
+       {/* Détail + suivi */}
+       <Modal
+         maxWidth={['tunibusiness-v1','maison216-v1'].includes(sel?.metadata?.raw?.origin) ? 'max-w-3xl' : 'max-w-lg'}
+--- a/client/src/pages/SiteDetail.tsx
++++ b/client/src/pages/SiteDetail.tsx
+@@ -1,4 +1,3 @@
+-import NetworkOpportunities from '../components/NetworkOpportunities'
+ 
+ import { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react'
+ import { useParams, useNavigate, Navigate } from 'react-router-dom'
+@@ -582,7 +581,7 @@
+                   </>
+                 ) : (
+                   <>
+-                    <HeroStat label="Leads" value={formatNumber(data.kpis.leads)} delta={prevKpis ? pct(data.kpis.leads, prevKpis.leads) : undefined} />
++                    <HeroStat label={siteId === 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c' ? 'Demandes du site' : 'Leads'} value={formatNumber(data.kpis.leads)} delta={prevKpis ? pct(data.kpis.leads, prevKpis.leads) : undefined} />
+                     {data.site.hasCalls && <HeroStat label="Appels" value={formatNumber(data.kpis.calls)} delta={prevKpis ? pct(data.kpis.calls, prevKpis.calls) : undefined} />}
+                     {data.site.is_booking_site ? (
+                       <>
+@@ -605,7 +604,6 @@
+             </div>
+           </section>
+ 
+-          {siteId === 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c' && <NetworkOpportunities/>}
+           {isWeCleaned && <div className="space-y-3">
+             <nav aria-label="Rubriques WeCleaned" className="grid grid-cols-3 sm:grid-cols-5 gap-2 rounded-2xl bg-white dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-700">{workspaceViews.map(([key,label])=><button key={key} aria-current={workspaceView===key?'page':undefined} onClick={()=>setWorkspaceView(key)} className={`min-h-[48px] rounded-xl px-2 text-sm font-semibold transition ${workspaceView===key?'bg-primary-600 text-white':'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{label}</button>)}</nav>
+             <p className="text-sm text-slate-500">{workspaceViews.find(v=>v[0]===workspaceView)?.[2]}</p>
+--- a/client/src/lib/leadGroups.ts
++++ b/client/src/lib/leadGroups.ts
+@@ -1,4 +1,4 @@
+-type Groupable = { id: string; date?: string; email?: string | null; telephone?: string | null; wp_site_id?: string; wp_site?: { id?: string }; metadata?: any }
++type Groupable = { id: string; date?: string; email?: string | null; telephone?: string | null; wp_site_id?: string; wp_site?: { id?: string } | null; metadata?: any }
+ const norm = (s: unknown) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
+ const stop = new Set('bonjour cordialement merci notre votre nous vous pour dans avec afin une des les aux par sur que qui leur leurs vos nos ainsi plus cette ces son ses comme tout toute bien'.split(' '))
+ function profile(l: Groupable) {
+--- a/client/package.json
++++ b/client/package.json
+@@ -19,10 +19,13 @@
+     "axios": "^1.7.7",
+     "d3-geo": "^3.1.1",
+     "date-fns": "^3.6.0",
++    "dejavu-fonts-ttf": "^2.37.3",
+     "file-saver": "^2.0.5",
+     "jspdf": "^2.5.1",
+     "jspdf-autotable": "^3.8.2",
++    "jszip": "^3.10.1",
+     "lucide-react": "^0.284.0",
++    "pdf-lib": "^1.17.1",
+     "pdfjs-dist": "^4.10.38",
+     "react": "^18.2.0",
+     "react-dom": "^18.2.0",
+--- a/client/package-lock.json
++++ b/client/package-lock.json
+@@ -16,10 +16,13 @@
+         "axios": "^1.7.7",
+         "d3-geo": "^3.1.1",
+         "date-fns": "^3.6.0",
++        "dejavu-fonts-ttf": "^2.37.3",
+         "file-saver": "^2.0.5",
+         "jspdf": "^2.5.1",
+         "jspdf-autotable": "^3.8.2",
++        "jszip": "^3.10.1",
+         "lucide-react": "^0.284.0",
++        "pdf-lib": "^1.17.1",
+         "pdfjs-dist": "^4.10.38",
+         "react": "^18.2.0",
+         "react-dom": "^18.2.0",
+@@ -1296,6 +1299,24 @@
+         "node": ">= 8"
+       }
+     },
++    "node_modules/@pdf-lib/standard-fonts": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/@pdf-lib/standard-fonts/-/standard-fonts-1.0.0.tgz",
++      "integrity": "sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==",
++      "license": "MIT",
++      "dependencies": {
++        "pako": "^1.0.6"
++      }
++    },
++    "node_modules/@pdf-lib/upng": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/@pdf-lib/upng/-/upng-1.0.1.tgz",
++      "integrity": "sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==",
++      "license": "MIT",
++      "dependencies": {
++        "pako": "^1.0.10"
++      }
++    },
+     "node_modules/@remix-run/router": {
+       "version": "1.23.3",
+       "resolved": "https://registry.npmjs.org/@remix-run/router/-/router-1.23.3.tgz",
+@@ -2227,6 +2248,12 @@
+         "url": "https://opencollective.com/core-js"
+       }
+     },
++    "node_modules/core-util-is": {
++      "version": "1.0.3",
++      "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.3.tgz",
++      "integrity": "sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==",
++      "license": "MIT"
++    },
+     "node_modules/cross-spawn": {
+       "version": "7.0.6",
+       "resolved": "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.6.tgz",
+@@ -2443,6 +2470,12 @@
+       "integrity": "sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==",
+       "dev": true,
+       "license": "MIT"
++    },
++    "node_modules/dejavu-fonts-ttf": {
++      "version": "2.37.3",
++      "resolved": "https://registry.npmjs.org/dejavu-fonts-ttf/-/dejavu-fonts-ttf-2.37.3.tgz",
++      "integrity": "sha512-f1hd7jJbeQa1VWcw+K2KrTXS50zTMaHpVC4XIKJpNcDeYR5ajMtj/iLlQDYNvLOKamUB3ARVVCf79lNwNVztSQ==",
++      "license": "SEE LICENSE IN README.md AND LICENSE"
+     },
+     "node_modules/delayed-stream": {
+       "version": "1.0.0",
+@@ -3317,6 +3350,12 @@
+         "node": ">= 4"
+       }
+     },
++    "node_modules/immediate": {
++      "version": "3.0.6",
++      "resolved": "https://registry.npmjs.org/immediate/-/immediate-3.0.6.tgz",
++      "integrity": "sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==",
++      "license": "MIT"
++    },
+     "node_modules/import-fresh": {
+       "version": "3.3.1",
+       "resolved": "https://registry.npmjs.org/import-fresh/-/import-fresh-3.3.1.tgz",
+@@ -3360,7 +3399,6 @@
+       "version": "2.0.4",
+       "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
+       "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==",
+-      "dev": true,
+       "license": "ISC"
+     },
+     "node_modules/internmap": {
+@@ -3443,6 +3481,12 @@
+       "engines": {
+         "node": ">=8"
+       }
++    },
++    "node_modules/isarray": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
++      "integrity": "sha512-VLghIWNM6ELQzo7zwmcg0NmTVyWKYjvIeM83yjp0wRDTmUnrM678fQbcKBo6n2CJEF0szoG//ytg+TKla89ALQ==",
++      "license": "MIT"
+     },
+     "node_modules/isexe": {
+       "version": "2.0.0",
+@@ -3564,6 +3608,18 @@
+         "jspdf": "^2.5.1"
+       }
+     },
++    "node_modules/jszip": {
++      "version": "3.10.1",
++      "resolved": "https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz",
++      "integrity": "sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==",
++      "license": "(MIT OR GPL-3.0-or-later)",
++      "dependencies": {
++        "lie": "~3.3.0",
++        "pako": "~1.0.2",
++        "readable-stream": "~2.3.6",
++        "setimmediate": "^1.0.5"
++      }
++    },
+     "node_modules/keyv": {
+       "version": "4.5.4",
+       "resolved": "https://registry.npmjs.org/keyv/-/keyv-4.5.4.tgz",
+@@ -3586,6 +3642,15 @@
+       },
+       "engines": {
+         "node": ">= 0.8.0"
++      }
++    },
++    "node_modules/lie": {
++      "version": "3.3.0",
++      "resolved": "https://registry.npmjs.org/lie/-/lie-3.3.0.tgz",
++      "integrity": "sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==",
++      "license": "MIT",
++      "dependencies": {
++        "immediate": "~3.0.5"
+       }
+     },
+     "node_modules/lilconfig": {
+@@ -3881,6 +3946,12 @@
+         "url": "https://github.com/sponsors/sindresorhus"
+       }
+     },
++    "node_modules/pako": {
++      "version": "1.0.11",
++      "resolved": "https://registry.npmjs.org/pako/-/pako-1.0.11.tgz",
++      "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==",
++      "license": "(MIT AND Zlib)"
++    },
+     "node_modules/parent-module": {
+       "version": "1.0.1",
+       "resolved": "https://registry.npmjs.org/parent-module/-/parent-module-1.0.1.tgz",
+@@ -3939,6 +4010,18 @@
+       "license": "MIT",
+       "engines": {
+         "node": ">=8"
++      }
++    },
++    "node_modules/pdf-lib": {
++      "version": "1.17.1",
++      "resolved": "https://registry.npmjs.org/pdf-lib/-/pdf-lib-1.17.1.tgz",
++      "integrity": "sha512-V/mpyJAoTsN4cnP31vc0wfNA1+p20evqqnap0KLoRUN0Yk/p3wN52DOEsL4oBFcLdb76hlpKPtzJIgo67j/XLw==",
++      "license": "MIT",
++      "dependencies": {
++        "@pdf-lib/standard-fonts": "^1.0.0",
++        "@pdf-lib/upng": "^1.0.1",
++        "pako": "^1.0.11",
++        "tslib": "^1.11.1"
+       }
+     },
+     "node_modules/pdfjs-dist": {
+@@ -4183,6 +4266,12 @@
+         "node": ">= 0.8.0"
+       }
+     },
++    "node_modules/process-nextick-args": {
++      "version": "2.0.1",
++      "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-2.0.1.tgz",
++      "integrity": "sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==",
++      "license": "MIT"
++    },
+     "node_modules/prop-types": {
+       "version": "15.8.1",
+       "resolved": "https://registry.npmjs.org/prop-types/-/prop-types-15.8.1.tgz",
+@@ -4376,6 +4465,21 @@
+         "pify": "^2.3.0"
+       }
+     },
++    "node_modules/readable-stream": {
++      "version": "2.3.8",
++      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.8.tgz",
++      "integrity": "sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==",
++      "license": "MIT",
++      "dependencies": {
++        "core-util-is": "~1.0.0",
++        "inherits": "~2.0.3",
++        "isarray": "~1.0.0",
++        "process-nextick-args": "~2.0.0",
++        "safe-buffer": "~5.1.1",
++        "string_decoder": "~1.1.1",
++        "util-deprecate": "~1.0.1"
++      }
++    },
+     "node_modules/readdirp": {
+       "version": "3.6.0",
+       "resolved": "https://registry.npmjs.org/readdirp/-/readdirp-3.6.0.tgz",
+@@ -4540,6 +4644,12 @@
+         "queue-microtask": "^1.2.2"
+       }
+     },
++    "node_modules/safe-buffer": {
++      "version": "5.1.2",
++      "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz",
++      "integrity": "sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==",
++      "license": "MIT"
++    },
+     "node_modules/scheduler": {
+       "version": "0.23.2",
+       "resolved": "https://registry.npmjs.org/scheduler/-/scheduler-0.23.2.tgz",
+@@ -4562,6 +4672,12 @@
+         "node": ">=10"
+       }
+     },
++    "node_modules/setimmediate": {
++      "version": "1.0.5",
++      "resolved": "https://registry.npmjs.org/setimmediate/-/setimmediate-1.0.5.tgz",
++      "integrity": "sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==",
++      "license": "MIT"
++    },
+     "node_modules/shebang-command": {
+       "version": "2.0.0",
+       "resolved": "https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz",
+@@ -4613,6 +4729,15 @@
+       "optional": true,
+       "engines": {
+         "node": ">=0.1.14"
++      }
++    },
++    "node_modules/string_decoder": {
++      "version": "1.1.1",
++      "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz",
++      "integrity": "sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==",
++      "license": "MIT",
++      "dependencies": {
++        "safe-buffer": "~5.1.0"
+       }
+     },
+     "node_modules/strip-ansi": {
+@@ -4865,6 +4990,12 @@
+       "dev": true,
+       "license": "Apache-2.0"
+     },
++    "node_modules/tslib": {
++      "version": "1.14.1",
++      "resolved": "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz",
++      "integrity": "sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==",
++      "license": "0BSD"
++    },
+     "node_modules/type-check": {
+       "version": "0.4.0",
+       "resolved": "https://registry.npmjs.org/type-check/-/type-check-0.4.0.tgz",
+@@ -4950,7 +5081,6 @@
+       "version": "1.0.2",
+       "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
+       "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==",
+-      "dev": true,
+       "license": "MIT"
+     },
+     "node_modules/utrie": {
+--- /dev/null
++++ b/client/src/lib/networkPdfCore.ts
+@@ -0,0 +1,49 @@
++import { jsPDF } from 'jspdf'
++import { PDFDocument } from 'pdf-lib'
++export type PackFile={name:string;bytes:Uint8Array;mime:string;references:string[];image?:Uint8Array}
++export type Fonts={normal:string;bold:string}
++const clean=(s:any)=>String(s||'').replace(/\r/g,'').replace(/\\([.*-])/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1')
++export async function buildNetworkPdf(members:any[],files:PackFile[],fonts:Fonts,zipMode=false){
++ if(!members.length||members.some(m=>m.status!=='approved'))throw Error('Une validation est nécessaire avant de créer la fiche.')
++ const attachments:({file:PackFile;pdf?:PDFDocument;kind:'PDF'|'Photo'|'Original dans le ZIP'})[]=[]
++ let totalPages=0
++ for(const f of files){
++   if(f.mime==='application/pdf'||/\.pdf$/i.test(f.name)){
++     try{const pdf=await PDFDocument.load(f.bytes);if(pdf.isEncrypted)throw Error('encrypted');totalPages+=pdf.getPageCount()+1;attachments.push({file:f,pdf,kind:'PDF'})}
++     catch{if(!zipMode)throw Error(`Le PDF « ${f.name} » ne peut pas être fusionné. Choisissez « PDF + originaux (ZIP) » pour conserver le fichier original.`);attachments.push({file:f,kind:'Original dans le ZIP'})}
++   }else if(f.image){attachments.push({file:f,kind:'Photo'});totalPages++}
++   else {if(!zipMode)throw Error(`Le fichier « ${f.name} » nécessite le dossier « PDF + originaux (ZIP) » pour être transmis intégralement.`);attachments.push({file:f,kind:'Original dans le ZIP'})}
++ }
++ if(totalPages>200)throw Error('Les annexes dépassent 200 pages. Sélectionnez moins de documents pour ce dossier.')
++ const make=()=>{const d=new jsPDF({unit:'mm',format:'a4',compress:true});d.addFileToVFS('Network-Regular.ttf',fonts.normal);d.addFont('Network-Regular.ttf','Network','normal');d.addFileToVFS('Network-Bold.ttf',fonts.bold);d.addFont('Network-Bold.ttf','Network','bold');d.setFont('Network');return d}
++ const d=make();let y=43
++ const header=()=>{d.setFillColor(15,33,56);d.rect(0,0,210,30,'F');d.setTextColor(255);d.setFont('Network','bold');d.setFontSize(18);d.text('MAISON216',17,14);d.setFont('Network','normal');d.setFontSize(9);d.text('FICHE DE BESOIN - OPPORTUNITÉ DU RÉSEAU',17,23);d.setTextColor(28,42,61)}
++ const page=()=>{d.addPage();header();y=43}
++ const line=(v:any,size=10,bold=false)=>{
++   d.setFont('Network',bold?'bold':'normal');d.setFontSize(size)
++   const lines=d.splitTextToSize(clean(v),176)
++   for(const text of lines){if(y>274)page();d.setFont('Network',bold?'bold':'normal');d.setFontSize(size);const rtl=/[\u0600-\u06ff]/.test(text);d.setR2L(false);d.text(text,rtl?193:17,y,{align:rtl?'right':'left'});d.setR2L(false);y+=size*0.47+1.5}
++ }
++ const section=(title:string)=>{if(y>255)page();y+=5;d.setDrawColor(209,222,232);d.line(17,y-3,193,y-3);d.setTextColor(0,106,156);line(title,12,true);d.setTextColor(28,42,61);y+=2}
++ header();line([...new Set(members.map(m=>m.lot))].join(' · '),15,true);line('Préparée le '+new Date().toLocaleDateString('fr-FR'),8);y+=3
++ const first=members[0];section('Client et coordonnées')
++ for(const [key,val] of [['Client',first.name],['Téléphone',first.phone],['Email',first.email],['Lieu',first.city]])line(`${key} : ${val||'Non renseigné'}`,10,key==='Client')
++ const briefs=new Set<string>();for(const m of members){const b=clean(m.sharedBrief||m.message);if(briefs.has(b))continue;briefs.add(b);section('Besoin validé');line(b)}
++ if(members.some(m=>m.sourceAlreadyContacted)){section('Coordination');line('Le client a déjà été contacté côté source. Coordonner la relance avant de le rappeler.')}
++ section('Origine de la demande');for(const m of members)line(`${m.sourceSite} - Réf. ${m.reference} - Reçue le ${new Date(m.date).toLocaleDateString('fr-FR')}`,9)
++ section(`Photos et documents sélectionnés (${files.length})`)
++ if(!files.length)line('Aucune pièce jointe sélectionnée pour cette fiche.')
++ for(const [i,a] of attachments.entries())line(`${i+1}. ${a.file.name} - ${a.kind}${a.pdf?' ('+a.pdf.getPageCount()+' page(s))':''}`,9)
++ if(zipMode)line('Le dossier ZIP contient cette fiche et tous les originaux sélectionnés. Les fichiers non lisibles en PDF restent disponibles dans le dossier Originaux.',9)
++ const n=d.getNumberOfPages();for(let i=1;i<=n;i++){d.setPage(i);d.setTextColor(100);d.setFontSize(8);d.setFont('Network','normal');d.text(`Maison216 - Synthèse ${i}/${n}`,17,288)}
++ const result=await PDFDocument.load(d.output('arraybuffer'));result.setTitle('Maison216 - '+clean(first.name||'Projet'));result.setAuthor('Maison216');result.setSubject('Besoin validé et documents sélectionnés');result.setCreator('Leads Central')
++ for(const [i,a] of attachments.entries()){
++   if(a.kind==='Original dans le ZIP')continue
++   const cover=make();cover.setFont('Network','bold');cover.setFontSize(15);cover.text(`Annexe ${i+1} - ${a.kind}`,17,22);cover.setFont('Network','normal');cover.setFontSize(10);const names=cover.splitTextToSize(clean(a.file.name),176);cover.text(names,17,32);const top=38+names.length*5
++   if(a.kind==='Photo'){const props=cover.getImageProperties(a.file.image!);const scale=Math.min(176/props.width,(275-top)/props.height);const w=props.width*scale,h=props.height*scale;cover.addImage(a.file.image!,'JPEG',(210-w)/2,top,w,h)}
++   else {cover.setFontSize(10);cover.text('Document original reproduit dans les pages suivantes.',17,top+8)}
++   const appendix=await PDFDocument.load(cover.output('arraybuffer'));for(const page of await result.copyPages(appendix,appendix.getPageIndices()))result.addPage(page)
++   if(a.pdf)for(const page of await result.copyPages(a.pdf,a.pdf.getPageIndices()))result.addPage(page)
++ }
++ return await result.save()
++}
+--- /dev/null
++++ b/client/src/lib/networkPdf.ts
+@@ -0,0 +1,42 @@
++import {apiClient} from './apiClient'
++import {buildNetworkPdf,type PackFile} from './networkPdfCore'
++import normalUrl from 'dejavu-fonts-ttf/ttf/DejaVuSans.ttf?url'
++import boldUrl from 'dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf?url'
++const base='/dashboard/site/b4a9bcd7-8813-4206-aa2c-525e3d525b9c/network-opportunities'
++const b64=(data:ArrayBuffer)=>{let s='';const bytes=new Uint8Array(data);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s)}
++const snapshot=(ms:any[])=>JSON.stringify(ms.map(m=>[m.id,m.revision,m.sharedBrief,m.lot,m.name,m.phone,m.email,m.city,m.documents,m.selectedDocuments]))
++async function jpeg(bytes:Uint8Array,mime:string){
++ const url=URL.createObjectURL(new Blob([bytes as BlobPart],{type:mime}));try{const img=new Image();img.src=url;await img.decode();if(!img.naturalWidth||img.naturalWidth*img.naturalHeight>80000000)throw Error('Image trop grande');const scale=Math.min(1,2400/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d')!;ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);const blob=await new Promise<Blob>((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(Error('Image illisible')),'image/jpeg',0.9));return new Uint8Array(await blob.arrayBuffer())}finally{URL.revokeObjectURL(url)}
++}
++export async function downloadNetworkPack(selected:any[],mode:'pdf'|'zip',progress:(s:string)=>void){
++ progress('Vérification de la validation…')
++ const items=selected.map(m=>({id:m.id,revision:m.revision}))
++ const {data}=await apiClient.post(base+'/export',{items});const members=data.members
++ const manifest=members.flatMap((m:any)=>m.documents.map((d:any)=>({member:m,doc:d})))
++ if(manifest.length>50)throw Error('Sélectionnez au maximum 50 pièces pour un dossier.')
++ const files:PackFile[]=[],hashes=new Map<string,PackFile>();let size=0
++ for(const [i,{member,doc}] of manifest.entries()){
++   progress(`Récupération des pièces ${i+1}/${manifest.length}…`)
++   if(doc.available===false)throw Error(`Le fichier « ${doc.name} » est indisponible. Aucun dossier incomplet n’a été téléchargé.`)
++   let r;try{r=await apiClient.get(`${base}/${member.id}/documents/${encodeURIComponent(doc.id)}`,{responseType:'arraybuffer'})}catch{throw Error(`Impossible de récupérer « ${doc.name} ». Réessayez ; aucun fichier n’a été omis silencieusement.`)}
++   const bytes=new Uint8Array(r.data);size+=bytes.length;if(size>100*1024*1024)throw Error('Les pièces dépassent 100 Mo. Réduisez la sélection.')
++   const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(b=>b.toString(16).padStart(2,'0')).join('');const ref=member.sourceSite+' - '+member.reference
++   if(hashes.has(digest)){hashes.get(digest)!.references.push(ref);continue}
++   const mime=(r.headers['content-type']||doc.mime||'application/octet-stream').split(';')[0];const f:PackFile={name:doc.name,bytes,mime,references:[ref]}
++   if(mime.startsWith('image/')&&!mime.includes('svg')){try{f.image=await jpeg(bytes,mime)}catch{if(mode==='pdf')throw Error(`La photo « ${doc.name} » ne peut pas être convertie. Utilisez le dossier ZIP pour transmettre l’original.`)}}
++   files.push(f);hashes.set(digest,f)
++ }
++ progress('Création de la fiche et des annexes…')
++ const fonts=await Promise.all([normalUrl,boldUrl].map(async url=>{const r=await fetch(url);if(!r.ok)throw Error('Police de caractères indisponible');return b64(await r.arrayBuffer())}))
++ const pdf=await buildNetworkPdf(members,files,{normal:fonts[0],bold:fonts[1]},mode==='zip')
++ const check=await apiClient.post(base+'/export',{items});if(snapshot(check.data.members)!==snapshot(members))throw Error('La validation ou le dossier a changé pendant la création. Actualisez puis recommencez.')
++ const name='Maison216-'+String(members[0].name||'projet').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').slice(0,60)
++ let output:Blob
++ if(mode==='zip'){
++   const {default:JSZip}=await import('jszip');const zip=new JSZip();zip.file(name+'.pdf',pdf)
++   files.forEach((f,i)=>zip.file(`Originaux/${String(i+1).padStart(2,'0')}-${f.name.replace(/[\x00-\x1f\\/:*?"<>|]/g,'_').slice(0,160)}`,f.bytes))
++   zip.file('Lire-moi.txt','La fiche PDF contient le besoin validé et les annexes lisibles. Le dossier Originaux conserve toutes les pièces sélectionnées, notamment DWG, tableurs et PDF protégés. Aucun envoi WhatsApp automatique.');output=await zip.generateAsync({type:'blob',compression:'DEFLATE'})
++ }else output=new Blob([pdf as BlobPart],{type:'application/pdf'})
++ const url=URL.createObjectURL(output);const link=document.createElement('a');link.href=url;link.download=name+(mode==='zip'?'.zip':'.pdf');link.click();setTimeout(()=>URL.revokeObjectURL(url),30000)
++ return {files:files.length,name:link.download}
++}
+--- /dev/null
++++ b/client/public/licenses/DejaVu-fonts.txt
+@@ -0,0 +1,187 @@
++Fonts are (c) Bitstream (see below). DejaVu changes are in public domain.
++Glyphs imported from Arev fonts are (c) Tavmjong Bah (see below)
++
++
++Bitstream Vera Fonts Copyright
++------------------------------
++
++Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved. Bitstream Vera is
++a trademark of Bitstream, Inc.
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of the fonts accompanying this license ("Fonts") and associated
++documentation files (the "Font Software"), to reproduce and distribute the
++Font Software, including without limitation the rights to use, copy, merge,
++publish, distribute, and/or sell copies of the Font Software, and to permit
++persons to whom the Font Software is furnished to do so, subject to the
++following conditions:
++
++The above copyright and trademark notices and this permission notice shall
++be included in all copies of one or more of the Font Software typefaces.
++
++The Font Software may be modified, altered, or added to, and in particular
++the designs of glyphs or characters in the Fonts may be modified and
++additional glyphs or characters may be added to the Fonts, only if the fonts
++are renamed to names not containing either the words "Bitstream" or the word
++"Vera".
++
++This License becomes null and void to the extent applicable to Fonts or Font
++Software that has been modified and is distributed under the "Bitstream
++Vera" names.
++
++The Font Software may be sold as part of a larger software package but no
++copy of one or more of the Font Software typefaces may be sold by itself.
++
++THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
++OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT,
++TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME
++FOUNDATION BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING
++ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
++WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
++THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE
++FONT SOFTWARE.
++
++Except as contained in this notice, the names of Gnome, the Gnome
++Foundation, and Bitstream Inc., shall not be used in advertising or
++otherwise to promote the sale, use or other dealings in this Font Software
++without prior written authorization from the Gnome Foundation or Bitstream
++Inc., respectively. For further information, contact: fonts at gnome dot
++org.
++
++Arev Fonts Copyright
++------------------------------
++
++Copyright (c) 2006 by Tavmjong Bah. All Rights Reserved.
++
++Permission is hereby granted, free of charge, to any person obtaining
++a copy of the fonts accompanying this license ("Fonts") and
++associated documentation files (the "Font Software"), to reproduce
++and distribute the modifications to the Bitstream Vera Font Software,
++including without limitation the rights to use, copy, merge, publish,
++distribute, and/or sell copies of the Font Software, and to permit
++persons to whom the Font Software is furnished to do so, subject to
++the following conditions:
++
++The above copyright and trademark notices and this permission notice
++shall be included in all copies of one or more of the Font Software
++typefaces.
++
++The Font Software may be modified, altered, or added to, and in
++particular the designs of glyphs or characters in the Fonts may be
++modified and additional glyphs or characters may be added to the
++Fonts, only if the fonts are renamed to names not containing either
++the words "Tavmjong Bah" or the word "Arev".
++
++This License becomes null and void to the extent applicable to Fonts
++or Font Software that has been modified and is distributed under the 
++"Tavmjong Bah Arev" names.
++
++The Font Software may be sold as part of a larger software package but
++no copy of one or more of the Font Software typefaces may be sold by
++itself.
++
++THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
++MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
++OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL
++TAVMJONG BAH BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
++DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
++OTHER DEALINGS IN THE FONT SOFTWARE.
++
++Except as contained in this notice, the name of Tavmjong Bah shall not
++be used in advertising or otherwise to promote the sale, use or other
++dealings in this Font Software without prior written authorization
++from Tavmjong Bah. For further information, contact: tavmjong @ free
++. fr.
++
++TeX Gyre DJV Math
++-----------------
++Fonts are (c) Bitstream (see below). DejaVu changes are in public domain.
++
++Math extensions done by B. Jackowski, P. Strzelczyk and P. Pianowski
++(on behalf of TeX users groups) are in public domain.
++
++Letters imported from Euler Fraktur from AMSfonts are (c) American
++Mathematical Society (see below).
++Bitstream Vera Fonts Copyright
++Copyright (c) 2003 by Bitstream, Inc. All Rights Reserved. Bitstream Vera
++is a trademark of Bitstream, Inc.
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of the fonts accompanying this license (“Fonts”) and associated
++documentation
++files (the “Font Software”), to reproduce and distribute the Font Software,
++including without limitation the rights to use, copy, merge, publish,
++distribute,
++and/or sell copies of the Font Software, and to permit persons  to whom
++the Font Software is furnished to do so, subject to the following
++conditions:
++
++The above copyright and trademark notices and this permission notice
++shall be
++included in all copies of one or more of the Font Software typefaces.
++
++The Font Software may be modified, altered, or added to, and in particular
++the designs of glyphs or characters in the Fonts may be modified and
++additional
++glyphs or characters may be added to the Fonts, only if the fonts are
++renamed
++to names not containing either the words “Bitstream” or the word “Vera”.
++
++This License becomes null and void to the extent applicable to Fonts or
++Font Software
++that has been modified and is distributed under the “Bitstream Vera”
++names.
++
++The Font Software may be sold as part of a larger software package but
++no copy
++of one or more of the Font Software typefaces may be sold by itself.
++
++THE FONT SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
++OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT,
++TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL BITSTREAM OR THE GNOME
++FOUNDATION
++BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL,
++SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN
++ACTION
++OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR
++INABILITY TO USE
++THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.
++Except as contained in this notice, the names of GNOME, the GNOME
++Foundation,
++and Bitstream Inc., shall not be used in advertising or otherwise to promote
++the sale, use or other dealings in this Font Software without prior written
++authorization from the GNOME Foundation or Bitstream Inc., respectively.
++For further information, contact: fonts at gnome dot org.
++
++AMSFonts (v. 2.2) copyright
++
++The PostScript Type 1 implementation of the AMSFonts produced by and
++previously distributed by Blue Sky Research and Y&Y, Inc. are now freely
++available for general use. This has been accomplished through the
++cooperation
++of a consortium of scientific publishers with Blue Sky Research and Y&Y.
++Members of this consortium include:
++
++Elsevier Science IBM Corporation Society for Industrial and Applied
++Mathematics (SIAM) Springer-Verlag American Mathematical Society (AMS)
++
++In order to assure the authenticity of these fonts, copyright will be
++held by
++the American Mathematical Society. This is not meant to restrict in any way
++the legitimate use of the fonts, such as (but not limited to) electronic
++distribution of documents containing these fonts, inclusion of these fonts
++into other public domain or commercial font collections or computer
++applications, use of the outline data to create derivative fonts and/or
++faces, etc. However, the AMS does require that the AMS copyright notice be
++removed from any derivative versions of the fonts which have been altered in
++any way. In addition, to ensure the fidelity of TeX documents using Computer
++Modern fonts, Professor Donald Knuth, creator of the Computer Modern faces,
++has requested that any alterations which yield different font metrics be
++given a different name.
++
++$Id$
