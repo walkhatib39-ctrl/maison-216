@@ -394,3 +394,34 @@ Then test that the key no longer works:
 ```powershell
 ssh -i "$env:USERPROFILE\.ssh\maison216_codex" -o BatchMode=yes debian@37.59.114.202 'whoami'
 ```
+
+
+## 25/10/2026 — Fichiers et inspirations dans Leads Central
+
+Production vérifiée : export enrichi `public/lead-export.php` et helper
+`app/Support/MaisonLeadExport.php`. Le jeton existant est conservé hors Git dans
+`storage/app/private/leadscentral-export-token` (0600, propriétaire du site), sans rotation.
+Ne pas remplacer ce fichier privé lors du déploiement. Export authentifié en Bearer,
+manifestes sans chemins privés ni IP/user-agent. Documents autorisés par demande et index ;
+realpath confiné à lead-attachments dans stockage privé ou ancien stockage local.
+HEIC converti en JPEG pour aperçu, original conservé. Cache privé no-store.
+
+Le CRM live est `/home/leadsc/apps/leadscentral` sur 51.75.146.135 (utilisateur leadsc).
+Correctif reproductible : `deploy/leadscentral-maison216.patch` (appliquer au CRM, pas au site).
+Fiche large : inspiration/photo/options/lien, dimensions/délai, message et liens cliquables,
+apercus images/PDF privés, téléchargement original, brouillon sans redemander les dimensions
+présentes. La synchronisation Maison216 relit la source et met à jour uniquement les champs
+source si source_revision change, jamais followup ni date/identité du CRM.
+
+Reprise exécutée : 44 fiches enrichies sur 45 présentes, 8 fichiers accessibles dans 6 fiches.
+Source = 47 demandes/9 fichiers ; suppressions CRM volontaires 48,50,51 conservées (51 porte
+le neuvième fichier). Ancienne fiche CRM source 30 absente de Maison216 : gardée sans modification.
+Comparaison avant/après : followup et dates inchangés. Seconde passe = 0 modifications.
+Tests : 8 aperçus HTTP 200 dont 3 HEIC convertis et PDF historique 175771 octets,
+accès anonyme source/CRM 401, document non rattaché 404. PDF et inspiration rendus dans le navigateur.
+PHP lint, TypeScript serveur/client et builds réussis. Aucun devis ni message envoyé.
+Sauvegardes : `/root/maison216-backups/leads-export-before-20261025.tar.gz` côté source ;
+`/home/leadsc/backups/maison216-before-20261025.tar.gz` et
+`maison216-leads-before-20261025.json` (0600) côté CRM.
+Déploiement limité aux fichiers concernés : ne pas rejouer tout le checkout local ancien
+sur la production. Les autres changements locaux préexistants n'ont pas été inclus.
