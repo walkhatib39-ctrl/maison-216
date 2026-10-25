@@ -544,3 +544,54 @@ Patch reproductible deploy/leadscentral-litorra-network.patch et test
  deploy/test-litorra-network.cjs (server, dist-litorra-network-20261025).
 Sauvegarde /home/leadsc/backups/litorra-network-before-20261025.tar.gz. Aucun changement de schéma
 ni migration des décisions existantes nécessaires. Preuves locales D:/Litorra-network.
+
+
+## 26/10/2026 — Inspirations générées dans les fiches sans visuel
+
+Demande de Walid : voir une proposition visuelle dès l'ouverture d'une demande sans photo,
+la transmettre au client pour accélérer l'accord esthétique avant devis/acompte/production.
+Implémentation : rubrique Inspiration proposée dans MaisonDossier, fiches directes Litorra et
+opportunités réseau ouvertes par l'admin. Génération initiale à l'ouverture si le texte est
+suffisamment détaillé, sans photo ni inspiration déjà choisie. Fiches tests/administratives exclues.
+Textes courts : précision manuelle nécessaire. L'image est privée et mise en cache par demande,
+destination, empreinte source et brief/ajustements. Pas de relance automatique à chaque ouverture.
+Versions conservées, variante sur précisions explicites, anciennes versions signalées si le
+besoin évolue. 2 tâches simultanées et 20 nouvelles inspirations par propriétaire/24h ; reprises
+manuelles après erreur. Tâches interrompues marquées en échec après 10 min, sans boucle de relance.
+
+API Image OpenAI gpt-image-2.5-flare (accès vérifié avec la clé existante), medium 1536x1024.
+Aucune clé créée, révélée ou copiée dans les dépôts ; crédit OpenAI du propriétaire utilisé.
+Prompt limité au besoin, noms/coordonnées du contact nettoyés, pas de fichier client envoyé.
+Instructions de photographie conceptuelle, pas de plan technique, cotes inventées ou preuves
+commerciales ; contraintes visuelles exactes seulement lorsqu'elles sont fournies. La demande
+de devis/plan cotée est retirée du prompt visuel pour éviter des schémas de fabrication inventés.
+Marquage déterministe ajouté avec sharp : INSPIRATION GÉNÉRÉE - À VALIDER, dimensions/fabrication
+à confirmer. L'image reste une proposition, à contrôler humainement. Aucun plan PDF n'est analysé.
+
+Boutons télécharger l'image / copier le message au client, sans envoi automatique. Suivi distinct
+par version : proposé, envoyé, modifications demandées, accord client reçu. Ce dernier exige une
+note de confirmation saisie par l'admin ; ne valide ni fabrication, ni devis, ni acompte. Aucun vrai
+client marqué d'accord durant les tests. Aucune modification des suivis commerciaux existants.
+
+Table lead_inspirations (SQL et modèle Prisma), clé unique de cache et FK vers lead. Fichiers
+sous server/private/inspirations (0700, PNG 0600), jamais sous uploads public. Endpoints admin
+avec propriétaire/site/demande vérifiés ; image d'une autre fiche 404, accès anonyme 401.
+Cache prêt consultable même si la clé doit être reconfigurée ; les erreurs fournisseur sont des
+codes génériques, sans divulgation de secrets. La légende de provenance est intégrée à l'image.
+
+Vérifié en production : visuel Abdallah créé avec imagegen puis associé en état proposed ;
+génération API réelle réussie sur la demande de meuble TV Riahi. Une variante photographique
+sans cotes a ensuite été générée après contrôle de l'image ; première version conservée.
+Réouverture/POST identique = cache, sans nouvel appel facturé. Tous les états client restent
+proposed. Tests simulés : autorisations, photo existante, fiche courte/test, cache, source périmée,
+confirmation explicite et apposition du marquage. TypeScript serveur/Vite passés ; aucun nouveau
+diagnostic sur LeadInspiration, NetworkOpportunities et QuoteRequests dans tsconfig.app.json.
+
+Sources : https://developers.openai.com/api/reference/resources/images/methods/generate
+et https://sharp.pixelplumbing.com/api-constructor/ (texte Pango avec police locale DejaVu).
+Patch deploy/leadscentral-inspirations.patch, migration deploy/leadscentral-inspirations.sql,
+test deploy/test-lead-inspirations.cjs (server, dist-inspirations-20261026 ; fixture photo client
+synthétique des tests PDF précédents). Dépendance sharp 0.34.5. Sauvegarde complète avant intervention
+/home/leadsc/backups/lead-inspirations-before-20261026.tar.gz. Preuves D:/Lead-inspirations ; copies
+locales des exemples dans output/lead-inspirations, hors commit. Ne pas effacer les images privées
+lors des déploiements ; ne pas rejouer une génération existante pendant une reprise.

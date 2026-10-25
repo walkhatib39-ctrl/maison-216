@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS lead_inspirations (
+ id CHAR(36) NOT NULL PRIMARY KEY,
+ lead_id CHAR(36) NOT NULL,
+ destination_id CHAR(36) NOT NULL,
+ owner_id CHAR(36) NOT NULL,
+ source_hash CHAR(64) NOT NULL,
+ prompt_hash CHAR(64) NOT NULL,
+ brief TEXT NOT NULL,
+ adjustments TEXT NOT NULL,
+ status VARCHAR(20) NOT NULL,
+ model VARCHAR(100) NOT NULL,
+ error_code VARCHAR(80) NULL,
+ client_state VARCHAR(30) NOT NULL DEFAULT 'proposed',
+ client_note TEXT NULL,
+ confirmed_by CHAR(36) NULL,
+ created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ UNIQUE KEY inspiration_variant (lead_id,destination_id,source_hash,prompt_hash),
+ INDEX inspiration_owner_status (owner_id,status,created_at),
+ CONSTRAINT inspiration_lead_fk FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
