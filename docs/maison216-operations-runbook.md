@@ -687,3 +687,34 @@ anonyme 401, document inexistant 404. Fiches des trois sites vérifiées dans le
 Patch deploy/leadscentral-three-sites.patch et tests deploy/test-three-sites.cjs (server,
 dist-three-sites-20261026). Pas de migration SQL requise. Sauvegarde
 /home/leadsc/backups/network-three-sites-before-20261026.tar.gz. Preuves D:/Network-three-sites.
+
+
+## 27/10/2026 — Tunibois : fiches et opportunités réseau
+
+Demande de Walid de terminer Tunibois comme les autres sites. Destination
+ d455c491-b9bc-4449-bec2-e06bd2c87d14 ajoutée au moteur et aux compteurs. Sources : les six autres
+sites TN déjà raccordés, hors Tunibois lui-même. Offre vérifiée dans le code Tunibois local
+src/content/products.ts, product-families.ts et pages/export.ts : palettes/emballages, bois énergie,
+eco wood, bois brut/sciage, panneaux et composants, éléments architecturaux/extérieurs et olivier.
+Qualification dédiée, pas simple détection du mot bois : conditionnement de bouteilles par
+palette, stockage sur palettes, couleurs de peinture et bois décoratif d'un meuble complet ne
+valent pas commande de matières. Une demande explicite d'habillage bois peut devenir une piste
+indirecte de fourniture, clairement signalée comme à confirmer avec l'atelier/entreprise en charge.
+Disponibilité, volume professionnel, essence, finition, dimensions et certifications à vérifier.
+
+Fiches directes Tunibois branchées sur ServiceDossier : produit/service précis, objectif,
+quantité, entreprise et pays indiqué, lieu de livraison/projet, besoin, contact et documents.
+Retrait du marqueur technique [request:...] et des champs vides du résumé ; original conservé.
+Le pays n'est pas présenté comme une ville si la valeur ville provient du même champ pays.
+Protocoles de validation, PDF/ZIP avec marque Tunibois, WhatsApp manuel et isolation des décisions
+conservés. Pas d'images automatiques ajoutées pour Tunibois ; pas d'envoi ni validation réelle.
+
+Contrôle production sur 90 jours : une fiche à valider, source Maison216, habillage bois d'un
+meuble TV (piste de fourniture seulement, sans commande de matière confirmée). Compteur cohérent.
+Tests positifs/négatifs produits, rôles, autorisation cible, validation et export sous Tunibois,
+unicité et régression des trois sites précédents réussis. API anonyme 401 et export non validé 409.
+TypeScript serveur/Vite OK ; aucun diagnostic sur composants Tunibois concernés dans tsconfig.app.
+Sauvegarde /home/leadsc/backups/tunibois-network-before-20261027.tar.gz ; patch
+ deploy/leadscentral-tunibois-network.patch et test deploy/test-tunibois-network.cjs (server,
+dist-tunibois-network-20261027). Aucun changement du site public Tunibois ni migration SQL.
+Preuves D:/Tunibois-network. Données d'audit temporaires retirées après contrôle.

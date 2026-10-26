@@ -1,0 +1,150 @@
+--- a/server/src/lib/networkPolicy.ts
++++ b/server/src/lib/networkPolicy.ts
+@@ -1,3 +1,4 @@
++import {tuniboisQualification} from './tuniboisQualification'
+ import {serviceQualification} from './serviceQualification'
+ import {projectLocation} from './projectLocation'
+ import {litorraQualification} from './litorraQualification'
+@@ -8,8 +9,10 @@
+ export const MEDINA='1045c531-5902-4bbc-b6b9-8fbc7fd9d589'
+ export const DELPHI='77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed'
+ export const NADHEFNI='45941402-86db-49d8-8152-6ceeebaac799'
++export const TUNIBOIS='d455c491-b9bc-4449-bec2-e06bd2c87d14'
+ export const TN_NETWORK=[...SOURCES,MAISON,LITORRA,DELPHI,NADHEFNI,'d455c491-b9bc-4449-bec2-e06bd2c87d14']
+ export const DESTINATIONS:Record<string,{name:string;sources:string[]}>= {
++ [TUNIBOIS]:{name:'Tunibois',sources:TN_NETWORK.filter(id=>id!==TUNIBOIS)},
+  [MEDINA]:{name:'Medina Construction',sources:TN_NETWORK.filter(id=>id!==MEDINA)},
+  [DELPHI]:{name:'DelphiProd',sources:TN_NETWORK.filter(id=>id!==DELPHI)},
+  [NADHEFNI]:{name:'Nadhefni',sources:TN_NETWORK.filter(id=>id!==NADHEFNI)},
+@@ -19,6 +22,7 @@
+ const plain=(v:any)=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+ export function original(lead:any) {const r=lead.metadata?.raw;return r?.origin==='tunibusiness-v1' ? [r.title,r.description,...(r.items||[]).map((i:any)=>[i.label,i.spec].filter(Boolean).join(' '))].filter(Boolean).join('\n\n') : lead.message||''}
+ export function qualify(lead:any,destination:string=MAISON):any {
++ if(destination===TUNIBOIS){const q=tuniboisQualification(original(lead),lead.service||'',lead.metadata?.raw||{});if(q&&lead.date&&Date.now()-new Date(lead.date).getTime()>30*86400000)q.warning+=' Demande de plus d’un mois : confirmer que le besoin est toujours actuel.';return q}
+  if([MEDINA,DELPHI,NADHEFNI].includes(destination)){const q=serviceQualification(original(lead),lead.service||'',destination===MEDINA?'medina':destination===DELPHI?'delphi':'nadhefni',lead.metadata?.raw||{});if(q&&lead.date&&Date.now()-new Date(lead.date).getTime()>30*86400000)q.warning=[q.warning,'Demande de plus d’un mois : confirmer que le besoin est toujours actuel.'].filter(Boolean).join(' ');return q}
+  if(destination===LITORRA){const q=litorraQualification(original(lead),lead.service||'',lead.metadata?.raw||{});if(q&&lead.date&&Date.now()-new Date(lead.date).getTime()>30*86400000)q.warning=[q.warning,'Demande de plus d’un mois : confirmer que le besoin est toujours actuel.'].filter(Boolean).join(' ');return q}
+  const text=original(lead), t=plain(text),r=lead.metadata?.raw||{}
+--- a/server/src/routes/directLeadDocuments.ts
++++ b/server/src/routes/directLeadDocuments.ts
+@@ -1,7 +1,7 @@
+ import type {FastifyInstance} from 'fastify'
+ import {prisma} from '../db'
+ import {dataOwnerId} from '../auth/scope'
+-import {documents,MEDINA,DELPHI,NADHEFNI,allowedByScope} from '../lib/networkPolicy'
++import {documents,MEDINA,DELPHI,NADHEFNI,TUNIBOIS,allowedByScope} from '../lib/networkPolicy'
+ import {mailDir} from '../lib/uploads'
+ import fs from 'fs/promises'
+ import path from 'path'
+@@ -11,7 +11,7 @@
+    const user=await prisma.user.findUnique({where:{id:req.user.sub}});if(!user)return reply.code(403).send({error:'Accès refusé'})
+    const {id,leadId,documentId}=req.params as any
+    const scopes=[user.scopeSiteId,...(Array.isArray(user.scopeSiteIds)?user.scopeSiteIds:[])];if(user.role!=='admin'&&!scopes.includes(id))return reply.code(403).send({error:'Accès non autorisé à ce site'})
+-   if(![MEDINA,DELPHI,NADHEFNI].includes(id))return reply.code(404).send({error:'Site introuvable'})
++   if(![MEDINA,DELPHI,NADHEFNI,TUNIBOIS].includes(id))return reply.code(404).send({error:'Site introuvable'})
+    const lead=await prisma.lead.findFirst({where:{id:leadId,wpSiteId:id,userId:dataOwnerId(req)}})
+    if(!lead)return reply.code(404).send({error:'Demande introuvable'})
+    if(user.role!=='admin'&&!allowedByScope(lead,user))return reply.code(403).send({error:'Accès non autorisé à cette demande'})
+--- a/client/src/lib/networkTargets.ts
++++ b/client/src/lib/networkTargets.ts
+@@ -4,6 +4,7 @@
+  ['1045c531-5902-4bbc-b6b9-8fbc7fd9d589']:{name:'Medina Construction',sources:'TuniBusiness, Maison216, Litorra, DelphiProd, Nadhefni et Tunibois'},
+  ['77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed']:{name:'DelphiProd',sources:'TuniBusiness, MedinaConstruction, Maison216, Litorra, Nadhefni et Tunibois'},
+  ['45941402-86db-49d8-8152-6ceeebaac799']:{name:'Nadhefni',sources:'TuniBusiness, MedinaConstruction, Maison216, Litorra, DelphiProd et Tunibois'},
++ ['d455c491-b9bc-4449-bec2-e06bd2c87d14']:{name:'Tunibois',sources:'TuniBusiness, Maison216, MedinaConstruction, Litorra, DelphiProd et Nadhefni'},
+  [MAISON_NETWORK]:{name:'Maison216',sources:'TuniBusiness et MedinaConstruction'},
+  [LITORRA_NETWORK]:{name:'Litorra',sources:'MedinaConstruction, Maison216 et TuniBusiness'},
+ }
+--- a/client/src/components/ServiceDossier.tsx
++++ b/client/src/components/ServiceDossier.tsx
+@@ -1,10 +1,11 @@
++import {tuniboisQualification} from '../lib/tuniboisQualification'
+ import {useEffect,useState} from 'react'
+ import {apiClient} from '../lib/apiClient'
+ import ProjectLocationCard from './ProjectLocationCard'
+ import {projectLocation,requestBody} from '../lib/projectLocation'
+ import {serviceQualification} from '../lib/serviceQualification'
+ import PrivatePdfPreview from './PrivatePdfPreview'
+-export const SERVICE_DOSSIER_SITES=['1045c531-5902-4bbc-b6b9-8fbc7fd9d589','77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed','45941402-86db-49d8-8152-6ceeebaac799']
++export const SERVICE_DOSSIER_SITES=['1045c531-5902-4bbc-b6b9-8fbc7fd9d589','77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed','45941402-86db-49d8-8152-6ceeebaac799','d455c491-b9bc-4449-bec2-e06bd2c87d14']
+ function Attachment({doc,base}:{doc:any;base:string}){
+  const [preview,setPreview]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false)
+  useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url)},[preview?.url])
+@@ -13,17 +14,23 @@
+ }
+ function Text({text}:{text:string}){return <p dir="auto" className="whitespace-pre-wrap break-words leading-relaxed">{text.split(/(https?:\/\/[^\s<>]+)/g).map((s,i)=>/^https?:\/\//.test(s)?<a key={i} className="break-all text-primary-600 underline" href={s} target="_blank" rel="noopener noreferrer">{s}</a>:s)}</p>}
+ export default function ServiceDossier({lead,siteId}:{lead:any;siteId:string}){
+- const raw=lead.metadata?.raw||{},metadata=lead.metadata||{},brand=siteId===SERVICE_DOSSIER_SITES[0]?'medina':siteId===SERVICE_DOSSIER_SITES[1]?'delphi':'nadhefni'
+- const original=String(lead.message||''),body=requestBody(lead).split(/\nInformations de la demande\n/i)[0].trim(),qualification=serviceQualification(body,lead.service||'',brand,raw)
++ const raw=lead.metadata?.raw||lead.metadata||{},metadata=lead.metadata||{},brand=siteId===SERVICE_DOSSIER_SITES[0]?'medina':siteId===SERVICE_DOSSIER_SITES[1]?'delphi':siteId===SERVICE_DOSSIER_SITES[3]?'tunibois':'nadhefni'
++ const original=String(lead.message||''),unformatted=requestBody(lead).split(/\nInformations de la demande\n/i)[0].replace(/^\[request:[^\]]+\]\s*/,'').trim()
++ const objective=brand==='tunibois'?original.match(/^Objectif:[^\S\r\n]*([^\r\n]*)/im)?.[1]?.trim():undefined
++ const body=brand==='tunibois'?unformatted.replace(/^Objectif:[^\n]*\n/m,'').replace(/^Ville:[^\S\r\n]*\n/m,'').replace(/^Sélection:\s*Projet libre\s*/m,'').replace(/\n{3,}/g,'\n\n').trim():unformatted
++ const location=projectLocation(brand==='tunibois'&&String(lead.ville||'').trim().toLowerCase()===String(raw.country||'').trim().toLowerCase()?{...lead,ville:''}:lead)
++ const qualification=brand==='tunibois'?tuniboisQualification(body,lead.service||'',raw):serviceQualification(body,lead.service||'',brand,raw)
+  const catalogue=/téléchargement du catalogue|telechargement du catalogue|demande de catalogue/i.test(body+' '+(lead.nom||''))
+  const docs:any[]=[],seen=new Set<string>();for(const [i,f] of (metadata.files||[]).entries()){if(typeof f.url==='string'&&f.url.startsWith('/uploads/mail/')){docs.push({id:'f-'+i,name:f.nom||'Document',mime:f.type});seen.add(f.url)}}for(const [i,url] of (metadata.photos||[]).entries()){if(typeof url==='string'&&url.startsWith('/uploads/mail/')&&!seen.has(url)){docs.push({id:'p-'+i,name:decodeURIComponent(url.split('/').pop()||'Photo'),mime:'image/jpeg'});seen.add(url)}}
+  const surface=body.match(/\b\d+(?:[.,]\d+)?\s*m(?:²|2)(?!\d)/i)?.[0],frequency=body.match(/(?:\b\d+|une|deux|trois)\s+fois\s+par\s+(?:jour|semaine|mois)/i)?.[0]
+  const desiredDate=original.match(/^Date souhaitée[^\S\r\n]*:[^\S\r\n]*([^\r\n]*)/im)?.[1]?.trim()
++ const specifications=((surface||frequency||desiredDate||raw.budget||raw.client_type||raw.quantity||raw.country||objective)&&<dl className="grid gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-2 dark:border-slate-700">{[['Objectif',objective],['Quantité demandée',raw.quantity],['Pays indiqué',raw.country],['Surface mentionnée',surface],['Fréquence souhaitée',frequency],['Date souhaitée',desiredDate],['Budget annoncé',raw.budget],['Type de client',raw.client_type]].filter(([,v])=>v).map(([k,v])=><div key={k}><dt className="text-xs text-slate-500">{k}</dt><dd className="mt-1 font-medium">{v}</dd></div>)}</dl>)
+  return <section className="space-y-5 min-w-0">
+-   <header className="rounded-xl bg-primary-50 p-4 dark:bg-primary-900/20"><p className="text-xs font-medium uppercase text-primary-600">{catalogue?'Demande de documentation':'Besoin à traiter'}</p><h3 className="mt-1 text-xl font-semibold">{qualification?.lots.map((l:any)=>l.label).join(' · ')||lead.service||'Demande à préciser'}</h3>{raw.company&&<p className="mt-2 font-medium">{raw.company}</p>}</header>
+-   <ProjectLocationCard location={projectLocation(lead)} label={brand==='delphi'?'Lieu du projet':brand==='nadhefni'?'Lieu d’intervention':'Lieu du chantier'} subject={brand==='delphi'?'projet':brand==='nadhefni'?'site à nettoyer':'chantier'}/>
++   <header className="rounded-xl bg-primary-50 p-4 dark:bg-primary-900/20"><p className="text-xs font-medium uppercase text-primary-600">{catalogue?'Demande de documentation':'Besoin à traiter'}</p><h3 className="mt-1 text-xl font-semibold">{brand==='tunibois'&&lead.service&&!/projet sur mesure|demande de devis/i.test(lead.service)?lead.service:qualification?.lots.map((l:any)=>l.label).join(' · ')||lead.service||'Demande à préciser'}</h3>{raw.company&&<p className="mt-2 font-medium">{raw.company}</p>}</header>
++   {brand==='tunibois'&&specifications}
++   <ProjectLocationCard location={location} label={brand==='tunibois'?'Lieu de livraison / projet':brand==='delphi'?'Lieu du projet':brand==='nadhefni'?'Lieu d’intervention':'Lieu du chantier'} subject={brand==='tunibois'?'lieu de livraison':brand==='delphi'?'projet':brand==='nadhefni'?'site à nettoyer':'chantier'}/>
+    <section><h3 className="mb-2 text-base font-semibold">Ce que le client demande</h3><Text text={body||'Le message ne précise pas encore le besoin.'}/></section>
+-   {(surface||frequency||desiredDate||raw.budget||raw.client_type)&&<dl className="grid gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-2 dark:border-slate-700">{[['Surface mentionnée',surface],['Fréquence souhaitée',frequency],['Date souhaitée',desiredDate],['Budget annoncé',raw.budget],['Type de client',raw.client_type]].filter(([,v])=>v).map(([k,v])=><div key={k}><dt className="text-xs text-slate-500">{k}</dt><dd className="mt-1 font-medium">{v}</dd></div>)}</dl>}
++   {brand!=='tunibois'&&specifications}
+    <section className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"><h3 className="text-xs font-medium uppercase text-slate-500">Contact client</h3><p className="mt-1 text-lg font-semibold">{catalogue&&/^demande de catalogue/i.test(lead.nom||'')?'Contact par e-mail':lead.nom||'Nom à préciser'}</p><div className="mt-2 flex flex-wrap gap-3">{lead.telephone&&<a className="font-medium text-primary-600" href={`tel:${lead.telephone}`}>{lead.telephone}</a>}{lead.email&&<a className="break-all text-primary-600" href={`mailto:${lead.email}`}>{lead.email}</a>}</div></section>
+    <section><h3 className="mb-2 text-base font-semibold">Photos, plans et documents ({docs.length})</h3><div className="space-y-3">{docs.map(d=><Attachment key={d.id} doc={d} base={`/dashboard/site/${siteId}/lead/${lead.id}/attachments`}/>)}</div>{!docs.length&&<p className="text-sm text-slate-500">Aucun fichier joint disponible dans cette fiche. Les références éventuelles restent accessibles dans le message.</p>}</section>
+    <details className="text-sm text-slate-500"><summary className="cursor-pointer">Message original et informations de la demande</summary><div className="mt-3"><Text text={original}/></div>{raw.source_status&&<p className="mt-2">Statut à la source : {raw.source_status}</p>}</details>
+--- /dev/null
++++ b/server/src/lib/tuniboisQualification.ts
+@@ -0,0 +1,22 @@
++const plain=(s:any)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function tuniboisQualification(message:string,service:string,raw:any={}){
++ const text=message,t=plain(text),heading=plain(service+' '+(raw.title||''))
++ if(/test technique|test crm|verification technique|aucune commande commerciale|ne pas traiter|ne pas contacter/.test(t))return null
++ if(/candidature|mon compte ou mon entreprise|demande de stage/.test(heading)||/partenariat commercial|representation commerciale|شراكة تجارية|trouver de nouveaux clients|proposons nos services/.test(t))return null
++ const lots:{label:string;evidence:string}[]=[]
++ const add=(label:string,re:RegExp)=>{for(const m of t.matchAll(new RegExp(re.source,'g'))){const i=m.index||0,before=t.slice(Math.max(0,i-60),i);if(/(?:sans|pas de|aucun|hors)\s+(?:[a-z]+\s+){0,2}$/.test(before))continue;const start=text.lastIndexOf('\n',i)+1,end=text.indexOf('\n',i);const value=text.slice(start,end<0?text.length:end).trim().replace(/\s+/g,' ');lots.push({label,evidence:value.length>400?'… '+text.slice(Math.max(start,i-65),i+220).replace(/\s+/g,' ')+'…':value});break}}
++ const incidentalPallet=/stockage.{0,40}sur palettes|conditionnement.{0,30}(?:pack|palette)|bouteilles?.{0,60}palette|palette.{0,40}(?:eau minerale|boisson|bouteille)/.test(t)
++ if(!incidentalPallet||/(?:acheter|achat|fourniture|fournisseur|commande|prix).{0,35}palettes? en bois/.test(t))add('Palettes et emballages en bois',/palettes? en bois|euro.?palettes?|palettes? (?:export|industrielles?|cp)\b|palox|caisses? (?:industrielles? )?(?:en )?bois|منصات خشبية/)
++ add('Bois énergie et litière',/\bpellets?\b|briquettes? (?:de |en )?bois|copeaux (?:de |en )?bois|\bsciure\b|حبيبات الخشب/)
++ add('Produits bois pour distribution et restauration',/batonnets?.{0,20}(?:glace|bois)|agitateurs?.{0,20}(?:cafe|bois)|couverts? en bois|cure.dents|عيدان.{0,15}(?:المثلجات|الخشب)/)
++ add('Bois brut et sciage',/bois (?:brut|de coffrage|de sciage)|\bpinus\b|sciage.{0,20}bois|planches? (?:de |en )?(?:pin|chene|hetre)|خشب خام/)
++ add('Panneaux et composants bois',/panneaux? (?:de |en )?bois|panneaux? massifs?|panneaux? colles?|lamelle.colle|finger joint|edge glued|composants? (?:de |en )?bois|pieds? de (?:table|lit|canape).{0,20}bois/)
++ add('Collection et articles en bois d’olivier',/bois d.olivier|olive wood|خشب الزيتون/)
++ add('Éléments bois pour escaliers',/balustres?.{0,20}bois|marches? (?:d.escalier )?(?:en )?bois|mains? courantes?.{0,20}bois/)
++ if(!/repeindre|peinture.{0,25}(?:terrasse|bardage)|poncage.{0,25}terrasse/.test(t))add('Habillages et éléments architecturaux bois',/habillage.{0,25}(?:en |de )bois|claustra.{0,20}bois|panneaux? acoustiques?.{0,20}bois|lames? de terrasse|bardage.{0,20}bois|pergolas?.{0,20}(?:en |de )bois/)
++ if(!lots.length)return null
++ const indirect=lots.some(l=>/Habillages|escaliers/.test(l.label))&&!/fourniture|fournisseur|achat|commander|fabricant/.test(t)
++ const warning=[raw.review_status==='rejected'||raw.status==='cancelled'?'Refusée ou annulée à la source : vérifier avant proposition.':raw.review_status==='pending'||raw.status==='draft'?'Demande non validée à la source.':null,indirect?'Projet d’ouvrage fini : seul l’approvisionnement en éléments bois est envisagé, à confirmer avec l’atelier ou l’entreprise en charge.':null,'Confirmer le volume professionnel, l’essence, les dimensions, la finition et la destination de livraison ; aucune disponibilité ni certification n’est présumée.'].filter(Boolean).join(' ')
++ const label=lots.map(l=>l.label).join(' · ')
++ return {lots,kind:indirect?'lot':'supply',kindLabel:indirect?'Éléments bois d’un projet à qualifier':'Approvisionnement / fabrication bois',warning,defaultBrief:`Lot proposé à Tunibois : ${label}.\n${indirect?'La demande comprend un ouvrage fini ; seul le lot de fourniture bois est proposé, sous réserve de confirmation.\n':''}\nExtraits du besoin à confirmer :\n${[...new Set(lots.map(l=>l.evidence))].join('\n')}`}
++}
+--- /dev/null
++++ b/client/src/lib/tuniboisQualification.ts
+@@ -0,0 +1,22 @@
++const plain=(s:any)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function tuniboisQualification(message:string,service:string,raw:any={}){
++ const text=message,t=plain(text),heading=plain(service+' '+(raw.title||''))
++ if(/test technique|test crm|verification technique|aucune commande commerciale|ne pas traiter|ne pas contacter/.test(t))return null
++ if(/candidature|mon compte ou mon entreprise|demande de stage/.test(heading)||/partenariat commercial|representation commerciale|شراكة تجارية|trouver de nouveaux clients|proposons nos services/.test(t))return null
++ const lots:{label:string;evidence:string}[]=[]
++ const add=(label:string,re:RegExp)=>{for(const m of t.matchAll(new RegExp(re.source,'g'))){const i=m.index||0,before=t.slice(Math.max(0,i-60),i);if(/(?:sans|pas de|aucun|hors)\s+(?:[a-z]+\s+){0,2}$/.test(before))continue;const start=text.lastIndexOf('\n',i)+1,end=text.indexOf('\n',i);const value=text.slice(start,end<0?text.length:end).trim().replace(/\s+/g,' ');lots.push({label,evidence:value.length>400?'… '+text.slice(Math.max(start,i-65),i+220).replace(/\s+/g,' ')+'…':value});break}}
++ const incidentalPallet=/stockage.{0,40}sur palettes|conditionnement.{0,30}(?:pack|palette)|bouteilles?.{0,60}palette|palette.{0,40}(?:eau minerale|boisson|bouteille)/.test(t)
++ if(!incidentalPallet||/(?:acheter|achat|fourniture|fournisseur|commande|prix).{0,35}palettes? en bois/.test(t))add('Palettes et emballages en bois',/palettes? en bois|euro.?palettes?|palettes? (?:export|industrielles?|cp)\b|palox|caisses? (?:industrielles? )?(?:en )?bois|منصات خشبية/)
++ add('Bois énergie et litière',/\bpellets?\b|briquettes? (?:de |en )?bois|copeaux (?:de |en )?bois|\bsciure\b|حبيبات الخشب/)
++ add('Produits bois pour distribution et restauration',/batonnets?.{0,20}(?:glace|bois)|agitateurs?.{0,20}(?:cafe|bois)|couverts? en bois|cure.dents|عيدان.{0,15}(?:المثلجات|الخشب)/)
++ add('Bois brut et sciage',/bois (?:brut|de coffrage|de sciage)|\bpinus\b|sciage.{0,20}bois|planches? (?:de |en )?(?:pin|chene|hetre)|خشب خام/)
++ add('Panneaux et composants bois',/panneaux? (?:de |en )?bois|panneaux? massifs?|panneaux? colles?|lamelle.colle|finger joint|edge glued|composants? (?:de |en )?bois|pieds? de (?:table|lit|canape).{0,20}bois/)
++ add('Collection et articles en bois d’olivier',/bois d.olivier|olive wood|خشب الزيتون/)
++ add('Éléments bois pour escaliers',/balustres?.{0,20}bois|marches? (?:d.escalier )?(?:en )?bois|mains? courantes?.{0,20}bois/)
++ if(!/repeindre|peinture.{0,25}(?:terrasse|bardage)|poncage.{0,25}terrasse/.test(t))add('Habillages et éléments architecturaux bois',/habillage.{0,25}(?:en |de )bois|claustra.{0,20}bois|panneaux? acoustiques?.{0,20}bois|lames? de terrasse|bardage.{0,20}bois|pergolas?.{0,20}(?:en |de )bois/)
++ if(!lots.length)return null
++ const indirect=lots.some(l=>/Habillages|escaliers/.test(l.label))&&!/fourniture|fournisseur|achat|commander|fabricant/.test(t)
++ const warning=[raw.review_status==='rejected'||raw.status==='cancelled'?'Refusée ou annulée à la source : vérifier avant proposition.':raw.review_status==='pending'||raw.status==='draft'?'Demande non validée à la source.':null,indirect?'Projet d’ouvrage fini : seul l’approvisionnement en éléments bois est envisagé, à confirmer avec l’atelier ou l’entreprise en charge.':null,'Confirmer le volume professionnel, l’essence, les dimensions, la finition et la destination de livraison ; aucune disponibilité ni certification n’est présumée.'].filter(Boolean).join(' ')
++ const label=lots.map(l=>l.label).join(' · ')
++ return {lots,kind:indirect?'lot':'supply',kindLabel:indirect?'Éléments bois d’un projet à qualifier':'Approvisionnement / fabrication bois',warning,defaultBrief:`Lot proposé à Tunibois : ${label}.\n${indirect?'La demande comprend un ouvrage fini ; seul le lot de fourniture bois est proposé, sous réserve de confirmation.\n':''}\nExtraits du besoin à confirmer :\n${[...new Set(lots.map(l=>l.evidence))].join('\n')}`}
++}
