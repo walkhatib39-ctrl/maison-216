@@ -625,3 +625,24 @@ TypeScript serveur et build Vite OK. Aucun nouveau diagnostic TypeScript sur les
 modifiés hors erreurs préexistantes déjà documentées.
 Patch reproductible deploy/leadscentral-project-location.patch ; sauvegarde serveur
 /home/leadsc/backups/lead-location-before-20261026.tar.gz. Travail local D:/Lead-location.
+
+
+## 26/10/2026 — Compteurs d'opportunités sur la vue d'ensemble
+
+À la demande de Walid, ajout d'un indicateur distinct sur chaque ligne site, desktop et mobile.
+Maison216 et Litorra interrogent le même endpoint réseau avec summary=1 ; la réponse ne contient
+que les compteurs, aucun détail client. Nombre affiché = fiches regroupées à valider + validées
+non entièrement transmises ; écartées et déjà transmises exclues. Fenêtre réseau de 90 jours
+indiquée dans le badge, propositions validées conservées comme dans la liste détaillée.
+Les chiffres demandes/appels et le classement d'activité restent sur la période du tableau.
+Les sites non configurés affichent un tiret, pas zéro ; un échec de chargement ne devient pas zéro.
+Rafraîchissement toutes les 60 s, interruption des requêtes au démontage.
+
+Vérification production : Maison216 11 = 10 à valider + 1 à transmettre ; Litorra 19 = 19 à valider.
+Les compteurs correspondent aux groupes des listes détaillées. Aucun statut commercial modifié.
+Tests simulés : réponse résumée sans données client, regroupement, séparation pending/à transmettre,
+exclusion transmis et contrôle d'accès. TypeScript serveur et build Vite réussis, aucun diagnostic
+sur Overview dans tsconfig.app.json. Rendu vérifié dans la vue d'ensemble.
+Patch deploy/leadscentral-opportunity-counts.patch ; test deploy/test-opportunity-counts.cjs,
+à exécuter dans server avec compilation dist-network-counts-20261026. Sauvegarde
+/home/leadsc/backups/network-counts-before-20261026.tar.gz ; preuve D:/Network-counts/compteurs-sites.png.
