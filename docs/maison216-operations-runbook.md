@@ -718,3 +718,5 @@ Sauvegarde /home/leadsc/backups/tunibois-network-before-20261027.tar.gz ; patch
  deploy/leadscentral-tunibois-network.patch et test deploy/test-tunibois-network.cjs (server,
 dist-tunibois-network-20261027). Aucun changement du site public Tunibois ni migration SQL.
 Preuves D:/Tunibois-network. Données d'audit temporaires retirées après contrôle.
+
+- Contrôle complémentaire Tunibois : la ligne Ville saisie dans le message est prioritaire sur un ancien champ ville rempli avec le pays. Exemple bâtonnets 100000 pièces : Ben arous récupéré du message, pays Tunisie séparé ; aucune écriture du lead source.

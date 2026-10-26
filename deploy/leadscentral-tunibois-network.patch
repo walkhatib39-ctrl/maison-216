@@ -69,7 +69,7 @@
  function Attachment({doc,base}:{doc:any;base:string}){
   const [preview,setPreview]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false)
   useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url)},[preview?.url])
-@@ -13,17 +14,23 @@
+@@ -13,17 +14,24 @@
  }
  function Text({text}:{text:string}){return <p dir="auto" className="whitespace-pre-wrap break-words leading-relaxed">{text.split(/(https?:\/\/[^\s<>]+)/g).map((s,i)=>/^https?:\/\//.test(s)?<a key={i} className="break-all text-primary-600 underline" href={s} target="_blank" rel="noopener noreferrer">{s}</a>:s)}</p>}
  export default function ServiceDossier({lead,siteId}:{lead:any;siteId:string}){
@@ -79,7 +79,8 @@
 + const original=String(lead.message||''),unformatted=requestBody(lead).split(/\nInformations de la demande\n/i)[0].replace(/^\[request:[^\]]+\]\s*/,'').trim()
 + const objective=brand==='tunibois'?original.match(/^Objectif:[^\S\r\n]*([^\r\n]*)/im)?.[1]?.trim():undefined
 + const body=brand==='tunibois'?unformatted.replace(/^Objectif:[^\n]*\n/m,'').replace(/^Ville:[^\S\r\n]*\n/m,'').replace(/^Sélection:\s*Projet libre\s*/m,'').replace(/\n{3,}/g,'\n\n').trim():unformatted
-+ const location=projectLocation(brand==='tunibois'&&String(lead.ville||'').trim().toLowerCase()===String(raw.country||'').trim().toLowerCase()?{...lead,ville:''}:lead)
++ const declaredCity=original.match(/^Ville:[^\S\r\n]*([^\r\n]*)/im)?.[1]?.trim()
++ const location=projectLocation(brand==='tunibois'?{...lead,ville:declaredCity||(String(lead.ville||'').trim().toLowerCase()===String(raw.country||'').trim().toLowerCase()?'':lead.ville)}:lead)
 + const qualification=brand==='tunibois'?tuniboisQualification(body,lead.service||'',raw):serviceQualification(body,lead.service||'',brand,raw)
   const catalogue=/téléchargement du catalogue|telechargement du catalogue|demande de catalogue/i.test(body+' '+(lead.nom||''))
   const docs:any[]=[],seen=new Set<string>();for(const [i,f] of (metadata.files||[]).entries()){if(typeof f.url==='string'&&f.url.startsWith('/uploads/mail/')){docs.push({id:'f-'+i,name:f.nom||'Document',mime:f.type});seen.add(f.url)}}for(const [i,url] of (metadata.photos||[]).entries()){if(typeof url==='string'&&url.startsWith('/uploads/mail/')&&!seen.has(url)){docs.push({id:'p-'+i,name:decodeURIComponent(url.split('/').pop()||'Photo'),mime:'image/jpeg'});seen.add(url)}}
