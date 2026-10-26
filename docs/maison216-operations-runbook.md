@@ -595,3 +595,33 @@ synthétique des tests PDF précédents). Dépendance sharp 0.34.5. Sauvegarde c
 /home/leadsc/backups/lead-inspirations-before-20261026.tar.gz. Preuves D:/Lead-inspirations ; copies
 locales des exemples dans output/lead-inspirations, hors commit. Ne pas effacer les images privées
 lors des déploiements ; ne pas rejouer une génération existante pendant une reprise.
+
+
+## 26/10/2026 — Fiches lisibles, lieu du chantier et besoin
+
+Retour de Walid : ville/adresse peu distinguables, formulaires de préparation trop visibles.
+Fiche réseau réorganisée en lecture : lot + contact/source/date, bloc Lieu du chantier,
+besoin à traiter et contexte global repliable, contact client, photos/plans/documents.
+Lot/justification/texte à transmettre regroupés sous Préparer ou ajuster la transmission ;
+message WhatsApp et traçabilité repliés. Les actions de validation/transmission sont conservées.
+Aucun statut, suivi, message ou document source supprimé/modifié.
+
+Bloc de localisation partagé dans réseau, MaisonDossier, TunibusinessDossier et fiches génériques :
+ville/secteur et adresse séparés, chantier/établissement nommé, manquants explicites et question
+à copier au client. Extraction conservatrice : champs structurés ou formulations explicites du
+besoin, arrêt avant signature/coordonnées d'expéditeur ; pas de géocodage ni de supposition depuis
+un nom d'immeuble, une entreprise ou un préfixe téléphonique. Un lieu cité explicitement peut
+compléter une ville vide ; les placeholders n/a, tirets, etc. sont considérés manquants.
+Exemple contrôlé : ASSEL Hanen, source 7eb6ed31-ae7d-4023-a12e-e6c5e5793f23, immeuble Kadisseya
+identifié dans le besoin, ville/adresse non fournies. Ne pas lui attribuer Tunis depuis un autre
+chantier du même contact. Texte intégral conservé dans la traçabilité.
+
+PDF/WhatsApp réseau : ville, chantier et adresse repris séparément, avec À préciser si absent.
+Adresse extraite incluse dans l'empreinte de validation si présente ; une ancienne proposition
+qui acquiert cette information doit être revalidée avant partage. Aucun changement de schéma.
+Tests : lieu nommé sans ville, signature exclue, adresse structurée, adresse explicite et ville
+située à Borj Cedria ; scénario réel Kadisseya vérifié. Régression des droits réseau passée,
+TypeScript serveur et build Vite OK. Aucun nouveau diagnostic TypeScript sur les composants
+modifiés hors erreurs préexistantes déjà documentées.
+Patch reproductible deploy/leadscentral-project-location.patch ; sauvegarde serveur
+/home/leadsc/backups/lead-location-before-20261026.tar.gz. Travail local D:/Lead-location.

@@ -1,0 +1,276 @@
+--- a/server/src/routes/networkOpportunities.ts
++++ b/server/src/routes/networkOpportunities.ts
+@@ -1,3 +1,4 @@
++import {projectLocation,requestBody} from '../lib/projectLocation'
+ import type {FastifyInstance,FastifyReply,FastifyRequest} from 'fastify'
+ import {prisma} from '../db'
+ import {dataOwnerId} from '../auth/scope'
+@@ -25,8 +26,9 @@
+ async function sourceLead(id:string,owner:string,destination:string) {return prisma.lead.findFirst({where:{id,userId:owner,wpSiteId:{in:DESTINATIONS[destination].sources}},include:{wpSite:true}})}
+ function safeDocuments(lead:any,d:any,admin:boolean) {const approved=json(d?.document_ids||'[]');return documents(lead).filter((x:any)=>admin||approved.includes(x.id)).map(({path,...x}:any)=>x)}
+ function serialize(lead:any,d:any,admin:boolean,destination:string) {
++ const location=projectLocation(lead)
+  const q=qualify(lead,destination),st=d?.status==='approved'&&d.source_revision!==revision(lead)?'pending':d?.status||'pending'
+- return {destinationId:destination,destinationName:DESTINATIONS[destination].name,kind:q?.kind||'work',kindLabel:q?.kindLabel||'Projet',id:lead.id,sourceSite:lead.wpSite?.name,sourceSiteId:lead.wpSiteId,date:lead.date,name:lead.nom,email:lead.email,phone:lead.telephone,city:lead.ville,
++ return {destinationId:destination,destinationName:DESTINATIONS[destination].name,kind:q?.kind||'work',kindLabel:q?.kindLabel||'Projet',id:lead.id,sourceSite:lead.wpSite?.name,sourceSiteId:lead.wpSiteId,date:lead.date,name:lead.nom,email:lead.email,phone:lead.telephone,city:location.city,location,summary:admin?requestBody(lead).slice(0,4000):(d?.shared_brief||''),
+  title:lead.metadata?.raw?.title||lead.service||'Demande',message:admin?original(lead):(d?.shared_brief||''),sharedBrief:d?.shared_brief||q?.defaultBrief||original(lead),reference:lead.metadata?.raw?.reference||lead.externalId,
+  lot:d?.lot||q?.lots.map((l:any)=>l.label).join(' · ')||'Lot à préciser',reason:d?.reason||q?.lots.map((l:any)=>l.evidence).join('\n')||'',
+  warning:admin?q?.warning:null,documents:safeDocuments(lead,d,admin),status:st,revision:revision(lead),teamStatus:d?.team_status||'new',assignedTo:d?.assigned_to||null,assigneeLabel:d?.assignee_label||null,nextAction:d?.next_action||'',approvedAt:d?.approved_at||null,forwardedAt:d?.forwarded_at||null,
+--- a/server/src/lib/networkPolicy.ts
++++ b/server/src/lib/networkPolicy.ts
+@@ -1,3 +1,4 @@
++import {projectLocation} from './projectLocation'
+ import {litorraQualification} from './litorraQualification'
+ import { createHash } from 'crypto'
+ export const MAISON = 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c'
+@@ -44,7 +45,7 @@
+  for(const [i,url] of (m.photos||[]).entries()){if(typeof url!=='string'||!url.startsWith('/uploads/mail/')||seen.has(url))continue;seen.add(url);docs.push({id:'p-'+i,name:decodeURIComponent(url.split('/').pop()||'Photo'),mime:/\.png$/i.test(url)?'image/png':/\.webp$/i.test(url)?'image/webp':'image/jpeg',size:0,available:true,kind:'mail',path:url})}
+  return docs
+ }
+-export function revision(lead:any) {return createHash('sha256').update(JSON.stringify({name:lead.nom,email:lead.email,phone:lead.telephone,city:lead.ville,message:original(lead),docs:documents(lead),status:lead.metadata?.raw?.status,review:lead.metadata?.raw?.review_status})).digest('hex')}
++export function revision(lead:any) {return createHash('sha256').update(JSON.stringify({name:lead.nom,email:lead.email,phone:lead.telephone,city:lead.ville,...(projectLocation(lead).address?{projectAddress:projectLocation(lead).address}:{}),message:original(lead),docs:documents(lead),status:lead.metadata?.raw?.status,review:lead.metadata?.raw?.review_status})).digest('hex')}
+ export function allowedByScope(lead:any,user:any) {
+  if(user.scopeData==='calls')return false
+  if(user.scopeSince && new Date(lead.date)<new Date(user.scopeSince))return false
+--- a/client/src/components/NetworkOpportunities.tsx
++++ b/client/src/components/NetworkOpportunities.tsx
+@@ -1,3 +1,4 @@
++import ProjectLocationCard from './ProjectLocationCard'
+ import LeadInspiration from './LeadInspiration'
+ import {NETWORK_TARGETS,MAISON_NETWORK,LITORRA_NETWORK} from '../lib/networkTargets'
+ import {networkWhatsApp} from '../lib/networkShare'
+@@ -31,6 +32,7 @@
+  function open(g:any){setSelected(g);setMember(0);setLot(g.members[0].lot);setReason(g.members[0].reason);setBriefs(Object.fromEntries(g.members.map((m:any)=>[m.id,m.sharedBrief||m.message])));setDocs(Object.fromEntries(g.members.map((m:any)=>[m.id,m.selectedDocuments])));setNext(g.members[0].nextAction||'');setNotice('')}
+  async function review(action:string){if(!selected||busy)return;setBusy(true);try{await apiClient.post(base+'/review',{action,items:selected.members.map((m:any)=>({id:m.id,revision:m.revision,lot,reason,brief:briefs[m.id]||m.message,documents:docs[m.id]||[]}))});setSelected(null);setNotice(action==='approve'?'Opportunité validée. Vous pouvez maintenant préparer votre message WhatsApp.':action==='dismiss'?'Suggestion écartée. Le dossier source est conservé.':'Validation retirée.');await load()}catch(e:any){setNotice(e.response?.data?.error||'Enregistrement impossible. Réessayez.')}finally{setBusy(false)}}
+  const active=selected?.members[member]
++ const readingNeed=String(active?.sharedBrief||active?.summary||active?.message||'').split('\n').filter(line=>!/^Lot proposé à .+:/i.test(line)&&!/^Extraits du besoin à confirmer/i.test(line)&&!/^La demande comprend plusieurs métiers/i.test(line)).join('\n').trim()
+  const whatsappText=selected?networkWhatsApp(selected.members):''
+  async function copyWhatsApp(){try{await navigator.clipboard.writeText(whatsappText);setNotice('Message copié. Joignez les fichiers téléchargés dans WhatsApp. Aucun envoi automatique.')}catch{setNotice('Copie impossible : sélectionnez le texte du message préparé ci-dessous.')}}
+  async function downloadPack(mode:'pdf'|'zip'){
+@@ -50,19 +52,44 @@
+    <p className="text-xs text-slate-500">Les propositions validées restent visibles au-delà de la période. Détection fondée sur le besoin écrit ; le contenu des fichiers n’est pas analysé automatiquement.</p>
+    {notice&&!selected&&<p role="status" className="rounded-lg bg-primary-50 p-3 text-sm text-primary-800 dark:bg-primary-900/20 dark:text-primary-200">{notice}</p>}
+    {error&&<p role="alert" className="text-red-600">{error}</p>}
+-   {loading?<p>Chargement des opportunités…</p>:<div className="grid gap-3 lg:grid-cols-2">{shown.map((g:any)=>{const m=g.members[0];return <button key={g.id} onClick={()=>open(g)} className="min-w-0 space-y-2 rounded-xl border border-slate-200 p-4 text-left hover:border-primary-400 dark:border-slate-700"><p className="text-xs text-slate-500">{[...new Set(g.members.map((x:any)=>x.sourceSite))].join(' · ')} · {date(m.date)}</p><h3 className="font-semibold">{m.lot}</h3><p className="text-sm">{m.name||'Client'} · {m.city||'Lieu à préciser'}</p><p className="line-clamp-2 text-sm text-slate-500">{destinationId===LITORRA_NETWORK?m.reason:m.message}</p>{destinationId===LITORRA_NETWORK&&<p className="text-xs font-medium text-primary-700 dark:text-primary-300">{m.kindLabel}</p>}<p className="text-xs text-primary-600">{g.members.length>1?`${g.members.length} envois similaires réunis · `:''}{g.members.reduce((n:number,x:any)=>n+x.documents.length,0)} document(s)</p>{m.warning&&<p className="text-xs text-amber-600">{m.warning}</p>}{g.members.some((x:any)=>x.sourceAlreadyContacted)&&<p className="text-xs text-amber-600">Client déjà contacté côté source : coordonner la relance.</p>}{['approved','sent'].includes(view)&&<p className="text-sm font-medium">{m.forwardedAt?`Transmise par WhatsApp le ${date(m.forwardedAt)}`:m.teamStatus==='taken'?`Pris en charge par ${m.assigneeLabel||'un membre de l’équipe'}`:m.teamStatus==='declined'?'Décliné par l’équipe':'À examiner par l’équipe'}</p>}<span className="block text-sm font-semibold text-primary-600">{admin&&view==='pending'?'Examiner et valider →':'Consulter →'}</span></button>})}{!shown.length&&<p className="col-span-full py-5 text-sm text-slate-500">{view==='approved'?'Aucune opportunité en attente de transmission.':'Aucune suggestion dans cette vue.'}</p>}</div>}
++   {loading?<p>Chargement des opportunités…</p>:<div className="grid gap-3 lg:grid-cols-2">{shown.map((g:any)=>{const m=g.members[0];return <button key={g.id} onClick={()=>open(g)} className="min-w-0 space-y-2 rounded-xl border border-slate-200 p-4 text-left hover:border-primary-400 dark:border-slate-700"><p className="text-xs text-slate-500">{[...new Set(g.members.map((x:any)=>x.sourceSite))].join(' · ')} · {date(m.date)}</p><h3 className="font-semibold">{m.lot}</h3><p className="text-sm">{m.name||'Client'} · {m.location?.city||m.city||'Ville à préciser'}</p><p className="text-xs font-medium text-slate-600 dark:text-slate-300">{[m.location?.siteName,!m.location?.address?'Adresse à préciser':null].filter(Boolean).join(' · ')}</p><p className="line-clamp-2 text-sm text-slate-500">{destinationId===LITORRA_NETWORK?m.reason:m.message}</p>{destinationId===LITORRA_NETWORK&&<p className="text-xs font-medium text-primary-700 dark:text-primary-300">{m.kindLabel}</p>}<p className="text-xs text-primary-600">{g.members.length>1?`${g.members.length} envois similaires réunis · `:''}{g.members.reduce((n:number,x:any)=>n+x.documents.length,0)} document(s)</p>{m.warning&&<p className="text-xs text-amber-600">{m.warning}</p>}{g.members.some((x:any)=>x.sourceAlreadyContacted)&&<p className="text-xs text-amber-600">Client déjà contacté côté source : coordonner la relance.</p>}{['approved','sent'].includes(view)&&<p className="text-sm font-medium">{m.forwardedAt?`Transmise par WhatsApp le ${date(m.forwardedAt)}`:m.teamStatus==='taken'?`Pris en charge par ${m.assigneeLabel||'un membre de l’équipe'}`:m.teamStatus==='declined'?'Décliné par l’équipe':'À examiner par l’équipe'}</p>}<span className="block text-sm font-semibold text-primary-600">{admin&&view==='pending'?'Examiner et valider →':'Consulter →'}</span></button>})}{!shown.length&&<p className="col-span-full py-5 text-sm text-slate-500">{view==='approved'?'Aucune opportunité en attente de transmission.':'Aucune suggestion dans cette vue.'}</p>}</div>}
+    {pages>1&&<nav aria-label="Pagination des opportunités" className="flex items-center justify-between gap-2 text-sm"><button className={button} disabled={current===1} onClick={()=>setPage(current-1)}>Précédente</button><span>Page {current}/{pages} · {filtered.length} fiches</span><button className={button} disabled={current===pages} onClick={()=>setPage(current+1)}>Suivante</button></nav>}
+    <Modal open={!!selected} onClose={()=>{if(!busy)setSelected(null)}} maxWidth="max-w-3xl" title={`Opportunité pour ${brand}`} footer={selected&&<div className="flex flex-wrap gap-2">{admin&&<>{selected.members[0].status!=='approved'?<button disabled={busy||lot.trim().length<3||reason.trim().length<3||selected.members.some((m:any)=>(briefs[m.id]||'').trim().length<3)} className={button+' bg-primary-600 text-white'} onClick={()=>review('approve')}>Valider pour {brand}</button>:<button disabled={busy} className={button} onClick={()=>review('revoke')}>Retirer la validation</button>}{selected.members[0].status==='pending'&&<button disabled={busy} className={button} onClick={()=>review('dismiss')}>Écarter</button>}</>}{selected.members[0].status==='approved'&&admin&&<><button disabled={busy} className={button+' bg-primary-600 text-white'} onClick={()=>downloadPack('pdf')}>Télécharger la fiche PDF</button><button disabled={busy} className={button} onClick={()=>downloadPack('zip')}>PDF + originaux (ZIP)</button><button disabled={busy} className={button} onClick={copyWhatsApp}>Copier pour WhatsApp</button><button disabled={busy||selected.members.every((m:any)=>m.forwardedAt)} className={button+' bg-emerald-600 text-white'} onClick={markDelivered}>Marquer transmis par WhatsApp</button></>}{selected.members[0].status==='approved'&&!admin&&<><button disabled={busy} className={button+' bg-emerald-600 text-white'} onClick={()=>follow('taken')}>Prendre en charge cet envoi</button><button disabled={busy} className={button} onClick={()=>follow('declined')}>Pas pour nous</button></>}</div>}>
+-    {active&&<div className="space-y-5 text-sm">{admin&&active.status==='approved'&&<section className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-900/20"><h3 className="font-semibold">Message WhatsApp prêt à transmettre</h3><textarea aria-label="Message WhatsApp préparé" readOnly value={whatsappText} rows={7} className="mt-2 w-full rounded-lg border bg-white p-3 dark:bg-slate-900 dark:border-slate-700"/><p className="mt-2 text-xs text-slate-500">La fiche PDF rassemble le besoin validé, les coordonnées, les photos et les PDF sélectionnés. Pour les plans DWG, tableurs ou PDF protégés, utilisez « PDF + originaux (ZIP) ». Joignez le dossier dans WhatsApp, puis cliquez sur « Marquer transmis » après votre envoi.</p></section>}{notice&&<p role="alert" className="text-amber-700">{notice}</p>}{admin?<><label className="block font-medium">Lot à proposer à {brand}<input disabled={active.status==='approved'} value={lot} onChange={e=>setLot(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><label className="block font-medium">Pourquoi cette demande intéresse {brand}<textarea disabled={active.status==='approved'} rows={3} value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label><p className="text-xs text-slate-500">Le lot, le besoin validé et les noms des fichiers cochés composent le message WhatsApp. Aucun message ni document n’est envoyé automatiquement.</p></>:<div><h3 className="text-lg font-semibold">{active.lot}</h3><p className="mt-2 whitespace-pre-wrap">{active.reason}</p></div>}
+-      {selected.members.length>1&&<label className="block">Envois regroupés ({selected.members.length})<select aria-label="Envoi source de l’opportunité" value={member} onChange={e=>{const i=Number(e.target.value);setMember(i);setNext(selected.members[i].nextAction||'')}} className="mt-1 w-full rounded-lg border bg-white p-2 dark:bg-slate-900 dark:border-slate-700">{selected.members.map((m:any,i:number)=><option key={m.id} value={i}>{m.sourceSite} · {m.reference} · {date(m.date)}</option>)}</select><span className="mt-1 block text-xs text-slate-500">La validation s’applique aux {selected.members.length} envois de cette fiche. Le suivi équipe concerne l’envoi sélectionné.</span></label>}
+-      <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800"><h3 className="font-semibold">{active.name} · {active.city}</h3><p className="mt-1 text-xs text-slate-500">{active.sourceSite} · {active.reference} · {date(active.date)}</p><div className="mt-2 flex flex-wrap gap-3"><a className="text-primary-600" href={`tel:${active.phone||''}`}>{active.phone}</a><a className="break-all text-primary-600" href={`mailto:${active.email||''}`}>{active.email}</a></div>{active.sourceAlreadyContacted&&<p className="mt-2 text-amber-600">Déjà contacté à la source : coordonner avant de rappeler.</p>}</div>
++    {active&&<div className="space-y-5 text-sm">
++      {notice&&<p role="status" className="rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{notice}</p>}
++      {selected.members.length>1&&<label className="block text-sm text-slate-500">Envois regroupés ({selected.members.length})<select aria-label="Envoi source de l’opportunité" value={member} onChange={e=>{const i=Number(e.target.value);setMember(i);setNext(selected.members[i].nextAction||'')}} className="mt-1 w-full rounded-lg border bg-white p-2 dark:bg-slate-900 dark:border-slate-700">{selected.members.map((m:any,i:number)=><option key={m.id} value={i}>{m.sourceSite} · {m.reference.startsWith('mail-')?'E-mail':m.reference} · {date(m.date)}</option>)}</select></label>}
++      <header className="rounded-xl bg-primary-50 p-4 dark:bg-primary-900/20">
++        <p className="text-xs font-medium uppercase tracking-wide text-primary-700 dark:text-primary-300">Lot à proposer à {brand}</p>
++        <h3 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">{active.lot}</h3>
++        <p className="mt-2 font-medium">{active.name||'Contact à préciser'}</p><p className="mt-1 text-xs text-slate-500">{active.sourceSite} · {date(active.date)} · {active.reference.startsWith('mail-')?'Demande reçue par e-mail':active.reference}</p>
++      </header>
++      <ProjectLocationCard location={active.location||{city:active.city}}/>
++      <section aria-label="Comprendre le besoin">
++        <h3 className="mb-2 text-base font-semibold">Besoin à traiter</h3>
++        <p className="whitespace-pre-wrap break-words leading-relaxed">{readingNeed.length>900?readingNeed.slice(0,900)+'…':readingNeed}</p>
++        {readingNeed.length>900&&<details className="mt-2"><summary className="cursor-pointer text-primary-600">Lire la demande complète</summary><p className="mt-2 whitespace-pre-wrap break-words leading-relaxed">{readingNeed}</p></details>}
++        {active.summary&&active.summary.trim()!==readingNeed&&<details className="mt-3"><summary className="cursor-pointer text-sm text-slate-500">Contexte de la demande</summary><p className="mt-2 whitespace-pre-wrap break-words leading-relaxed">{active.summary}</p></details>}
++        {active.kind==='lot'&&<div className="mt-3 rounded-lg border-l-4 border-primary-400 bg-primary-50 p-3 dark:bg-primary-900/20"><p className="font-semibold">Lot envisagé pour {brand} : {active.lot}</p><p className="mt-1 whitespace-pre-wrap text-slate-600 dark:text-slate-300">{active.reason}</p></div>}
++      </section>
+       {active.warning&&<p className="rounded-lg bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{active.warning}</p>}
+-      <section><h3 className="mb-2 font-semibold">Besoin à transmettre à {brand}</h3>{admin?<><textarea aria-label="Besoin visible par l’équipe" disabled={active.status==='approved'} rows={7} value={briefs[active.id]||''} onChange={e=>setBriefs(prev=>({...prev,[active.id]:e.target.value}))} className="w-full rounded-lg border bg-transparent p-3 dark:border-slate-700"/><p className="mt-1 text-xs text-slate-500">Gardez uniquement les informations utiles au lot {brand}. Le message source reste inchangé.</p><details className="mt-2"><summary className="cursor-pointer text-slate-500">Consulter le message source intégral</summary><p className="mt-2 whitespace-pre-wrap break-words">{active.message}</p></details></>:<p className="whitespace-pre-wrap break-words">{active.message}</p>}</section>
+-      <section><h3 className="mb-2 font-semibold">Documents de cet envoi ({active.documents.length})</h3><div className="space-y-3">{active.documents.map((d:any)=><div key={active.id+d.id}>{admin&&<label className="mb-1 flex items-center gap-2"><input type="checkbox" disabled={active.status==='approved'} checked={(docs[active.id]||[]).includes(d.id)} onChange={e=>setDocs(prev=>({...prev,[active.id]:e.target.checked?[...(prev[active.id]||[]),d.id]:(prev[active.id]||[]).filter(id=>id!==d.id)}))}/>Partager ce fichier avec l’équipe après validation</label>}<Attachment key={active.id+d.id} leadId={active.id} doc={d} destinationId={destinationId}/></div>)}</div>{!active.documents.length&&<p className="text-slate-500">Aucune pièce jointe disponible pour cet envoi.</p>}</section>
++      <section className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
++        <h3 className="text-xs font-medium uppercase tracking-wide text-slate-500">Contact client</h3><p className="mt-1 text-lg font-semibold">{active.name||'Nom non renseigné'}</p>
++        <div className="mt-2 flex flex-wrap gap-3">{active.phone?<a className="font-medium text-primary-600" href={`tel:${active.phone}`}>{active.phone}</a>:<span className="text-slate-500">Téléphone non renseigné</span>}{active.email&&<a className="break-all text-primary-600" href={`mailto:${active.email}`}>{active.email}</a>}</div>
++        {active.sourceAlreadyContacted&&<p className="mt-2 text-amber-600">Déjà contacté à la source : coordonner avant de rappeler.</p>}
++      </section>
++      <section><h3 className="mb-2 text-base font-semibold">Photos, plans et documents ({active.documents.length})</h3><div className="space-y-3">{active.documents.map((d:any)=><div key={active.id+d.id}>{admin&&<label className="mb-1 flex items-center gap-2 text-xs text-slate-500"><input type="checkbox" disabled={active.status==='approved'} checked={(docs[active.id]||[]).includes(d.id)} onChange={e=>setDocs(prev=>({...prev,[active.id]:e.target.checked?[...(prev[active.id]||[]),d.id]:(prev[active.id]||[]).filter(id=>id!==d.id)}))}/>Joindre à la transmission après validation</label>}<Attachment key={active.id+d.id} leadId={active.id} doc={d} destinationId={destinationId}/></div>)}</div>{!active.documents.length&&<p className="text-slate-500">Aucune pièce jointe disponible.</p>}</section>
++      {admin&&<details className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"><summary className="cursor-pointer font-semibold">Préparer ou ajuster la transmission</summary><div className="mt-3 space-y-3">
++        <label className="block font-medium">Lot à proposer à {brand}<input disabled={active.status==='approved'} value={lot} onChange={e=>setLot(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label>
++        <label className="block font-medium">Pourquoi cette demande intéresse {brand}<textarea disabled={active.status==='approved'} rows={3} value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label>
++        <label className="block font-medium">Besoin à transmettre<textarea aria-label="Besoin visible par l’équipe" disabled={active.status==='approved'} rows={6} value={briefs[active.id]||''} onChange={e=>setBriefs(prev=>({...prev,[active.id]:e.target.value}))} className="mt-1 w-full rounded-lg border bg-transparent p-3 dark:border-slate-700"/></label>
++        <p className="text-xs text-slate-500">Le message source reste inchangé. Seuls le besoin validé et les documents cochés seront préparés pour la transmission.</p>
++      </div></details>}
++      {admin&&active.status==='approved'&&<details className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-900/20"><summary className="cursor-pointer font-semibold">Message WhatsApp prêt à transmettre</summary><textarea aria-label="Message WhatsApp préparé" readOnly value={whatsappText} rows={7} className="mt-2 w-full rounded-lg border bg-white p-3 dark:bg-slate-900 dark:border-slate-700"/><p className="mt-2 text-xs text-slate-500">Téléchargez la fiche PDF ou le ZIP, puis joignez-le dans WhatsApp. Marquez transmis après votre envoi.</p></details>}
+       {admin&&<LeadInspiration key={destinationId+active.id} leadId={active.id} siteId={active.sourceSiteId} destinationId={destinationId} brief={briefs[active.id]||active.sharedBrief}/>}
+-      {active.status==='approved'&&!admin&&<label className="block font-medium">Prochaine action pour cet envoi<textarea value={next} onChange={e=>setNext(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/><span className="text-xs font-normal text-slate-500">Enregistrée avec « Prendre en charge cet envoi » ou « Pas pour nous ».</span></label>}
+-      {admin&&<a className="inline-block text-primary-600" href={`/site/${active.sourceSiteId}`} target="_blank" rel="noopener noreferrer">Ouvrir le site d’origine dans Leads Central ↗</a>}
++      {active.status==='approved'&&!admin&&<label className="block font-medium">Prochaine action<textarea value={next} onChange={e=>setNext(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label>}
++      <details className="text-xs text-slate-500"><summary className="cursor-pointer">Message original et traçabilité</summary><p className="mt-2 whitespace-pre-wrap break-words leading-relaxed">{active.message}</p><p className="mt-2">{active.sourceSite} · Référence : {active.reference}</p>{admin&&<a className="mt-2 inline-block text-primary-600" href={`/site/${active.sourceSiteId}`} target="_blank" rel="noopener noreferrer">Ouvrir le site d’origine ↗</a>}</details>
+     </div>}
++
+    </Modal>
+  </section>
+ }
+--- a/client/src/components/MaisonDossier.tsx
++++ b/client/src/components/MaisonDossier.tsx
+@@ -1,3 +1,5 @@
++import ProjectLocationCard from './ProjectLocationCard'
++import {projectLocation} from '../lib/projectLocation'
+ import LeadInspiration from './LeadInspiration'
+ import { useEffect, useState } from 'react'
+ import { apiClient } from '../lib/apiClient'
+@@ -44,9 +46,11 @@
+  const image=safeUrl(inspiration.image);const allowedImage=image && new URL(image).hostname==='maison216.tn' && new URL(image).pathname.startsWith('/assets/') ? image : null
+  return <section className="min-w-0 space-y-5">
+    <header className="rounded-xl bg-primary-50 p-4 dark:bg-primary-900/20"><p className="text-xs uppercase text-primary-600">Professionnel à contacter · orientation proposée</p><h3 className="mt-1 text-xl font-semibold">{trade}</h3><p className="mt-2">{lead.service}</p></header>
+-   {Object.keys(inspiration).length>0&&<section className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"><h3 className="font-semibold">Inspiration choisie par le client</h3>{inspiration.title&&<p className="mt-1">{inspiration.title}</p>}{allowedImage&&<a href={allowedImage} target="_blank" rel="noopener noreferrer"><img src={allowedImage} alt={inspiration.title||'Modèle choisi'} className="mt-3 max-h-96 w-full rounded-lg object-contain"/></a>}{inspiration.preferences&&<p className="mt-3"><strong>Préférences : </strong>{inspiration.preferences}</p>}{safeUrl(inspiration.url)&&<a href={safeUrl(inspiration.url)!} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-primary-600">Voir la page du modèle ↗</a>}</section>}
++   <ProjectLocationCard location={projectLocation(lead)}/>
++
+    <dl className="grid gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-2 dark:border-slate-700">{[['Lieu',lead.ville],['Dimensions',r.dimensions],['Délai souhaité',r.deadline],['Projet',r.project_type],['Téléphone',lead.telephone],['Email',lead.email]].filter(([,v])=>v).map(([k,v])=><div key={k}><dt className="text-xs text-slate-500">{k}</dt><dd className="break-words font-medium">{v}</dd></div>)}</dl>
+    <section><h3 className="mb-2 font-semibold">Besoin exprimé par le client</h3><LinkedText text={body}/></section>
++   {Object.keys(inspiration).length>0&&<section className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"><h3 className="font-semibold">Inspiration choisie par le client</h3>{inspiration.title&&<p className="mt-1">{inspiration.title}</p>}{allowedImage&&<a href={allowedImage} target="_blank" rel="noopener noreferrer"><img src={allowedImage} alt={inspiration.title||'Modèle choisi'} className="mt-3 max-h-96 w-full rounded-lg object-contain"/></a>}{inspiration.preferences&&<p className="mt-3"><strong>Préférences : </strong>{inspiration.preferences}</p>}{safeUrl(inspiration.url)&&<a href={safeUrl(inspiration.url)!} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-primary-600">Voir la page du modèle ↗</a>}</section>}
+    <section><h3 className="mb-3 font-semibold">Photos et plans du client ({docs.length})</h3>{docs.length?<div className="space-y-3">{docs.map((d:any)=><Document key={d.id} doc={d} siteId={siteId} leadId={lead.id}/>)}</div>:<p className="text-sm text-slate-500">Aucun fichier joint à cette demande.</p>}</section>
+    {!!r.links?.length&&<section><h3 className="mb-2 font-semibold">Liens fournis</h3><ul className="space-y-2">{r.links.filter((u:string)=>safeUrl(u)).map((u:string)=><li key={u}><a className="break-all text-primary-600 underline" href={safeUrl(u)!} target="_blank" rel="noopener noreferrer">{u===inspiration.url?'Page du modèle':u===inspiration.image?'Image d’inspiration':u}</a></li>)}</ul></section>}
+    {!r.inspiration?.image&&!docs.some((d:any)=>d.mime?.startsWith('image/'))&&<LeadInspiration key={lead.id} leadId={lead.id} siteId={siteId}/>}
+--- a/client/src/components/TunibusinessDossier.tsx
++++ b/client/src/components/TunibusinessDossier.tsx
+@@ -1,3 +1,5 @@
++import ProjectLocationCard from './ProjectLocationCard'
++import {projectLocation} from '../lib/projectLocation'
+ import PrivatePdfPreview from './PrivatePdfPreview'
+ import { useEffect, useState } from 'react'
+ import { apiClient } from '../lib/apiClient'
+@@ -32,6 +34,7 @@
+      <h3 className="mt-2 text-xl font-semibold text-slate-900 dark:text-white">{routing.label}</h3>
+      {routing.contacts.length>0&&<p className="mt-1 text-xs text-slate-500">Orientation proposée à partir du besoin et des informations du dossier.</p>}
+    </header>
++   <ProjectLocationCard location={projectLocation(lead)}/>
+    {(raw.review_status==='rejected'||raw.status==='cancelled')&&<p className="rounded-lg bg-amber-50 p-3 text-sm font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{statusLabel(raw)} — vérifier le dossier avant de le transmettre.</p>}
+    <div>
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{brief.title||raw.title||'Demande à préciser'}</h3>
+@@ -39,7 +42,7 @@
+      {!!brief.specifications?.length&&<div className="mt-3 flex flex-wrap gap-2">{brief.specifications.map((x:any)=><span key={x.label} className="rounded-lg bg-slate-100 px-3 py-2 text-sm dark:bg-slate-800"><span className="text-slate-500">{x.label} : </span><strong>{x.value}</strong></span>)}</div>}
+    </div>
+    <div className="grid gap-3 rounded-xl border border-slate-200 p-4 text-sm sm:grid-cols-2 dark:border-slate-700">
+-     {[["Lieu",lead.ville],["Entreprise",raw.company],["Quantité",brief.quantity],["Échéance",brief.deadline],["Budget annoncé",raw.budget!=null?`${raw.budget} TND`:null]].filter(([,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=><div key={String(k)}><span className="text-slate-500">{k} : </span><strong>{v}</strong></div>)}
++     {[["Entreprise",raw.company],["Quantité",brief.quantity],["Échéance",brief.deadline],["Budget annoncé",raw.budget!=null?`${raw.budget} TND`:null]].filter(([,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=><div key={String(k)}><span className="text-slate-500">{k} : </span><strong>{v}</strong></div>)}
+      {lead.telephone&&<a className="text-primary-600" href={`tel:${lead.telephone.replace(/\s/g,'')}`}>{lead.telephone}</a>}
+      {lead.email&&<a className="break-all text-primary-600" href={`mailto:${lead.email}`}>{lead.email}</a>}
+    </div>
+--- a/client/src/components/QuoteRequests.tsx
++++ b/client/src/components/QuoteRequests.tsx
+@@ -1,3 +1,5 @@
++import ProjectLocationCard from './ProjectLocationCard'
++import {projectLocation} from '../lib/projectLocation'
+ import LeadInspiration from './LeadInspiration'
+ import {NETWORK_TARGETS} from '../lib/networkTargets'
+ import NetworkOpportunities from './NetworkOpportunities'
+@@ -1298,6 +1300,8 @@
+ 
+             {/* 1 — LA DEMANDE */}
+             {sel.metadata?.raw?.origin === 'maison216-v1' ? <MaisonDossier key={sel.id} lead={sel} siteId={sel.wp_site?.id || siteId || ''}/> : sel.metadata?.raw?.origin === 'tunibusiness-v1' ? <TunibusinessDossier key={sel.id} lead={sel} siteId={sel.wp_site?.id || siteId || ''} /> : (
++            <>
++            <ProjectLocationCard location={projectLocation(sel)}/>
+             <Section icon={FileText} title="La demande">
+               <dl className="grid grid-cols-[6.5rem_1fr] gap-x-4 gap-y-1.5">
+                 <dt className="text-slate-400">Service</dt>
+@@ -1358,6 +1362,7 @@
+                 </div>
+               )}
+             </Section>
++            </>
+ 
+             )}
+ 
+--- a/client/src/lib/networkPdfCore.ts
++++ b/client/src/lib/networkPdfCore.ts
+@@ -28,7 +28,7 @@
+  const section=(title:string)=>{if(y>255)page();y+=5;d.setDrawColor(209,222,232);d.line(17,y-3,193,y-3);d.setTextColor(0,106,156);line(title,12,true);d.setTextColor(28,42,61);y+=2}
+  header();line([...new Set(members.map(m=>m.lot))].join(' · '),15,true);line('Préparée le '+new Date().toLocaleDateString('fr-FR'),8);y+=3
+  const first=members[0];section('Client et coordonnées')
+- for(const [key,val] of [['Client',first.name],['Téléphone',first.phone],['Email',first.email],['Lieu',first.city]])line(`${key} : ${val||'Non renseigné'}`,10,key==='Client')
++ for(const [key,val] of [['Client',first.name],['Téléphone',first.phone],['Email',first.email],['Ville / secteur',first.location?.city||first.city||'À préciser'],['Chantier',first.location?.siteName||'À préciser'],['Adresse du chantier',first.location?.address||'Adresse exacte à demander']])line(`${key} : ${val||'Non renseigné'}`,10,key==='Client')
+  const briefs=new Set<string>();for(const m of members){const b=clean(m.sharedBrief||m.message);if(briefs.has(b))continue;briefs.add(b);section('Besoin validé');line(b)}
+  if(members.some(m=>m.sourceAlreadyContacted)){section('Coordination');line('Le client a déjà été contacté côté source. Coordonner la relance avant de le rappeler.')}
+  section('Origine de la demande');for(const m of members)line(`${m.sourceSite} - Réf. ${m.reference} - Reçue le ${new Date(m.date).toLocaleDateString('fr-FR')}`,9)
+--- a/client/src/lib/networkPdf.ts
++++ b/client/src/lib/networkPdf.ts
+@@ -4,7 +4,7 @@
+ import normalUrl from 'dejavu-fonts-ttf/ttf/DejaVuSans.ttf?url'
+ import boldUrl from 'dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf?url'
+ const b64=(data:ArrayBuffer)=>{let s='';const bytes=new Uint8Array(data);for(let i=0;i<bytes.length;i+=8192)s+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(s)}
+-const snapshot=(ms:any[])=>JSON.stringify(ms.map(m=>[m.id,m.revision,m.sharedBrief,m.lot,m.name,m.phone,m.email,m.city,m.documents,m.selectedDocuments]))
++const snapshot=(ms:any[])=>JSON.stringify(ms.map(m=>[m.id,m.revision,m.sharedBrief,m.lot,m.name,m.phone,m.email,m.city,m.location,m.documents,m.selectedDocuments]))
+ async function jpeg(bytes:Uint8Array,mime:string){
+  const url=URL.createObjectURL(new Blob([bytes as BlobPart],{type:mime}));try{const img=new Image();img.src=url;await img.decode();if(!img.naturalWidth||img.naturalWidth*img.naturalHeight>80000000)throw Error('Image trop grande');const scale=Math.min(1,2400/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d')!;ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);const blob=await new Promise<Blob>((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(Error('Image illisible')),'image/jpeg',0.9));return new Uint8Array(await blob.arrayBuffer())}finally{URL.revokeObjectURL(url)}
+ }
+--- a/client/src/lib/networkShare.ts
++++ b/client/src/lib/networkShare.ts
+@@ -8,7 +8,7 @@
+   `Opportunité pour ${brand}`,
+   `Lot : ${[...new Set(rows.map(m=>m.lot))].join(' · ')}`,
+   `Client : ${first.name||'À préciser'}`,
+-  first.city&&`Lieu : ${first.city}`,first.phone&&`Téléphone : ${first.phone}`,first.email&&`Email : ${first.email}`,
++  `Ville / secteur : ${first.location?.city||first.city||'À préciser'}`,first.location?.siteName&&`Chantier : ${first.location.siteName}`,`Adresse du chantier : ${first.location?.address||'À préciser avec le client'}`,first.phone&&`Téléphone : ${first.phone}`,first.email&&`Email : ${first.email}`,
+   '\nBesoin validé :',...briefs,
+   '\nOrigine : '+rows.map(m=>`${m.sourceSite} · réf. ${m.reference}`).join(' / '),
+   files.length?'\nPièces à joindre : '+files.join(', '):'',
+--- /dev/null
++++ b/server/src/lib/projectLocation.ts
+@@ -0,0 +1,23 @@
++const value=(v:any)=>typeof v==='string'&&!/^(?:-|—|n\/a|non renseign[eé]|[àa] pr[eé]ciser|null|undefined)$/i.test(v.trim())?v.trim():''
++const normal=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function requestBody(lead:any){
++ const r=lead.metadata?.raw||{}
++ const raw=value(r.description)||value(r.original_message)||value(lead.message)||value(r.title)
++ const boundary=/^\s*(?:cordialement|bien [àa] vous|sinc[èe]rement|charg[ée]e? de|direction des achats|t[ée]l(?:[ée]phone)?\s*:|email\s*:|p pensez|think of|envoy[ée] avec|={5,}|ce message et|this message and|de\s*:|from\s*:)/im
++ const match=raw.match(boundary)
++ const text=(match?raw.slice(0,match.index):raw).replace(/\r/g,'').replace(/\\([.'-])/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\n{3,}/g,'\n\n').trim()
++ const name=normal(value(lead.nom)).split(/\s+/).sort().join(' ')
++ return text.split('\n').filter(line=>!/^\s*(?:bonjour|bonsoir|merci de nous\s+fournir une offre pour)\s*[,!:]*\s*$/i.test(line)&&(!name||normal(line.trim()).split(/\s+/).sort().join(' ')!==name)).join('\n').trim()
++}
++export function projectLocation(lead:any){
++ const m=lead.metadata||{},r=m.raw||{},body=requestBody(lead)
++ let city=value(lead.ville)||value(r.city)||value(r.ville)
++ let address=value(r.intervention_address)||value(r.project_address)||value(r.full_address)||value(m.address)
++ let siteName='',evidence='',origin=address||city?'Localisation enregistrée dans la demande':''
++ const named=body.match(/(?:[Ii]mmeuble|[Rr][ée]sidence|[Aa]gence|[Bb][âa]timent|[Ss]i[èe]ge)\s+([A-ZÀ-ÖØ-Ý][\p{L}\p{N} ’'()_-]{1,100})/u)
++ if(named){siteName=named[0].split(/\s+(?:y compris|sis|situ[ée]|pour|avec|dont|selon)\b/i)[0].trim();evidence=siteName}
++ if(!address){const explicit=body.match(/(?:^|\n)\s*(?:adresse(?: exacte)?(?: du (?:chantier|projet|site))?)\s*:\s*([^\n]+)/i)||body.match(/(?:sis(?:e)?|situ[ée]e?)\s+(?:[àa]|au)\s+((?:\d+[, ]+)?(?:rue|avenue|av\.|boulevard|route|zone industrielle|lotissement|cite|cité)\s+[^\n;]{4,160})/i);if(explicit){address=explicit[1].split(/\s+y compris\b|\s+pour\s+les\s+travaux/i)[0].trim();origin='Mention explicite dans le besoin';evidence=explicit[0].trim()}}
++ // No inference from a sender signature, phone prefix, company or building name.
++ if(!city){const explicitCity=body.match(/(?:situ[ée]e?|localis[ée]e?)\s+(?:[àa]|au)\s+([^\n.;]{2,100})/i)?.[1]||'';const cities=['Borj Cedria','La Marsa','Hammam Lif','Hammam Chott','Ben Arous','El Mourouj','Nabeul','Hammamet','Sousse','Sfax','Gabès','Gabes','Tunis','Ariana','Bizerte','Monastir','Mahdia','Kairouan','Médenine','Medenine','Zarzis','Djerba','Manouba','Jendouba','Siliana'];const a=' '+normal(address||explicitCity).replace(/[^a-z0-9 ]/g,' ')+' ';city=cities.find(c=>a.includes(' '+normal(c)+' ')||a.endsWith(' '+normal(c)))||'';if(city&&!origin){origin='Ville mentionnée dans le besoin';evidence=explicitCity}}
++ return {city,address,siteName,evidence,origin,missingCity:!city,missingAddress:!address}
++}
+--- /dev/null
++++ b/client/src/lib/projectLocation.ts
+@@ -0,0 +1,23 @@
++const value=(v:any)=>typeof v==='string'&&!/^(?:-|—|n\/a|non renseign[eé]|[àa] pr[eé]ciser|null|undefined)$/i.test(v.trim())?v.trim():''
++const normal=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function requestBody(lead:any){
++ const r=lead.metadata?.raw||{}
++ const raw=value(r.description)||value(r.original_message)||value(lead.message)||value(r.title)
++ const boundary=/^\s*(?:cordialement|bien [àa] vous|sinc[èe]rement|charg[ée]e? de|direction des achats|t[ée]l(?:[ée]phone)?\s*:|email\s*:|p pensez|think of|envoy[ée] avec|={5,}|ce message et|this message and|de\s*:|from\s*:)/im
++ const match=raw.match(boundary)
++ const text=(match?raw.slice(0,match.index):raw).replace(/\r/g,'').replace(/\\([.'-])/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\n{3,}/g,'\n\n').trim()
++ const name=normal(value(lead.nom)).split(/\s+/).sort().join(' ')
++ return text.split('\n').filter(line=>!/^\s*(?:bonjour|bonsoir|merci de nous\s+fournir une offre pour)\s*[,!:]*\s*$/i.test(line)&&(!name||normal(line.trim()).split(/\s+/).sort().join(' ')!==name)).join('\n').trim()
++}
++export function projectLocation(lead:any){
++ const m=lead.metadata||{},r=m.raw||{},body=requestBody(lead)
++ let city=value(lead.ville)||value(r.city)||value(r.ville)
++ let address=value(r.intervention_address)||value(r.project_address)||value(r.full_address)||value(m.address)
++ let siteName='',evidence='',origin=address||city?'Localisation enregistrée dans la demande':''
++ const named=body.match(/(?:[Ii]mmeuble|[Rr][ée]sidence|[Aa]gence|[Bb][âa]timent|[Ss]i[èe]ge)\s+([A-ZÀ-ÖØ-Ý][\p{L}\p{N} ’'()_-]{1,100})/u)
++ if(named){siteName=named[0].split(/\s+(?:y compris|sis|situ[ée]|pour|avec|dont|selon)\b/i)[0].trim();evidence=siteName}
++ if(!address){const explicit=body.match(/(?:^|\n)\s*(?:adresse(?: exacte)?(?: du (?:chantier|projet|site))?)\s*:\s*([^\n]+)/i)||body.match(/(?:sis(?:e)?|situ[ée]e?)\s+(?:[àa]|au)\s+((?:\d+[, ]+)?(?:rue|avenue|av\.|boulevard|route|zone industrielle|lotissement|cite|cité)\s+[^\n;]{4,160})/i);if(explicit){address=explicit[1].split(/\s+y compris\b|\s+pour\s+les\s+travaux/i)[0].trim();origin='Mention explicite dans le besoin';evidence=explicit[0].trim()}}
++ // No inference from a sender signature, phone prefix, company or building name.
++ if(!city){const explicitCity=body.match(/(?:situ[ée]e?|localis[ée]e?)\s+(?:[àa]|au)\s+([^\n.;]{2,100})/i)?.[1]||'';const cities=['Borj Cedria','La Marsa','Hammam Lif','Hammam Chott','Ben Arous','El Mourouj','Nabeul','Hammamet','Sousse','Sfax','Gabès','Gabes','Tunis','Ariana','Bizerte','Monastir','Mahdia','Kairouan','Médenine','Medenine','Zarzis','Djerba','Manouba','Jendouba','Siliana'];const a=' '+normal(address||explicitCity).replace(/[^a-z0-9 ]/g,' ')+' ';city=cities.find(c=>a.includes(' '+normal(c)+' ')||a.endsWith(' '+normal(c)))||'';if(city&&!origin){origin='Ville mentionnée dans le besoin';evidence=explicitCity}}
++ return {city,address,siteName,evidence,origin,missingCity:!city,missingAddress:!address}
++}
+--- /dev/null
++++ b/client/src/components/ProjectLocationCard.tsx
+@@ -0,0 +1,15 @@
++import {useState,useEffect} from 'react'
++export default function ProjectLocationCard({location}:{location:any}){
++ const [copied,setCopied]=useState(false)
++ const l=location||{},missing=!l.city||!l.address
++ useEffect(()=>setCopied(false),[l.city,l.address,l.siteName])
++ const fields=[!l.city?'la ville':null,!l.address?'l’adresse exacte':null].filter(Boolean).join(' et ')
++ const question=`Bonjour, pouvez-vous préciser ${fields} du chantier${l.siteName?' (« '+l.siteName+' »)':''} et, si possible, nous envoyer sa position ? Cela nous permettra d’organiser la visite et de préparer le devis.`
++ return <section aria-label="Lieu du chantier" className={`rounded-xl border p-4 ${missing?'border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-900/10':'border-primary-200 bg-primary-50/60 dark:border-primary-800 dark:bg-primary-900/10'}`}>
++   <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-semibold">Lieu du chantier</h3>{missing&&<span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">À compléter avec le client</span>}</div>
++   {l.siteName&&<p className="mt-2 text-lg font-semibold">{l.siteName}</p>}
++   <dl className="mt-3 grid gap-3 sm:grid-cols-2"><div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Ville / secteur</dt><dd className={`mt-1 text-base font-semibold ${!l.city?'text-amber-700 dark:text-amber-300':''}`}>{l.city||'Ville non précisée'}</dd></div><div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Adresse du chantier</dt><dd className={`mt-1 break-words font-medium ${!l.address?'text-amber-700 dark:text-amber-300':''}`}>{l.address||'Adresse exacte à demander'}</dd></div></dl>
++   {l.origin&&<p className="mt-2 text-xs text-slate-500">{l.origin}</p>}
++   {missing&&<button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(question);setCopied(true)}catch{setCopied(false)}}} className="mt-3 text-sm font-medium text-primary-700 dark:text-primary-300">{copied?'Question copiée pour le client ✓':'Copier la question pour demander le lieu'}</button>}
++ </section>
++}
