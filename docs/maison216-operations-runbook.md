@@ -646,3 +646,44 @@ sur Overview dans tsconfig.app.json. Rendu vérifié dans la vue d'ensemble.
 Patch deploy/leadscentral-opportunity-counts.patch ; test deploy/test-opportunity-counts.cjs,
 à exécuter dans server avec compilation dist-network-counts-20261026. Sauvegarde
 /home/leadsc/backups/network-counts-before-20261026.tar.gz ; preuve D:/Network-counts/compteurs-sites.png.
+
+
+## 26/10/2026 — Medina Construction, DelphiProd et Nadhefni
+
+Walid a confirmé le périmètre : fiches organisées + opportunités réseau pour les trois sites.
+Destinations ajoutées : Medina 1045c531-5902-4bbc-b6b9-8fbc7fd9d589, DelphiProd
+77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed, Nadhefni 45941402-86db-49d8-8152-6ceeebaac799.
+Sources : sites TN du même propriétaire (TuniBusiness, Maison216, Litorra, Medina, DelphiProd,
+Nadhefni, Tunibois), hors destination elle-même. Maison216/Litorra conservent leurs sources/règles.
+Même cycle validation admin, texte partagé révisable, fichiers sélectionnés, PDF/ZIP, copie
+WhatsApp et confirmation manuelle de transmission. Unicité et séparation par destination conservées.
+Aucune proposition approuvée ni envoyée pendant les tests ; pas de génération d'images ajoutée
+automatiquement sur ces nouvelles destinations.
+
+Qualification : Medina construction/rénovation/étanchéité/maçonnerie/façades/peinture et balcons ;
+fourniture seule de matériaux et partenariats écartés. Delphi photo/vidéo professionnelle,
+films/podcasts/couverture médiatique ; photos jointes de matériel, travaux d'isolation d'un studio,
+mariages et candidatures ne constituent pas des besoins B2B de production. Nadhefni prestations
+nettoyage, fin de chantier, bureaux, textiles, surfaces/industrie ; achats de machines/produits et
+nettoyage préparatoire d'un support relevant du lot peinture exclus. Les projets globaux sont
+signalés, sans confondre budget total et prix du lot. Ce sont des suggestions à valider.
+
+Fiches directes ServiceDossier : besoin lisible, lieu adapté (chantier/projet/intervention),
+coordonnées, surface/fréquence/date/budget effectivement mentionnés, fichiers consultables dans
+la fiche, original conservé et préparation de réponse repliée. Demandes de catalogue distinguées
+des travaux à chiffrer. Aucune ville/adresse inventée, question de précision neutre sans imposer
+une visite quand le client demande une estimation à distance. Les autres fiches restent intactes.
+
+Pièces des e-mails Medina via nouveau proxy privé attachments/:documentId : propriétaire et site,
+périmètres du compte, rattachement document, realpath sous uploads/mail, limite 25 Mo, no-store.
+Images et PDF avec aperçu ; téléchargement conservé. Pas d'exposition de nouveaux liens publics.
+Tests simulés : trois destinations, compteurs, validation indépendante, export et documents
+scopés, chemin hors racine rejeté ; régression Maison216/Litorra passée. Positifs/négatifs métier
+contrôlés. TypeScript serveur/Vite réussis, aucun diagnostic nouveau sur composants concernés.
+En production sur 90 jours : Medina 3 fiches/4 demandes, Nadhefni 3 fiches/3 demandes, Delphi 0
+correspondance (module actif et demandes directes séparées). PDF Medina testé 200/372359 octets,
+anonyme 401, document inexistant 404. Fiches des trois sites vérifiées dans le navigateur.
+
+Patch deploy/leadscentral-three-sites.patch et tests deploy/test-three-sites.cjs (server,
+dist-three-sites-20261026). Pas de migration SQL requise. Sauvegarde
+/home/leadsc/backups/network-three-sites-before-20261026.tar.gz. Preuves D:/Network-three-sites.

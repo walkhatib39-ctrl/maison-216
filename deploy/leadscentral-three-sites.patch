@@ -1,0 +1,339 @@
+--- a/server/src/lib/networkPolicy.ts
++++ b/server/src/lib/networkPolicy.ts
+@@ -1,16 +1,25 @@
++import {serviceQualification} from './serviceQualification'
+ import {projectLocation} from './projectLocation'
+ import {litorraQualification} from './litorraQualification'
+ import { createHash } from 'crypto'
+ export const MAISON = 'b4a9bcd7-8813-4206-aa2c-525e3d525b9c'
+ export const SOURCES = ['4fa0895f-2f2f-4c1b-aaea-dac2af0a0064','1045c531-5902-4bbc-b6b9-8fbc7fd9d589']
+ export const LITORRA='b1043142-f5fa-480c-a76e-ba0cf97b341f'
++export const MEDINA='1045c531-5902-4bbc-b6b9-8fbc7fd9d589'
++export const DELPHI='77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed'
++export const NADHEFNI='45941402-86db-49d8-8152-6ceeebaac799'
++export const TN_NETWORK=[...SOURCES,MAISON,LITORRA,DELPHI,NADHEFNI,'d455c491-b9bc-4449-bec2-e06bd2c87d14']
+ export const DESTINATIONS:Record<string,{name:string;sources:string[]}>= {
++ [MEDINA]:{name:'Medina Construction',sources:TN_NETWORK.filter(id=>id!==MEDINA)},
++ [DELPHI]:{name:'DelphiProd',sources:TN_NETWORK.filter(id=>id!==DELPHI)},
++ [NADHEFNI]:{name:'Nadhefni',sources:TN_NETWORK.filter(id=>id!==NADHEFNI)},
+  [MAISON]:{name:'Maison216',sources:SOURCES},
+  [LITORRA]:{name:'Litorra',sources:[...SOURCES,MAISON]},
+ }
+ const plain=(v:any)=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+ export function original(lead:any) {const r=lead.metadata?.raw;return r?.origin==='tunibusiness-v1' ? [r.title,r.description,...(r.items||[]).map((i:any)=>[i.label,i.spec].filter(Boolean).join(' '))].filter(Boolean).join('\n\n') : lead.message||''}
+ export function qualify(lead:any,destination:string=MAISON):any {
++ if([MEDINA,DELPHI,NADHEFNI].includes(destination)){const q=serviceQualification(original(lead),lead.service||'',destination===MEDINA?'medina':destination===DELPHI?'delphi':'nadhefni',lead.metadata?.raw||{});if(q&&lead.date&&Date.now()-new Date(lead.date).getTime()>30*86400000)q.warning=[q.warning,'Demande de plus d’un mois : confirmer que le besoin est toujours actuel.'].filter(Boolean).join(' ');return q}
+  if(destination===LITORRA){const q=litorraQualification(original(lead),lead.service||'',lead.metadata?.raw||{});if(q&&lead.date&&Date.now()-new Date(lead.date).getTime()>30*86400000)q.warning=[q.warning,'Demande de plus d’un mois : confirmer que le besoin est toujours actuel.'].filter(Boolean).join(' ');return q}
+  const text=original(lead), t=plain(text),r=lead.metadata?.raw||{}
+  if (/m216-test|test crm|test technique|ne pas traiter|demande test|ceci est un test|test integration|test automatique/.test(t))return null
+--- a/server/src/routes/dashboard.ts
++++ b/server/src/routes/dashboard.ts
+@@ -1,3 +1,4 @@
++import {registerDirectLeadDocuments} from './directLeadDocuments'
+ import {registerLeadInspirations} from './leadInspirations'
+ import { registerNetworkOpportunities } from './networkOpportunities'
+ import { registerTunibusinessDocuments } from './tunibusinessDocuments'
+@@ -43,6 +44,7 @@
+     // Autorisé : lire ses leads + mettre à jour le suivi d'un de ses leads. Rien d'autre.
+     const allowed =
+       /\/site\/[^/]+\/network-opportunities(?:\/.*)?$/.test(pathname) ||
++      /\/site\/[^/]+\/lead\/[^/]+\/attachments\/[^/]+$/.test(pathname) ||
+       /\/site\/[^/]+\/leads$/.test(pathname) ||
+       /\/site\/[^/]+\/lead\/[^/]+\/followup$/.test(pathname)
+     if (!allowed) {
+@@ -53,6 +55,7 @@
+   registerTunibusinessDocuments(app)
+   registerNetworkOpportunities(app)
+   registerLeadInspirations(app)
++  registerDirectLeadDocuments(app)
+ 
+   // WeCleaned: the actual sent archive, not old contact forms. PDFs stay authenticated.
+   app.get('/site/:id/sent-quotes', async (request, reply) => {
+--- a/client/src/lib/networkTargets.ts
++++ b/client/src/lib/networkTargets.ts
+@@ -1,6 +1,9 @@
+ export const MAISON_NETWORK='b4a9bcd7-8813-4206-aa2c-525e3d525b9c'
+ export const LITORRA_NETWORK='b1043142-f5fa-480c-a76e-ba0cf97b341f'
+ export const NETWORK_TARGETS:Record<string,{name:string;sources:string}>={
++ ['1045c531-5902-4bbc-b6b9-8fbc7fd9d589']:{name:'Medina Construction',sources:'TuniBusiness, Maison216, Litorra, DelphiProd, Nadhefni et Tunibois'},
++ ['77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed']:{name:'DelphiProd',sources:'TuniBusiness, MedinaConstruction, Maison216, Litorra, Nadhefni et Tunibois'},
++ ['45941402-86db-49d8-8152-6ceeebaac799']:{name:'Nadhefni',sources:'TuniBusiness, MedinaConstruction, Maison216, Litorra, DelphiProd et Tunibois'},
+  [MAISON_NETWORK]:{name:'Maison216',sources:'TuniBusiness et MedinaConstruction'},
+  [LITORRA_NETWORK]:{name:'Litorra',sources:'MedinaConstruction, Maison216 et TuniBusiness'},
+ }
+--- a/client/src/components/NetworkOpportunities.tsx
++++ b/client/src/components/NetworkOpportunities.tsx
+@@ -63,7 +63,7 @@
+         <h3 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">{active.lot}</h3>
+         <p className="mt-2 font-medium">{active.name||'Contact à préciser'}</p><p className="mt-1 text-xs text-slate-500">{active.sourceSite} · {date(active.date)} · {active.reference.startsWith('mail-')?'Demande reçue par e-mail':active.reference}</p>
+       </header>
+-      <ProjectLocationCard location={active.location||{city:active.city}}/>
++      <ProjectLocationCard location={active.location||{city:active.city}} label={brand==='DelphiProd'?'Lieu du projet':brand==='Nadhefni'?'Lieu d’intervention':'Lieu du chantier'} subject={brand==='DelphiProd'?'projet':brand==='Nadhefni'?'site à nettoyer':'chantier'}/>
+       <section aria-label="Comprendre le besoin">
+         <h3 className="mb-2 text-base font-semibold">Besoin à traiter</h3>
+         <p className="whitespace-pre-wrap break-words leading-relaxed">{readingNeed.length>900?readingNeed.slice(0,900)+'…':readingNeed}</p>
+@@ -85,7 +85,7 @@
+         <p className="text-xs text-slate-500">Le message source reste inchangé. Seuls le besoin validé et les documents cochés seront préparés pour la transmission.</p>
+       </div></details>}
+       {admin&&active.status==='approved'&&<details className="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-900/20"><summary className="cursor-pointer font-semibold">Message WhatsApp prêt à transmettre</summary><textarea aria-label="Message WhatsApp préparé" readOnly value={whatsappText} rows={7} className="mt-2 w-full rounded-lg border bg-white p-3 dark:bg-slate-900 dark:border-slate-700"/><p className="mt-2 text-xs text-slate-500">Téléchargez la fiche PDF ou le ZIP, puis joignez-le dans WhatsApp. Marquez transmis après votre envoi.</p></details>}
+-      {admin&&<LeadInspiration key={destinationId+active.id} leadId={active.id} siteId={active.sourceSiteId} destinationId={destinationId} brief={briefs[active.id]||active.sharedBrief}/>}
++      {admin&&[MAISON_NETWORK,LITORRA_NETWORK].includes(destinationId)&&<LeadInspiration key={destinationId+active.id} leadId={active.id} siteId={active.sourceSiteId} destinationId={destinationId} brief={briefs[active.id]||active.sharedBrief}/>}
+       {active.status==='approved'&&!admin&&<label className="block font-medium">Prochaine action<textarea value={next} onChange={e=>setNext(e.target.value)} rows={2} className="mt-1 w-full rounded-lg border bg-transparent p-2 dark:border-slate-700"/></label>}
+       <details className="text-xs text-slate-500"><summary className="cursor-pointer">Message original et traçabilité</summary><p className="mt-2 whitespace-pre-wrap break-words leading-relaxed">{active.message}</p><p className="mt-2">{active.sourceSite} · Référence : {active.reference}</p>{admin&&<a className="mt-2 inline-block text-primary-600" href={`/site/${active.sourceSiteId}`} target="_blank" rel="noopener noreferrer">Ouvrir le site d’origine ↗</a>}</details>
+     </div>}
+--- a/client/src/components/QuoteRequests.tsx
++++ b/client/src/components/QuoteRequests.tsx
+@@ -1,3 +1,4 @@
++import ServiceDossier, {SERVICE_DOSSIER_SITES} from './ServiceDossier'
+ import ProjectLocationCard from './ProjectLocationCard'
+ import {projectLocation} from '../lib/projectLocation'
+ import LeadInspiration from './LeadInspiration'
+@@ -809,6 +810,8 @@
+   )
+ 
+   const sel = selected
++  const selectedSite=sel?.wp_site?.id||siteId||''
++  const isServiceDossier=SERVICE_DOSSIER_SITES.includes(selectedSite)
+   const selectedGroup = sel ? groupsById.get(sel.id) || [sel] : []
+   const selFu = sel?.followup || {}
+   const selStage = sel?.metadata?.raw?.origin === 'tunibusiness-v1' && (sel.metadata.raw.review_status === 'rejected' || sel.metadata.raw.status === 'cancelled') ? { ...stageOf(selFu), label:'À vérifier', cls:'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200', dot:'#d97706' } : stageOf(selFu)
+@@ -1205,7 +1208,7 @@
+       </div>
+       {/* Détail + suivi */}
+       <Modal
+-        maxWidth={['tunibusiness-v1','maison216-v1'].includes(sel?.metadata?.raw?.origin) ? 'max-w-3xl' : 'max-w-lg'}
++        maxWidth={(['tunibusiness-v1','maison216-v1'].includes(sel?.metadata?.raw?.origin)||isServiceDossier) ? 'max-w-3xl' : 'max-w-lg'}
+         open={!!sel}
+         onClose={() => setSelected(null)}
+         title={
+@@ -1282,7 +1285,7 @@
+                   <Mail className="h-3 w-3" /> Reçue par e-mail
+                 </span>
+               )}
+-              {selIns && !['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin) && (
++              {selIns && !isServiceDossier && !['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin) && (
+                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${PRIORITY_UI[selIns.priority].badge}`} title={selIns.reasons.join(' · ')}>
+                   <Flame className="h-3 w-3" /> Priorité {selIns.priorityLabel}
+                 </span>
+@@ -1299,7 +1302,7 @@
+             )}
+ 
+             {/* 1 — LA DEMANDE */}
+-            {sel.metadata?.raw?.origin === 'maison216-v1' ? <MaisonDossier key={sel.id} lead={sel} siteId={sel.wp_site?.id || siteId || ''}/> : sel.metadata?.raw?.origin === 'tunibusiness-v1' ? <TunibusinessDossier key={sel.id} lead={sel} siteId={sel.wp_site?.id || siteId || ''} /> : (
++            {isServiceDossier ? <ServiceDossier key={sel.id} lead={sel} siteId={selectedSite}/> : sel.metadata?.raw?.origin === 'maison216-v1' ? <MaisonDossier key={sel.id} lead={sel} siteId={sel.wp_site?.id || siteId || ''}/> : sel.metadata?.raw?.origin === 'tunibusiness-v1' ? <TunibusinessDossier key={sel.id} lead={sel} siteId={sel.wp_site?.id || siteId || ''} /> : (
+             <>
+             <ProjectLocationCard location={projectLocation(sel)}/>
+             <Section icon={FileText} title="La demande">
+@@ -1367,7 +1370,7 @@
+             )}
+ 
+             {/* 2 — BESOINS & QUALIFICATION */}
+-            {selIns && !['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin) && (
++            {selIns && !isServiceDossier && !['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin) && (
+               <Section icon={HardHat} title="Besoins & qualification">
+                 {selIns.trades.length > 0 && (
+                   <div>
+@@ -1397,8 +1400,8 @@
+             )}
+ 
+             {/* 3 — RÉPONSE AU CLIENT */}
+-            <details open={!['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin)}>
+-              <summary className={['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin) ? 'cursor-pointer text-sm text-slate-500' : 'hidden'}>Préparer une réponse au client</summary>
++            <details open={!isServiceDossier&&!['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin)}>
++              <summary className={(isServiceDossier||['tunibusiness-v1','maison216-v1'].includes(sel.metadata?.raw?.origin)) ? 'cursor-pointer text-sm text-slate-500' : 'hidden'}>Préparer une réponse au client</summary>
+             <Section icon={Send} title="Réponse au client — demande d'infos">
+               <textarea
+                 value={draftText}
+--- a/client/src/components/ProjectLocationCard.tsx
++++ b/client/src/components/ProjectLocationCard.tsx
+@@ -1,14 +1,14 @@
+ import {useState,useEffect} from 'react'
+-export default function ProjectLocationCard({location}:{location:any}){
++export default function ProjectLocationCard({location,label="Lieu du chantier",subject="chantier"}:{location:any;label?:string;subject?:string}){
+  const [copied,setCopied]=useState(false)
+  const l=location||{},missing=!l.city||!l.address
+  useEffect(()=>setCopied(false),[l.city,l.address,l.siteName])
+  const fields=[!l.city?'la ville':null,!l.address?'l’adresse exacte':null].filter(Boolean).join(' et ')
+- const question=`Bonjour, pouvez-vous préciser ${fields} du chantier${l.siteName?' (« '+l.siteName+' »)':''} et, si possible, nous envoyer sa position ? Cela nous permettra d’organiser la visite et de préparer le devis.`
+- return <section aria-label="Lieu du chantier" className={`rounded-xl border p-4 ${missing?'border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-900/10':'border-primary-200 bg-primary-50/60 dark:border-primary-800 dark:bg-primary-900/10'}`}>
+-   <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-semibold">Lieu du chantier</h3>{missing&&<span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">À compléter avec le client</span>}</div>
++ const question=`Bonjour, pouvez-vous préciser ${fields} du chantier${l.siteName?' (« '+l.siteName+' »)':''} et, si possible, nous envoyer sa position ? Cela nous aidera à préparer le devis et à organiser l’intervention.`
++ return <section aria-label={label} className={`rounded-xl border p-4 ${missing?'border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-900/10':'border-primary-200 bg-primary-50/60 dark:border-primary-800 dark:bg-primary-900/10'}`}>
++   <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-base font-semibold">{label}</h3>{missing&&<span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">À compléter avec le client</span>}</div>
+    {l.siteName&&<p className="mt-2 text-lg font-semibold">{l.siteName}</p>}
+-   <dl className="mt-3 grid gap-3 sm:grid-cols-2"><div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Ville / secteur</dt><dd className={`mt-1 text-base font-semibold ${!l.city?'text-amber-700 dark:text-amber-300':''}`}>{l.city||'Ville non précisée'}</dd></div><div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Adresse du chantier</dt><dd className={`mt-1 break-words font-medium ${!l.address?'text-amber-700 dark:text-amber-300':''}`}>{l.address||'Adresse exacte à demander'}</dd></div></dl>
++   <dl className="mt-3 grid gap-3 sm:grid-cols-2"><div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Ville / secteur</dt><dd className={`mt-1 text-base font-semibold ${!l.city?'text-amber-700 dark:text-amber-300':''}`}>{l.city||'Ville non précisée'}</dd></div><div><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">Adresse du {subject}</dt><dd className={`mt-1 break-words font-medium ${!l.address?'text-amber-700 dark:text-amber-300':''}`}>{l.address||'Adresse exacte à demander'}</dd></div></dl>
+    {l.origin&&<p className="mt-2 text-xs text-slate-500">{l.origin}</p>}
+    {missing&&<button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(question);setCopied(true)}catch{setCopied(false)}}} className="mt-3 text-sm font-medium text-primary-700 dark:text-primary-300">{copied?'Question copiée pour le client ✓':'Copier la question pour demander le lieu'}</button>}
+  </section>
+--- a/client/src/pages/SiteDetail.tsx
++++ b/client/src/pages/SiteDetail.tsx
+@@ -1,3 +1,4 @@
++import {NETWORK_TARGETS} from '../lib/networkTargets'
+ 
+ import { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react'
+ import { useParams, useNavigate, Navigate } from 'react-router-dom'
+@@ -581,7 +582,7 @@
+                   </>
+                 ) : (
+                   <>
+-                    <HeroStat label={['b4a9bcd7-8813-4206-aa2c-525e3d525b9c','b1043142-f5fa-480c-a76e-ba0cf97b341f'].includes(siteId||'') ? 'Demandes du site' : 'Leads'} value={formatNumber(data.kpis.leads)} delta={prevKpis ? pct(data.kpis.leads, prevKpis.leads) : undefined} />
++                    <HeroStat label={!!NETWORK_TARGETS[siteId||''] ? 'Demandes du site' : 'Leads'} value={formatNumber(data.kpis.leads)} delta={prevKpis ? pct(data.kpis.leads, prevKpis.leads) : undefined} />
+                     {data.site.hasCalls && <HeroStat label="Appels" value={formatNumber(data.kpis.calls)} delta={prevKpis ? pct(data.kpis.calls, prevKpis.calls) : undefined} />}
+                     {data.site.is_booking_site ? (
+                       <>
+--- /dev/null
++++ b/server/src/lib/serviceQualification.ts
+@@ -0,0 +1,42 @@
++const norm=(s:any)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function serviceQualification(text:string,service:string,brand:'medina'|'delphi'|'nadhefni',raw:any={}){
++ const t=norm(text),heading=norm(service+' '+(raw.title||''))
++ if(/test crm|test technique|ne pas traiter|ne pas contacter|demande test|ceci est un test|test integration|m216-test/.test(t))return null
++ if(/mon compte ou mon entreprise|candidature|demande de stage/.test(heading)||/proposer.{0,40}collaboration|explorer.{0,40}collaboration|relations? de partenariat|proposition de representation|representation commerciale|شراكة تجارية|proposons nos services|trouver de nouveaux clients|recherche d.emploi/.test(t))return null
++ const lots:{label:string;evidence:string}[]=[]
++ const add=(label:string,re:RegExp)=>{for(const m of t.matchAll(new RegExp(re.source,'g'))){const i=m.index||0;const near=t.slice(Math.max(0,i-70),i+100);if(brand==='nadhefni'&&/preparation du support|colmatage|avant application/.test(near))continue;if(label==='Construction et extension de bâtiment'&&/actuellement en construction/.test(near))continue;if(/(?:sans|pas de|aucun|hors)\s+(?:[a-z]+\s+){0,2}$/.test(t.slice(Math.max(0,i-45),i)))continue;const start=text.lastIndexOf('\n',i)+1,end=text.indexOf('\n',i);const excerpt=text.slice(start,end<0?text.length:end).trim().replace(/\s+/g,' ');lots.push({label,evidence:excerpt.length>450?'… '+text.slice(Math.max(start,i-60),i+250).replace(/\s+/g,' ')+'…':excerpt});break}}
++ if(brand==='medina'){
++   if(/achat de peinture|acheter.{0,20}peinture|fourniture de peinture/.test(t)&&!/travaux de peinture|application|main.d.oeuvre|peindre/.test(t))return null
++   if(/materiaux de construction|machine.*construction|echafaudage|centrale a beton/.test(t)&&/achat|acheter|fournisseur|prix unitaire/.test(t)&&!/construire|faire construire|travaux de|pose|installation/.test(t))return null
++   add('Construction et extension de bâtiment',/\bconstruire\b|construction.{0,35}(?:maison|villa|immeuble|batiment|etage|extension)|extension.{0,25}(?:maison|batiment|etage)|بناء/)
++   add('Installation de balcons et structures',/balcons? suspendus|installation.{0,25}(?:balcon|structure metallique)/)
++   add('Rénovation et aménagement de locaux',/renovation.{0,35}(?:maison|appartement|batiment|local|bureaux)|reamenagement.{0,35}(?:local|batiment|etage|appartement)|travaux d.amenagement|ترميم/)
++   add('Travaux de peinture et façades',/travaux de peinture|peinture de.{0,25}etages?|peinture des murs|renovation.{0,25}facades?/)
++   add('Gros œuvre et maçonnerie',/gros.oeuvre|maconnerie|demolition|fondations?|construction.{0,25}dalle|couler.{0,25}dalle|beton arme/)
++   add('Étanchéité et isolation',/travaux d.etancheite|reparation.{0,30}infiltration|etancheite.{0,20}(?:toit|terrasse)|travaux d.isolation|isolation.{0,20}(?:thermique|phonique|acoustique)/)
++   add('Pose et rénovation de revêtements',/pose.{0,20}carrelage|refection.{0,25}(?:sol|murs)|renovation.{0,20}(?:sol|facade)|travaux.{0,20}revetement/)
++   // Supply or made-to-measure furniture alone belongs to a specialist workshop.
++   if(lots.length===1&&lots[0].label.startsWith('Rénovation')&&/meubles?|dressing|portes|fenetres/.test(t)&&!/maconnerie|plomberie|electricite|demolition|carrelage|isolation/.test(t))return null
++ }else if(brand==='delphi'){
++   if(/mariage|fiancailles|bapteme|anniversaire.{0,15}(?:enfant|fille|fils)/.test(t))return null
++   if(/isolation|insonorisation|acoustique|travaux d.amenagement/.test(t)&&/studio/.test(t)&&!/realiser.{0,20}(?:video|film)|recherche.{0,30}(?:videaste|photographe|cameraman)/.test(t))return null
++   add('Photographie professionnelle',/\bphotographes?\b|shooting.{0,15}(?:photo|produit)|photos?\s+(?:professionnel(?:le)?s?|publicitaires?|de produits|produits)|photographie.{0,20}(?:produit|corporate|entreprise|industriel)/)
++   add('Production vidéo / film',/\bvideastes?\b|\bcameram[ae]n\b|realiser.{0,30}(?:videos?|films?)|production.{0,15}(?:video|audiovisuelle)|film institutionnel|film d.entreprise|tournage.{0,20}(?:publicitaire|video|film)/)
++   add('Couverture photo / vidéo d’événement',/couverture.{0,30}(?:photo|video|mediatique)|filmer.{0,30}(?:conference|workshop|evenement|salon)/)
++   add('Podcast et interviews vidéo',/realiser.{0,25}podcast|enregistrement.{0,25}podcast|interview.{0,15}video|studio.{0,20}podcast/)
++ }else{
++   if(/machine(?:s)? (?:de nettoyage|a laver)|equipements? de nettoyage|produits? de nettoyage|consommables? de nettoyage/.test(t)&&/achat|acheter|fournisseur|fourniture|equiper|equipements neufs|devis detaille pour/.test(t)&&!/prestation de nettoyage|nettoyage de.{0,20}(?:machines?|bureaux)|equipe de nettoyage/.test(t))return null
++   add('Nettoyage de fin de chantier',/nettoyage.{0,25}(?:fin de chantier|apres travaux|du chantier)|nettoyer.{0,25}(?:chantier|apres travaux)/)
++   add('Nettoyage de bureaux et locaux',/nettoyage.{0,35}(?:bureaux|locaux|magasin|usine|entreprise)|\bmenage\b.{0,25}(?:bureaux|locaux)|entretien.{0,25}(?:bureaux|locaux)/)
++   add('Nettoyage de mobilier et textiles',/nettoyage.{0,25}(?:canape|salon|tapis|moquette|matelas)|nettoyer.{0,25}(?:canape|tapis|moquette|matelas)/)
++   add('Nettoyage technique et surfaces',/nettoyage.{0,35}(?:vitres|vitrage|facade|industriel|machines|conduites|inox)|cristallisation.{0,20}marbre|\bdesinfection\b/)
++   if(!lots.length)add('Prestation de nettoyage — à préciser',/\bnettoyage\b|\bnettoyer\b|\bmenage\b|تنظيف/)
++ }
++ if(brand==='nadhefni'&&lots.some(l=>l.label==='Nettoyage de fin de chantier')){const i=lots.findIndex(l=>l.label==='Nettoyage de bureaux et locaux');if(i>=0)lots.splice(i,1)}
++ if(!lots.length)return null
++ const mixed=brand!=='medina'&&/plomberie|electricite|maconnerie|renovation|gros oeuvre|cles? en main/.test(t)
++ const warning=[raw.review_status==='rejected'||raw.status==='cancelled'?'Refusée ou annulée à la source : vérifier avant proposition.':raw.review_status==='pending'||raw.status==='draft'?'Demande non validée à la source : vérifier avant proposition.':null,mixed?'Projet global : seul le lot proposé est concerné, pas le budget total du chantier.':null,brand==='delphi'?'Vérifier le cadre professionnel B2B, le format, le lieu et la date avant de proposer.':null].filter(Boolean).join(' ')
++ const brandName=brand==='medina'?'Medina Construction':brand==='delphi'?'DelphiProd':'Nadhefni'
++ const label=lots.map(l=>l.label).join(' · '),excerpts=[...new Set(lots.map(l=>l.evidence))]
++ return {lots,kind:mixed?'lot':'work',kindLabel:mixed?'Lot dans un projet global':'Projet à qualifier',warning:warning||null,defaultBrief:`Lot proposé à ${brandName} : ${label}.\n${mixed?'La demande comprend plusieurs métiers ; nous transmettons uniquement le lot proposé.\n':''}\nExtraits du besoin à confirmer :\n${excerpts.join('\n')}`}
++}
+--- /dev/null
++++ b/client/src/lib/serviceQualification.ts
+@@ -0,0 +1,42 @@
++const norm=(s:any)=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
++export function serviceQualification(text:string,service:string,brand:'medina'|'delphi'|'nadhefni',raw:any={}){
++ const t=norm(text),heading=norm(service+' '+(raw.title||''))
++ if(/test crm|test technique|ne pas traiter|ne pas contacter|demande test|ceci est un test|test integration|m216-test/.test(t))return null
++ if(/mon compte ou mon entreprise|candidature|demande de stage/.test(heading)||/proposer.{0,40}collaboration|explorer.{0,40}collaboration|relations? de partenariat|proposition de representation|representation commerciale|شراكة تجارية|proposons nos services|trouver de nouveaux clients|recherche d.emploi/.test(t))return null
++ const lots:{label:string;evidence:string}[]=[]
++ const add=(label:string,re:RegExp)=>{for(const m of t.matchAll(new RegExp(re.source,'g'))){const i=m.index||0;const near=t.slice(Math.max(0,i-70),i+100);if(brand==='nadhefni'&&/preparation du support|colmatage|avant application/.test(near))continue;if(label==='Construction et extension de bâtiment'&&/actuellement en construction/.test(near))continue;if(/(?:sans|pas de|aucun|hors)\s+(?:[a-z]+\s+){0,2}$/.test(t.slice(Math.max(0,i-45),i)))continue;const start=text.lastIndexOf('\n',i)+1,end=text.indexOf('\n',i);const excerpt=text.slice(start,end<0?text.length:end).trim().replace(/\s+/g,' ');lots.push({label,evidence:excerpt.length>450?'… '+text.slice(Math.max(start,i-60),i+250).replace(/\s+/g,' ')+'…':excerpt});break}}
++ if(brand==='medina'){
++   if(/achat de peinture|acheter.{0,20}peinture|fourniture de peinture/.test(t)&&!/travaux de peinture|application|main.d.oeuvre|peindre/.test(t))return null
++   if(/materiaux de construction|machine.*construction|echafaudage|centrale a beton/.test(t)&&/achat|acheter|fournisseur|prix unitaire/.test(t)&&!/construire|faire construire|travaux de|pose|installation/.test(t))return null
++   add('Construction et extension de bâtiment',/\bconstruire\b|construction.{0,35}(?:maison|villa|immeuble|batiment|etage|extension)|extension.{0,25}(?:maison|batiment|etage)|بناء/)
++   add('Installation de balcons et structures',/balcons? suspendus|installation.{0,25}(?:balcon|structure metallique)/)
++   add('Rénovation et aménagement de locaux',/renovation.{0,35}(?:maison|appartement|batiment|local|bureaux)|reamenagement.{0,35}(?:local|batiment|etage|appartement)|travaux d.amenagement|ترميم/)
++   add('Travaux de peinture et façades',/travaux de peinture|peinture de.{0,25}etages?|peinture des murs|renovation.{0,25}facades?/)
++   add('Gros œuvre et maçonnerie',/gros.oeuvre|maconnerie|demolition|fondations?|construction.{0,25}dalle|couler.{0,25}dalle|beton arme/)
++   add('Étanchéité et isolation',/travaux d.etancheite|reparation.{0,30}infiltration|etancheite.{0,20}(?:toit|terrasse)|travaux d.isolation|isolation.{0,20}(?:thermique|phonique|acoustique)/)
++   add('Pose et rénovation de revêtements',/pose.{0,20}carrelage|refection.{0,25}(?:sol|murs)|renovation.{0,20}(?:sol|facade)|travaux.{0,20}revetement/)
++   // Supply or made-to-measure furniture alone belongs to a specialist workshop.
++   if(lots.length===1&&lots[0].label.startsWith('Rénovation')&&/meubles?|dressing|portes|fenetres/.test(t)&&!/maconnerie|plomberie|electricite|demolition|carrelage|isolation/.test(t))return null
++ }else if(brand==='delphi'){
++   if(/mariage|fiancailles|bapteme|anniversaire.{0,15}(?:enfant|fille|fils)/.test(t))return null
++   if(/isolation|insonorisation|acoustique|travaux d.amenagement/.test(t)&&/studio/.test(t)&&!/realiser.{0,20}(?:video|film)|recherche.{0,30}(?:videaste|photographe|cameraman)/.test(t))return null
++   add('Photographie professionnelle',/\bphotographes?\b|shooting.{0,15}(?:photo|produit)|photos?\s+(?:professionnel(?:le)?s?|publicitaires?|de produits|produits)|photographie.{0,20}(?:produit|corporate|entreprise|industriel)/)
++   add('Production vidéo / film',/\bvideastes?\b|\bcameram[ae]n\b|realiser.{0,30}(?:videos?|films?)|production.{0,15}(?:video|audiovisuelle)|film institutionnel|film d.entreprise|tournage.{0,20}(?:publicitaire|video|film)/)
++   add('Couverture photo / vidéo d’événement',/couverture.{0,30}(?:photo|video|mediatique)|filmer.{0,30}(?:conference|workshop|evenement|salon)/)
++   add('Podcast et interviews vidéo',/realiser.{0,25}podcast|enregistrement.{0,25}podcast|interview.{0,15}video|studio.{0,20}podcast/)
++ }else{
++   if(/machine(?:s)? (?:de nettoyage|a laver)|equipements? de nettoyage|produits? de nettoyage|consommables? de nettoyage/.test(t)&&/achat|acheter|fournisseur|fourniture|equiper|equipements neufs|devis detaille pour/.test(t)&&!/prestation de nettoyage|nettoyage de.{0,20}(?:machines?|bureaux)|equipe de nettoyage/.test(t))return null
++   add('Nettoyage de fin de chantier',/nettoyage.{0,25}(?:fin de chantier|apres travaux|du chantier)|nettoyer.{0,25}(?:chantier|apres travaux)/)
++   add('Nettoyage de bureaux et locaux',/nettoyage.{0,35}(?:bureaux|locaux|magasin|usine|entreprise)|\bmenage\b.{0,25}(?:bureaux|locaux)|entretien.{0,25}(?:bureaux|locaux)/)
++   add('Nettoyage de mobilier et textiles',/nettoyage.{0,25}(?:canape|salon|tapis|moquette|matelas)|nettoyer.{0,25}(?:canape|tapis|moquette|matelas)/)
++   add('Nettoyage technique et surfaces',/nettoyage.{0,35}(?:vitres|vitrage|facade|industriel|machines|conduites|inox)|cristallisation.{0,20}marbre|\bdesinfection\b/)
++   if(!lots.length)add('Prestation de nettoyage — à préciser',/\bnettoyage\b|\bnettoyer\b|\bmenage\b|تنظيف/)
++ }
++ if(brand==='nadhefni'&&lots.some(l=>l.label==='Nettoyage de fin de chantier')){const i=lots.findIndex(l=>l.label==='Nettoyage de bureaux et locaux');if(i>=0)lots.splice(i,1)}
++ if(!lots.length)return null
++ const mixed=brand!=='medina'&&/plomberie|electricite|maconnerie|renovation|gros oeuvre|cles? en main/.test(t)
++ const warning=[raw.review_status==='rejected'||raw.status==='cancelled'?'Refusée ou annulée à la source : vérifier avant proposition.':raw.review_status==='pending'||raw.status==='draft'?'Demande non validée à la source : vérifier avant proposition.':null,mixed?'Projet global : seul le lot proposé est concerné, pas le budget total du chantier.':null,brand==='delphi'?'Vérifier le cadre professionnel B2B, le format, le lieu et la date avant de proposer.':null].filter(Boolean).join(' ')
++ const brandName=brand==='medina'?'Medina Construction':brand==='delphi'?'DelphiProd':'Nadhefni'
++ const label=lots.map(l=>l.label).join(' · '),excerpts=[...new Set(lots.map(l=>l.evidence))]
++ return {lots,kind:mixed?'lot':'work',kindLabel:mixed?'Lot dans un projet global':'Projet à qualifier',warning:warning||null,defaultBrief:`Lot proposé à ${brandName} : ${label}.\n${mixed?'La demande comprend plusieurs métiers ; nous transmettons uniquement le lot proposé.\n':''}\nExtraits du besoin à confirmer :\n${excerpts.join('\n')}`}
++}
+--- /dev/null
++++ b/server/src/routes/directLeadDocuments.ts
+@@ -0,0 +1,28 @@
++import type {FastifyInstance} from 'fastify'
++import {prisma} from '../db'
++import {dataOwnerId} from '../auth/scope'
++import {documents,MEDINA,DELPHI,NADHEFNI,allowedByScope} from '../lib/networkPolicy'
++import {mailDir} from '../lib/uploads'
++import fs from 'fs/promises'
++import path from 'path'
++export function registerDirectLeadDocuments(app:FastifyInstance){
++ app.get('/site/:id/lead/:leadId/attachments/:documentId',async(req,reply)=>{
++   reply.header('Cache-Control','private, no-store').header('X-Content-Type-Options','nosniff')
++   const user=await prisma.user.findUnique({where:{id:req.user.sub}});if(!user)return reply.code(403).send({error:'Accès refusé'})
++   const {id,leadId,documentId}=req.params as any
++   const scopes=[user.scopeSiteId,...(Array.isArray(user.scopeSiteIds)?user.scopeSiteIds:[])];if(user.role!=='admin'&&!scopes.includes(id))return reply.code(403).send({error:'Accès non autorisé à ce site'})
++   if(![MEDINA,DELPHI,NADHEFNI].includes(id))return reply.code(404).send({error:'Site introuvable'})
++   const lead=await prisma.lead.findFirst({where:{id:leadId,wpSiteId:id,userId:dataOwnerId(req)}})
++   if(!lead)return reply.code(404).send({error:'Demande introuvable'})
++   if(user.role!=='admin'&&!allowedByScope(lead,user))return reply.code(403).send({error:'Accès non autorisé à cette demande'})
++   const doc=documents(lead).find((d:any)=>d.id===documentId)
++   if(!doc||doc.kind!=='mail')return reply.code(404).send({error:'Document non rattaché à cette demande'})
++   try{
++     const relative=decodeURIComponent(doc.path.slice('/uploads/mail/'.length));if(relative.split('/').includes('..')||relative.includes('\\'))return reply.code(400).send({error:'Chemin invalide'})
++     const root=await fs.realpath(mailDir),file=await fs.realpath(path.resolve(root,relative));if(!file.startsWith(root+path.sep))return reply.code(404).send({error:'Document invalide'})
++     if((await fs.stat(file)).size>25*1024*1024)return reply.code(413).send({error:'Document trop volumineux'})
++     const mime=doc.mime||'application/octet-stream',inline=['image/jpeg','image/png','image/webp','image/gif','application/pdf'].includes(mime)
++     return reply.type(inline?mime:'application/octet-stream').header('Content-Disposition',`${inline?'inline':'attachment'}; filename*=UTF-8''${encodeURIComponent(String(doc.name).replace(/[\r\n\\/]/g,'_'))}`).send(await fs.readFile(file))
++   }catch{return reply.code(404).send({error:'Document indisponible'})}
++ })
++}
+--- /dev/null
++++ b/client/src/components/ServiceDossier.tsx
+@@ -0,0 +1,31 @@
++import {useEffect,useState} from 'react'
++import {apiClient} from '../lib/apiClient'
++import ProjectLocationCard from './ProjectLocationCard'
++import {projectLocation,requestBody} from '../lib/projectLocation'
++import {serviceQualification} from '../lib/serviceQualification'
++import PrivatePdfPreview from './PrivatePdfPreview'
++export const SERVICE_DOSSIER_SITES=['1045c531-5902-4bbc-b6b9-8fbc7fd9d589','77a1f3eb-9912-4b7c-96f4-d4e5f82d06ed','45941402-86db-49d8-8152-6ceeebaac799']
++function Attachment({doc,base}:{doc:any;base:string}){
++ const [preview,setPreview]=useState<any>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false)
++ useEffect(()=>()=>{if(preview)URL.revokeObjectURL(preview.url)},[preview?.url])
++ async function open(download=false){setBusy(true);setError('');try{const r=await apiClient.get(base+'/'+doc.id,{responseType:'blob'}),mime=String(r.headers['content-type']||'').split(';')[0],url=URL.createObjectURL(new Blob([r.data],{type:mime}));if(!download&&['application/pdf','image/jpeg','image/png','image/webp','image/gif'].includes(mime))setPreview({url,mime});else{const a=document.createElement('a');a.href=url;a.download=doc.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}}catch{setError('Fichier indisponible ou accès non autorisé.')}finally{setBusy(false)}}
++ return <article className="rounded-xl border border-slate-200 p-3 dark:border-slate-700"><p className="break-words font-medium">{doc.name}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" disabled={busy} onClick={()=>open()} className="rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white">{busy?'Chargement…':'Consulter'}</button><button type="button" disabled={busy} onClick={()=>open(true)} className="rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">Télécharger</button></div>{error&&<p role="alert" className="mt-2 text-red-600">{error}</p>}{preview&&(preview.mime==='application/pdf'?<PrivatePdfPreview url={preview.url} name={doc.name}/>:<a href={preview.url} target="_blank" rel="noopener noreferrer"><img className="mt-3 max-h-96 w-full rounded-lg object-contain" src={preview.url} alt={doc.name}/></a>)}</article>
++}
++function Text({text}:{text:string}){return <p dir="auto" className="whitespace-pre-wrap break-words leading-relaxed">{text.split(/(https?:\/\/[^\s<>]+)/g).map((s,i)=>/^https?:\/\//.test(s)?<a key={i} className="break-all text-primary-600 underline" href={s} target="_blank" rel="noopener noreferrer">{s}</a>:s)}</p>}
++export default function ServiceDossier({lead,siteId}:{lead:any;siteId:string}){
++ const raw=lead.metadata?.raw||{},metadata=lead.metadata||{},brand=siteId===SERVICE_DOSSIER_SITES[0]?'medina':siteId===SERVICE_DOSSIER_SITES[1]?'delphi':'nadhefni'
++ const original=String(lead.message||''),body=requestBody(lead).split(/\nInformations de la demande\n/i)[0].trim(),qualification=serviceQualification(body,lead.service||'',brand,raw)
++ const catalogue=/téléchargement du catalogue|telechargement du catalogue|demande de catalogue/i.test(body+' '+(lead.nom||''))
++ const docs:any[]=[],seen=new Set<string>();for(const [i,f] of (metadata.files||[]).entries()){if(typeof f.url==='string'&&f.url.startsWith('/uploads/mail/')){docs.push({id:'f-'+i,name:f.nom||'Document',mime:f.type});seen.add(f.url)}}for(const [i,url] of (metadata.photos||[]).entries()){if(typeof url==='string'&&url.startsWith('/uploads/mail/')&&!seen.has(url)){docs.push({id:'p-'+i,name:decodeURIComponent(url.split('/').pop()||'Photo'),mime:'image/jpeg'});seen.add(url)}}
++ const surface=body.match(/\b\d+(?:[.,]\d+)?\s*m(?:²|2)(?!\d)/i)?.[0],frequency=body.match(/(?:\b\d+|une|deux|trois)\s+fois\s+par\s+(?:jour|semaine|mois)/i)?.[0]
++ const desiredDate=original.match(/^Date souhaitée[^\S\r\n]*:[^\S\r\n]*([^\r\n]*)/im)?.[1]?.trim()
++ return <section className="space-y-5 min-w-0">
++   <header className="rounded-xl bg-primary-50 p-4 dark:bg-primary-900/20"><p className="text-xs font-medium uppercase text-primary-600">{catalogue?'Demande de documentation':'Besoin à traiter'}</p><h3 className="mt-1 text-xl font-semibold">{qualification?.lots.map((l:any)=>l.label).join(' · ')||lead.service||'Demande à préciser'}</h3>{raw.company&&<p className="mt-2 font-medium">{raw.company}</p>}</header>
++   <ProjectLocationCard location={projectLocation(lead)} label={brand==='delphi'?'Lieu du projet':brand==='nadhefni'?'Lieu d’intervention':'Lieu du chantier'} subject={brand==='delphi'?'projet':brand==='nadhefni'?'site à nettoyer':'chantier'}/>
++   <section><h3 className="mb-2 text-base font-semibold">Ce que le client demande</h3><Text text={body||'Le message ne précise pas encore le besoin.'}/></section>
++   {(surface||frequency||desiredDate||raw.budget||raw.client_type)&&<dl className="grid gap-3 rounded-xl border border-slate-200 p-4 sm:grid-cols-2 dark:border-slate-700">{[['Surface mentionnée',surface],['Fréquence souhaitée',frequency],['Date souhaitée',desiredDate],['Budget annoncé',raw.budget],['Type de client',raw.client_type]].filter(([,v])=>v).map(([k,v])=><div key={k}><dt className="text-xs text-slate-500">{k}</dt><dd className="mt-1 font-medium">{v}</dd></div>)}</dl>}
++   <section className="rounded-xl border border-slate-200 p-4 dark:border-slate-700"><h3 className="text-xs font-medium uppercase text-slate-500">Contact client</h3><p className="mt-1 text-lg font-semibold">{catalogue&&/^demande de catalogue/i.test(lead.nom||'')?'Contact par e-mail':lead.nom||'Nom à préciser'}</p><div className="mt-2 flex flex-wrap gap-3">{lead.telephone&&<a className="font-medium text-primary-600" href={`tel:${lead.telephone}`}>{lead.telephone}</a>}{lead.email&&<a className="break-all text-primary-600" href={`mailto:${lead.email}`}>{lead.email}</a>}</div></section>
++   <section><h3 className="mb-2 text-base font-semibold">Photos, plans et documents ({docs.length})</h3><div className="space-y-3">{docs.map(d=><Attachment key={d.id} doc={d} base={`/dashboard/site/${siteId}/lead/${lead.id}/attachments`}/>)}</div>{!docs.length&&<p className="text-sm text-slate-500">Aucun fichier joint disponible dans cette fiche. Les références éventuelles restent accessibles dans le message.</p>}</section>
++   <details className="text-sm text-slate-500"><summary className="cursor-pointer">Message original et informations de la demande</summary><div className="mt-3"><Text text={original}/></div>{raw.source_status&&<p className="mt-2">Statut à la source : {raw.source_status}</p>}</details>
++ </section>
++}
